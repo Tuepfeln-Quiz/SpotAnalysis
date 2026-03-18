@@ -2,4 +2,5 @@
   <Project Path="SpotAnalysis-Api/SpotAnalysis-Api.csproj" />
   <Project Path="ExcelImportExport.Tests/ExcelImportExport.Tests.csproj" />
   <Project Path="ExcelImportExport/ExcelImportExport.csproj" />
+  <Project Path="SpotTest.Web/SpotTest.Web.csproj" Id="a30fe9d9-579b-4b76-980d-b5aea0cd3a54" />
 </Solution>

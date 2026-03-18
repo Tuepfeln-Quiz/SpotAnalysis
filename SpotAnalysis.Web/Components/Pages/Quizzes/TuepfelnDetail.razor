@@ -1,4 +1,4 @@
-@page "/tupfeln/quiz/{QuizId:int}"
+@page "/tuepfeln/quiz/{QuizId:int}"
 @inject NavigationManager Navigation
 
 <PageTitle>@(quiz?.Name ?? "Quiz") – Tüpfeln Digital</PageTitle>
@@ -39,7 +39,7 @@ else if (quizCompleted)
                     <button class="btn btn-primary" @onclick="RestartQuiz">
                         <i class="bi bi-arrow-counterclockwise me-1"></i> Nochmal
                     </button>
-                    <button class="btn btn-outline-secondary" @onclick='() => Navigation.NavigateTo("/tupfeln")'>
+                    <button class="btn btn-outline-secondary" @onclick='() => Navigation.NavigateTo("/tuepfeln")'>
                         <i class="bi bi-arrow-left me-1"></i> Zurück zur Übersicht
                     </button>
                 </div>
@@ -92,8 +92,8 @@ else
                                     borderColor = "#2563eb";
 
                                 <div class="text-center">
-                                    <div class="d-flex align-items-center justify-content-center rounded-3 border"
-                                         style="width: 80px; height: 80px; background-color: @educt.Color; border-color: @borderColor !important; border-width: 3px !important;">
+                                    <div class="d-flex align-items-center justify-content-center rounded-3 border chemical-@(educt.ChemicalTypeName.ToLowerInvariant())"
+                                         style="width: 80px; height: 80px; border-color: @borderColor !important; border-width: 3px !important;">
                                         <span class="fw-bold fs-5">@(idx + 1)</span>
                                     </div>
                                     @if (showSolution || (hasChecked && answerResults.GetValueOrDefault(idx) == false))
@@ -221,8 +221,8 @@ else
 
                             <div class="row g-2 align-items-center mb-2">
                                 <div class="col-auto">
-                                    <div class="d-flex align-items-center justify-content-center rounded-2"
-                                         style="width: 40px; height: 40px; background-color: @educt.Color; border: 1px solid #ccc;">
+                                    <div class="d-flex align-items-center justify-content-center rounded-2 chemical-@(educt.ChemicalTypeName.ToLowerInvariant())"
+                                         style="width: 40px; height: 40px; border: 1px solid #ccc;">
                                         <span class="fw-bold">@(idx + 1)</span>
                                     </div>
                                 </div>
@@ -317,9 +317,9 @@ else
                             <h5 class="fw-bold mb-3"><i class="bi bi-beaker me-2"></i>Zusatzstoffe</h5>
                             @foreach (var chem in question.AvailableChemicals)
                             {
-                                <div class="compound-card mb-2" style="background-color: @chem.Color;">
+                                <div class="compound-card mb-2 chemical-@(chem.ChemicalTypeName.ToLowerInvariant())">
                                     <div class="d-flex align-items-center gap-2">
-                                        <span class="color-dot" style="background-color: @chem.Color; border: 1px solid #ccc;"></span>
+                                        <span class="color-dot chemical-@(chem.ChemicalTypeName.ToLowerInvariant())" style="border: 1px solid #ccc;"></span>
                                         <div>
                                             <strong>@chem.Name</strong>
                                             <br /><small class="text-muted">@chem.Formula</small>
@@ -350,7 +350,7 @@ else
     [Parameter]
     public int QuizId { get; set; }
 
-    private TupfelnQuizViewModel? quiz;
+    private TuepfelnQuizViewModel? quiz;
     private int currentQuestionIndex;
     private bool quizCompleted;
 
@@ -369,7 +369,7 @@ else
     // Ergebnisse pro Frage
     private Dictionary<int, (int correct, int total)> questionScores = new();
 
-    private TupfelnQuestionViewModel CurrentQuestion => quiz!.Questions[currentQuestionIndex];
+    private TuepfelnQuestionViewModel CurrentQuestion => quiz!.Questions[currentQuestionIndex];
 
     private int ProgressPercent => quiz!.Questions.Count > 0
         ? (int)((double)currentQuestionIndex / quiz.Questions.Count * 100)
@@ -377,7 +377,7 @@ else
 
     protected override void OnInitialized()
     {
-        quiz = SeedData.TupfelnQuizzes.FirstOrDefault(q => q.QuizID == QuizId);
+        quiz = SeedData.TuepfelnQuizzes.FirstOrDefault(q => q.QuizID == QuizId);
         if (quiz != null) InitQuestion();
     }
 

@@ -80,9 +80,21 @@
 
                 <div class="row g-3 align-items-center mb-3">
                     <div class="col-auto">
-                        <div class="compound-card" style="background-color: @question.Chemical.Color;">
+                        <div class="compound-card chemical-@(question.Chemical.ChemicalTypeName.ToLowerInvariant())">
                             <strong>@question.Chemical.Name</strong>
                             <br /><small class="text-muted">@question.Chemical.Formula</small>
+                            @if (question.Chemical.MethodOutputs.TryGetValue("Flammenfärbung", out var flame))
+                            {
+                                <br /><small style="color: @FlameColorHelper.GetCssColor(flame);"><FlameIcon /> @flame</small>
+                            }
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <span class="fs-4 text-muted fw-bold">+</span>
+                    </div>
+                    <div class="col-auto">
+                        <div class="p-3 rounded text-center" style="background-color: #e9ecef; border: 2px dashed #adb5bd; min-width: 80px;">
+                            <strong class="fs-4 text-muted">???</strong>
                         </div>
                     </div>
                     <div class="col-auto">
@@ -119,6 +131,10 @@
                                 disabled="@hasChecked">
                             <strong>@reaction.Chemical1Name + @reaction.Chemical2Name</strong>
                             <br /><small>→ @reaction.RelevantProduct (@reaction.Formula)</small>
+                            @if (reaction.ImagePath != null)
+                            {
+                                <img src="@reaction.ImagePath" class="img-fluid rounded mt-1" style="max-height: 80px;" alt="" />
+                            }
                         </button>
                     }
                 </div>

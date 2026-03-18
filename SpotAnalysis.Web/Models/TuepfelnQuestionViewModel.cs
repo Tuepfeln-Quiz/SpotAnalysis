@@ -1,13 +1,13 @@
 namespace SpotAnalysis.Web.Models;
 
-public class TupfelnQuizViewModel
+public class TuepfelnQuizViewModel
 {
     public int QuizID { get; set; }
     public string Name { get; set; } = "";
-    public List<TupfelnQuestionViewModel> Questions { get; set; } = new();
+    public List<TuepfelnQuestionViewModel> Questions { get; set; } = new();
 }
 
-public class TupfelnQuestionViewModel
+public class TuepfelnQuestionViewModel
 {
     public int QuestionID { get; set; }
     public string Description { get; set; } = "";

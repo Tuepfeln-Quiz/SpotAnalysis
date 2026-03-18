@@ -23,7 +23,7 @@
                                 @if (slot1 != null)
                                 {
                                     <div class="selected-chemical">
-                                        <span class="color-dot" style="background-color: @slot1.Color;"></span>
+                                        <span class="color-dot chemical-@(slot1.ChemicalTypeName.ToLowerInvariant())"></span>
                                         <strong>@slot1.Name</strong>
                                         <br /><small class="text-muted">@slot1.Formula</small>
                                         <button class="btn btn-sm btn-outline-secondary mt-2" @onclick="() => slot1 = null">
@@ -35,7 +35,7 @@
                                 {
                                     <div class="text-muted">
                                         <i class="bi bi-plus-circle fs-3 d-block mb-2"></i>
-                                        Edukt 1 hierher ziehen
+                                        Stoff 1 hierher ziehen
                                     </div>
                                 }
                             </div>
@@ -50,7 +50,7 @@
                                 @if (slot2 != null)
                                 {
                                     <div class="selected-chemical">
-                                        <span class="color-dot" style="background-color: @slot2.Color;"></span>
+                                        <span class="color-dot chemical-@(slot2.ChemicalTypeName.ToLowerInvariant())"></span>
                                         <strong>@slot2.Name</strong>
                                         <br /><small class="text-muted">@slot2.Formula</small>
                                         <button class="btn btn-sm btn-outline-secondary mt-2" @onclick="() => slot2 = null">
@@ -62,7 +62,7 @@
                                 {
                                     <div class="text-muted">
                                         <i class="bi bi-plus-circle fs-3 d-block mb-2"></i>
-                                        Edukt 2 hierher ziehen
+                                        Stoff 2 hierher ziehen
                                     </div>
                                 }
                             </div>
@@ -94,6 +94,10 @@
                                 <span>Produkt: @lastResult.Reaction.RelevantProduct</span>
                                 <br />
                                 <em>@lastResult.Reaction.ObservationDescription</em>
+                                @if (lastResult.Reaction.ImagePath != null)
+                                {
+                                    <img src="@lastResult.Reaction.ImagePath" class="img-fluid rounded mt-2" alt="Reaktionsbild" />
+                                }
                             </div>
                         }
                         else
@@ -148,15 +152,18 @@
                         <div class="d-flex flex-column gap-2 mb-2">
                             @foreach (var chem in group)
                             {
-                                <div class="compound-card"
-                                     style="background-color: @chem.Color;"
+                                <div class="compound-card chemical-@(chem.ChemicalTypeName.ToLowerInvariant())"
                                      draggable="true"
                                      @ondragstart="() => draggedChemical = chem">
                                     <div class="d-flex align-items-center gap-2">
-                                        <span class="color-dot" style="background-color: @chem.Color; border: 1px solid #ccc;"></span>
+                                        <span class="color-dot chemical-@(chem.ChemicalTypeName.ToLowerInvariant())" style="border: 1px solid #ccc;"></span>
                                         <div>
                                             <strong>@chem.Name</strong>
                                             <br /><small class="text-muted">@chem.Formula</small>
+                                            @if (chem.MethodOutputs.TryGetValue("Flammenfärbung", out var flame))
+                                            {
+                                                <br /><small style="color: @FlameColorHelper.GetCssColor(flame);"><FlameIcon /> @flame</small>
+                                            }
                                         </div>
                                     </div>
                                 </div>

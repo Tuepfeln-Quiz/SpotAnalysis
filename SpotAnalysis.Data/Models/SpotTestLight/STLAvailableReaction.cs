@@ -1,4 +1,4 @@
-﻿namespace DataAccessLayer.Models.SpotTestLight;
+﻿namespace Data.Models.SpotTestLight;
 
 
 [PrimaryKey(nameof(QuestionID), nameof(ReactionID))]

@@ -1,6 +1,6 @@
-﻿using DataAccessLayer.Models.SpotTestLight;
+﻿using Data.Models.SpotTestLight;
 
-namespace DataAccessLayer.Models; 
+namespace Data.Models; 
 public class Observation {
     [Key]
     public int ObservationID { get; set; }

@@ -1,6 +1,6 @@
-﻿using DataAccessLayer.Models.SpotTestLight;
+﻿using Data.Models.SpotTestLight;
 
-namespace DataAccessLayer.Models;
+namespace Data.Models;
 
 public class Reaction {
     [Key]

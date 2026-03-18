@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 
-namespace DataAccessLayer.Models.SpotTest;
+namespace Data.Models.SpotTest;
 
 public class STLog {
     [Key]

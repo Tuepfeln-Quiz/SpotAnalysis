@@ -1,4 +1,4 @@
-﻿namespace DataAccessLayer.Data;
+﻿namespace Data.Data;
 
 public class AnalysisContext : DbContext {
 

@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 
-namespace DataAccessLayer.Models.SpotTestLight;
+namespace Data.Models.SpotTestLight;
 
 public class STLResult {
     [Key]

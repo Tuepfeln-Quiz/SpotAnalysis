@@ -1,6 +1,6 @@
-﻿using DataAccessLayer.Models.SpotTest;
+﻿using Data.Models.SpotTest;
 
-namespace DataAccessLayer.Models; 
+namespace Data.Models; 
 public class Method {
     [Key]
     public int MethodID { get; set; }

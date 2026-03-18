@@ -1,4 +1,4 @@
-﻿namespace DataAccessLayer.Models.Identity; 
+﻿namespace Data.Models.Identity; 
 public class Role {
     [Key]
     public int RoleID { get; set; }

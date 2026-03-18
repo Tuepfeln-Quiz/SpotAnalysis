@@ -1,4 +1,4 @@
-﻿namespace DataAccessLayer.Models.Quizzes;
+﻿namespace Data.Models.Quizzes;
 
 public class Quiz {
     [Key]

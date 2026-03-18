@@ -2,8 +2,103 @@
 @using System.Security.Claims;
 @using Microsoft.AspNetCore.Authentication
 @using Microsoft.AspNetCore.Authentication.Cookies
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
 @using Microsoft.Extensions.Logging
 @inject ILogger<Login> USRlogger;
 @inject NavigationManager NavigationManager;
 @inject AuthenticationStateProvider AuthStateProvider;
 @attribute [AllowAnonymous]
+
+
+<div class="row">
+    <div class="col-lg-4 offset-lg-4 pt-4 pb-4 border">
+        <EditForm Model="@LoginVM" OnValidSubmit="Authenticate" FormName="LoginForm">
+            <DataAnnotationsValidator />
+
+            <div class="mb-3 text-center flex-column">
+                <img src="/images/avatar.png" id="SignPic" class="img-fluid" />
+                <h3>Login</h3>
+            </div>
+
+            <div class="mb-3">
+                <InputText @bind-Value="LoginVM.UserName" class="form-control" placeholder="Username" />
+                <ValidationMessage For="() => LoginVM.UserName" />
+            </div>
+
+            <div class="mb-3">
+                <InputText @bind-Value="LoginVM.Password" placeholder="Password" type="password" class="form-control" />
+                <ValidationMessage For="() => LoginVM.Password" />
+            </div>
+
+            <div class="mb-3 text-center">
+                <span class="text-danger">@ErrorMessage</span>
+            </div>
+
+            <div class="d-grid gap-2">
+                <button type="submit" class="btn btn-primary">Login</button>
+            </div>
+        </EditForm>
+        <div class="mt-3 text-center">
+            <p>Don't have an account? <a href="/register">Register here</a></p>
+        </div>
+    </div>
+</div>
+
+@code {
+    [SupplyParameterFromForm]
+    public LoginDTO LoginVM { get; set; } = new();
+
+    private string? ErrorMessage { get; set; }
+
+    private async Task Authenticate()
+    {
+        try
+        {
+            var userAccount = uow.Userrepo.UserLogin(LoginVM);
+            if (userAccount == null)
+            {
+                ErrorMessage = "Invalid username or password.";
+                return;
+            }
+
+            var claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.Name, userAccount.UserName),
+                new Claim(ClaimTypes.Role, userAccount.Roles?.FirstOrDefault()?.RoleName),
+            };
+
+            var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+            var principal = new ClaimsPrincipal(identity);
+
+            await HttpContextAccessor.HttpContext.SignInAsync(
+                CookieAuthenticationDefaults.AuthenticationScheme,
+                principal
+            );
+
+            USRlogger.LogInformation(
+                $"User Logged in: {principal.Identity?.Name} as a {principal.Claims.Where(c => c.Type == ClaimTypes.Role).Select(c => c.Value).FirstOrDefault()} at {DateTime.UtcNow}"
+            );
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = "Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut.";
+            USRlogger.LogError(ex, "Authentifizierungsfehler");
+        }
+
+        if (!string.IsNullOrEmpty(ErrorMessage)) return;
+        NavigationManager.NavigateTo("/");
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user.Identity != null && user.Identity.IsAuthenticated)
+        {
+            // Schon eingeloggt → zur Dashboard-Seite weiterleiten
+            NavigationManager.NavigateTo("/");
+        }
+    }
+}

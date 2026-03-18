@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authentication.Cookies;
 using SpotAnalysis.Web.Components;
 
 namespace SpotAnalysis.Web
@@ -11,6 +12,21 @@ namespace SpotAnalysis.Web
             // Add services to the container.
             builder.Services.AddRazorComponents()
                 .AddInteractiveServerComponents();
+
+            builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+            .AddCookie(options =>
+            {
+                options.Cookie.Name = "auth_token";
+                options.LoginPath = "/login";
+                options.Cookie.MaxAge = TimeSpan.FromMinutes(30);
+                options.AccessDeniedPath = "/access-denied";
+                options.Cookie.SameSite = SameSiteMode.Lax;   // sehr wichtig
+                options.Cookie.HttpOnly = true;
+                options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+            }); //this is cookie auth 
+
+            //Auth state weitergabe
+            builder.Services.AddCascadingAuthenticationState();
 
             var app = builder.Build();
 
@@ -26,6 +42,10 @@ namespace SpotAnalysis.Web
             app.UseHttpsRedirection();
 
             app.UseAntiforgery();
+
+            // Middleware für Authentifizierung und Autorisierung hinzufügen
+            app.UseAuthentication();
+            app.UseAuthorization();
 
             app.MapStaticAssets();
             app.MapRazorComponents<App>()

@@ -1,7 +1,64 @@
-﻿@page "/"
+@page "/"
 
-<PageTitle>Home</PageTitle>
+<PageTitle>Tüpfeln Digital</PageTitle>
 
-<h1>Hello, world!</h1>
+<PageHeader />
 
-Welcome to your new app.
+<div class="container py-4 flex-grow-1">
+    <div class="row g-4 justify-content-center">
+        <div class="col-sm-6 col-lg-5">
+            <div class="card card-interactive h-100" @onclick='() => Navigate("/sandbox")'>
+                <div class="card-body text-center p-4">
+                    <div class="card-icon mb-3" style="background-color: #dbeafe;">
+                        <i class="bi bi-moisture" style="color: #2563eb; font-size: 2rem;"></i>
+                    </div>
+                    <h5 class="card-title fw-bold">Sandbox</h5>
+                    <p class="card-text text-muted">Frei experimentieren – Stoffe mischen und Reaktionen entdecken</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-lg-5">
+            <div class="card card-interactive h-100" @onclick='() => Navigate("/reverse")'>
+                <div class="card-body text-center p-4">
+                    <div class="card-icon mb-3" style="background-color: #fef3c7;">
+                        <i class="bi bi-shuffle" style="color: #d97706; font-size: 2rem;"></i>
+                    </div>
+                    <h5 class="card-title fw-bold">Reverse</h5>
+                    <p class="card-text text-muted">Reaktion erraten – Edukte sind vorgegeben</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-lg-5">
+            <div class="card card-interactive h-100" @onclick='() => Navigate("/light")'>
+                <div class="card-body text-center p-4">
+                    <div class="card-icon mb-3" style="background-color: #ede9fe;">
+                        <i class="bi bi-stars" style="color: #7c3aed; font-size: 2rem;"></i>
+                    </div>
+                    <h5 class="card-title fw-bold">Light</h5>
+                    <p class="card-text text-muted">Vereinfachte Version – ideal zum Einstieg</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-lg-5">
+            <div class="card card-interactive h-100" @onclick='() => Navigate("/tupfeln")'>
+                <div class="card-body text-center p-4">
+                    <div class="card-icon mb-3" style="background-color: #dcfce7;">
+                        <i class="bi bi-clipboard-check" style="color: #16a34a; font-size: 2rem;"></i>
+                    </div>
+                    <h5 class="card-title fw-bold">Tüpfeln</h5>
+                    <p class="card-text text-muted">Quiz-Modus – Teste dein Wissen mit Aufgaben</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Inject]
+    private NavigationManager Navigation { get; set; } = default!;
+
+    private void Navigate(string url)
+    {
+        Navigation.NavigateTo(url);
+    }
+}

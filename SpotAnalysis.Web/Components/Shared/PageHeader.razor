@@ -1,0 +1,50 @@
+@inject NavigationManager Navigation
+
+@{
+    var isMainPage = Navigation.ToBaseRelativePath(Navigation.Uri).Trim('/') == "";
+}
+
+@if (isMainPage)
+{
+    <header class="main-header">
+        <div class="container py-4">
+            <div class="d-flex align-items-center gap-3">
+                <div class="header-icon">
+                    <i class="bi bi-droplet-fill"></i>
+                </div>
+                <div>
+                    <h1 class="mb-0 fw-bold text-white">Tüpfeln Digital</h1>
+                    <p class="mb-0 text-white-50">Chemie interaktiv lernen</p>
+                </div>
+            </div>
+        </div>
+    </header>
+}
+else
+{
+    <header class="sub-header">
+        <div class="container d-flex align-items-center gap-3 py-3">
+            <button class="btn btn-outline-light btn-sm" @onclick="GoHome">
+                <i class="bi bi-arrow-left"></i>
+            </button>
+            <div class="d-flex align-items-center gap-2">
+                <i class="bi bi-droplet-fill text-white"></i>
+                <span class="fw-semibold text-white">Tüpfeln Digital</span>
+            </div>
+            @if (!string.IsNullOrEmpty(PageTitle))
+            {
+                <span class="text-white-50 ms-2">/ @PageTitle</span>
+            }
+        </div>
+    </header>
+}
+
+@code {
+    [Parameter]
+    public string? PageTitle { get; set; }
+
+    private void GoHome()
+    {
+        Navigation.NavigateTo("/");
+    }
+}

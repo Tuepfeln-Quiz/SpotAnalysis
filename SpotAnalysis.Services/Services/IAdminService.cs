@@ -1,9 +1,11 @@
-﻿namespace SpotAnalysis_Api.Services;
+﻿using SpotAnalysis.Services.DTOs;
+
+namespace SpotAnalysis.Services.Services;
 
 public interface IAdminService
 {
-    // public List<TeacherDto> GetTeachers();
-    // public void CreateTeacher(CreateTeacherDto teacher);
-    // public void UpdateTeacher(UpdateTeacherDto);
-    // public void DeleteTeacher(int teacherId);
+    public List<TeacherDto> GetTeachers();
+    public void CreateTeacher(ConfigTeacherDto teacher);
+    public void UpdateTeacher(ConfigTeacherDto teacher);
+    public void DeleteTeacher(int teacherId);
 }

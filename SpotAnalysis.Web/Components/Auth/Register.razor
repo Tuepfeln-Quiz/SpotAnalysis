@@ -2,7 +2,6 @@
 @inject NavigationManager NavigationManager;
 @inject AuthenticationStateProvider AuthStateProvider
 @inject IHttpContextAccessor HttpContextAccessor;  
-// inject BLDAL.UnitOfWork uow; // gibts derzeit noch nicht
 
 @* <h3>Register</h3> *@
 
@@ -26,6 +25,12 @@
                 @* <label>Password</label> *@
                 <InputText @bind-Value="LoginVM.Password" placeholder="Password" type="password" class="form-control" />
                 <ValidationMessage For="() => LoginVM.Password" />
+            </div>
+
+            <div class="mb-3">
+                @* <label>Password</label> *@
+                <InputText @bind-Value="SamePassword" placeholder="Password" type="password" class="form-control" />
+                <ValidationMessage For="() => SamePassword" />
             </div>
 
             <div class="mb-3 text-center">
@@ -72,8 +77,17 @@
 
     private string? ErrorMessage { get; set; }
 
+    [Required]
+    public string? SamePassword { get; set; }
+
     private async Task Authenticate()
     {
+        if (LoginVM.Password != SamePassword)
+        {
+            ErrorMessage = "Passwords do not match.";
+            return;
+        }
+
         if (!isValid(LoginVM.Password))
         {
             ErrorMessage = "Passwort muss:\nmin.8 Zeichen lang sein\nmin. 1 Großbuchstabe\nmin.1 Kleinbuchstabe\nmin.1 Zahl und 1 Sonderzeichen enthalten.";
@@ -102,6 +116,7 @@
 
     private bool isValid(string pw)
     {
+
         var isv = Regex.IsMatch(pw,
         @"^(?=.*[a-z])      # mind. 1 Kleinbuchstabe
               (?=.*[A-Z])      # mind. 1 Großbuchstabe

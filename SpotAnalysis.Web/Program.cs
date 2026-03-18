@@ -27,6 +27,7 @@ namespace SpotAnalysis.Web
 
             //Auth state weitergabe
             builder.Services.AddCascadingAuthenticationState();
+            builder.Services.AddHttpContextAccessor();
 
             var app = builder.Build();
 

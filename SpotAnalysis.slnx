@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="SpotAnalysis-Api/SpotAnalysis-Api.csproj" />
+  <Project Path="ExcelImportExport.Tests/ExcelImportExport.Tests.csproj" />
+  <Project Path="ExcelImportExport/ExcelImportExport.csproj" />
+</Solution>

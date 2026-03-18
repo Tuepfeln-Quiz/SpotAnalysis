@@ -1,4 +1,4 @@
-@page "/tupfeln"
+@page "/tuepfeln"
 @inject NavigationManager Navigation
 
 <PageTitle>Tüpfeln – Tüpfeln Digital</PageTitle>
@@ -35,10 +35,10 @@
 </div>
 
 @code {
-    private List<TupfelnQuizViewModel> quizzes = SeedData.TupfelnQuizzes;
+    private List<TuepfelnQuizViewModel> quizzes = SeedData.TuepfelnQuizzes;
 
     private void NavigateToQuiz(int quizId)
     {
-        Navigation.NavigateTo($"/tupfeln/quiz/{quizId}");
+        Navigation.NavigateTo($"/tuepfeln/quiz/{quizId}");
     }
 }

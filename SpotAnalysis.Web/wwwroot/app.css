@@ -49,6 +49,14 @@ body {
     border: 2px solid transparent;
 }
 
+.chemical-edukt {
+    background-color: #f5f5f5;
+}
+
+.chemical-zusatzstoff {
+    background-color: #dbeafe;
+}
+
 .compound-card:active {
     cursor: grabbing;
 }

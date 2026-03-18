@@ -7,24 +7,24 @@ public static class SeedData
     public static List<ChemicalViewModel> Chemicals { get; } = new()
     {
         // Edukte
-        new() { ChemicalID = 1, Name = "Eisen(III)chlorid", Formula = "FeCl₃", Color = "#fbbf24", ChemicalTypeID = 1, ChemicalTypeName = "Edukt",
+        new() { ChemicalID = 1, Name = "Eisen(III)chlorid", Formula = "FeCl₃", ChemicalTypeID = 1, ChemicalTypeName = "Edukt",
             MethodOutputs = new() { ["pH-Papier"] = "rot", ["Flammenfärbung"] = "keine" } },
-        new() { ChemicalID = 2, Name = "Blei(II)nitrat", Formula = "Pb(NO₃)₂", Color = "#f5f5f5", ChemicalTypeID = 1, ChemicalTypeName = "Edukt",
+        new() { ChemicalID = 2, Name = "Blei(II)nitrat", Formula = "Pb(NO₃)₂", ChemicalTypeID = 1, ChemicalTypeName = "Edukt",
             MethodOutputs = new() { ["pH-Papier"] = "orange", ["Flammenfärbung"] = "keine" } },
-        new() { ChemicalID = 3, Name = "Kaliumiodid", Formula = "KI", Color = "#f5f5f5", ChemicalTypeID = 1, ChemicalTypeName = "Edukt",
+        new() { ChemicalID = 3, Name = "Kaliumiodid", Formula = "KI", ChemicalTypeID = 1, ChemicalTypeName = "Edukt",
             MethodOutputs = new() { ["pH-Papier"] = "grün", ["Flammenfärbung"] = "violett" } },
-        new() { ChemicalID = 4, Name = "Natriumcarbonat", Formula = "NaCO₃", Color = "#f5f5f5", ChemicalTypeID = 1, ChemicalTypeName = "Edukt",
+        new() { ChemicalID = 4, Name = "Natriumcarbonat", Formula = "NaCO₃", ChemicalTypeID = 1, ChemicalTypeName = "Edukt",
             MethodOutputs = new() { ["pH-Papier"] = "blau", ["Flammenfärbung"] = "orange" } },
-        new() { ChemicalID = 5, Name = "Silber(I)nitrat", Formula = "AgNO₃", Color = "#f5f5f5", ChemicalTypeID = 1, ChemicalTypeName = "Edukt",
+        new() { ChemicalID = 5, Name = "Silber(I)nitrat", Formula = "AgNO₃", ChemicalTypeID = 1, ChemicalTypeName = "Edukt",
             MethodOutputs = new() { ["pH-Papier"] = "orange", ["Flammenfärbung"] = "keine" } },
-        new() { ChemicalID = 6, Name = "Strontiumchlorid", Formula = "SrCl₂", Color = "#f5f5f5", ChemicalTypeID = 1, ChemicalTypeName = "Edukt",
+        new() { ChemicalID = 6, Name = "Strontiumchlorid", Formula = "SrCl₂", ChemicalTypeID = 1, ChemicalTypeName = "Edukt",
             MethodOutputs = new() { ["pH-Papier"] = "orange", ["Flammenfärbung"] = "rot" } },
-        new() { ChemicalID = 7, Name = "Bariumhydroxid", Formula = "Ba(OH)₂", Color = "#f5f5f5", ChemicalTypeID = 1, ChemicalTypeName = "Edukt",
+        new() { ChemicalID = 7, Name = "Bariumhydroxid", Formula = "Ba(OH)₂", ChemicalTypeID = 1, ChemicalTypeName = "Edukt",
             MethodOutputs = new() { ["pH-Papier"] = "blau", ["Flammenfärbung"] = "grün" } },
 
         // Zusatzstoffe
-        new() { ChemicalID = 8, Name = "Natriumhydroxid", Formula = "NaOH", Color = "#dbeafe", ChemicalTypeID = 2, ChemicalTypeName = "Zusatzstoff" },
-        new() { ChemicalID = 9, Name = "Salzsäure", Formula = "HCl", Color = "#e0f2fe", ChemicalTypeID = 2, ChemicalTypeName = "Zusatzstoff" },
+        new() { ChemicalID = 8, Name = "Natriumhydroxid", Formula = "NaOH", ChemicalTypeID = 2, ChemicalTypeName = "Zusatzstoff" },
+        new() { ChemicalID = 9, Name = "Salzsäure", Formula = "HCl", ChemicalTypeID = 2, ChemicalTypeName = "Zusatzstoff" },
     };
 
     // ── Reactions ──────────────────────────────────────────────────────
@@ -277,7 +277,7 @@ public static class SeedData
 
     // ── Tüpfeln Quizzes ──────────────────────────────────────────────
     // Identifikations-Modus: Edukte sind unbekannt (nur Eigenfarbe sichtbar)
-    public static List<TupfelnQuizViewModel> TupfelnQuizzes { get; } = new()
+    public static List<TuepfelnQuizViewModel> TuepfelnQuizzes { get; } = new()
     {
         new()
         {

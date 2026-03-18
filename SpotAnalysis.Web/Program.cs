@@ -1,6 +1,6 @@
-using SpotTest.Web.Components;
+using SpotAnalysis.Web.Components;
 
-namespace SpotTest.Web
+namespace SpotAnalysis.Web
 {
     public class Program
     {

@@ -1,0 +1,11 @@
+.selected-chemical {
+    text-align: center;
+}
+
+.color-dot {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}

@@ -1,0 +1,231 @@
+@page "/sandbox"
+
+<PageTitle>Sandbox – Tüpfeln Digital</PageTitle>
+
+<PageHeader PageTitle="Sandbox" />
+
+<div class="container py-4 flex-grow-1">
+    <div class="row g-4">
+        <!-- Workspace -->
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold mb-3"><i class="bi bi-moisture me-2"></i>Mischbereich</h5>
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-6">
+                            <div class="drop-zone @(dragOverSlot == 1 ? "drag-over" : "")"
+                                 @ondrop="() => Drop(1)"
+                                 @ondrop:preventDefault
+                                 @ondragover="() => dragOverSlot = 1"
+                                 @ondragover:preventDefault
+                                 @ondragleave="() => dragOverSlot = 0">
+                                @if (slot1 != null)
+                                {
+                                    <div class="selected-chemical">
+                                        <span class="color-dot" style="background-color: @slot1.Color;"></span>
+                                        <strong>@slot1.Name</strong>
+                                        <br /><small class="text-muted">@slot1.Formula</small>
+                                        <button class="btn btn-sm btn-outline-secondary mt-2" @onclick="() => slot1 = null">
+                                            <i class="bi bi-x-lg"></i>
+                                        </button>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="text-muted">
+                                        <i class="bi bi-plus-circle fs-3 d-block mb-2"></i>
+                                        Edukt 1 hierher ziehen
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="drop-zone @(dragOverSlot == 2 ? "drag-over" : "")"
+                                 @ondrop="() => Drop(2)"
+                                 @ondrop:preventDefault
+                                 @ondragover="() => dragOverSlot = 2"
+                                 @ondragover:preventDefault
+                                 @ondragleave="() => dragOverSlot = 0">
+                                @if (slot2 != null)
+                                {
+                                    <div class="selected-chemical">
+                                        <span class="color-dot" style="background-color: @slot2.Color;"></span>
+                                        <strong>@slot2.Name</strong>
+                                        <br /><small class="text-muted">@slot2.Formula</small>
+                                        <button class="btn btn-sm btn-outline-secondary mt-2" @onclick="() => slot2 = null">
+                                            <i class="bi bi-x-lg"></i>
+                                        </button>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="text-muted">
+                                        <i class="bi bi-plus-circle fs-3 d-block mb-2"></i>
+                                        Edukt 2 hierher ziehen
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-primary" @onclick="Mix" disabled="@(slot1 == null || slot2 == null)">
+                            <i class="bi bi-play-fill me-1"></i> Mischen
+                        </button>
+                        <button class="btn btn-outline-secondary" @onclick="ClearSlots">
+                            <i class="bi bi-arrow-counterclockwise me-1"></i> Zurücksetzen
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Result -->
+            @if (lastResult != null)
+            {
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-body p-4">
+                        <h5 class="fw-bold mb-3"><i class="bi bi-lightning-fill me-2 text-warning"></i>Ergebnis</h5>
+                        @if (lastResult.Reaction != null)
+                        {
+                            <div class="alert alert-success">
+                                <strong>@lastResult.Reaction.Formula</strong>
+                                <br />
+                                <span>Produkt: @lastResult.Reaction.RelevantProduct</span>
+                                <br />
+                                <em>@lastResult.Reaction.ObservationDescription</em>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="alert alert-secondary">
+                                <strong>Keine bekannte Reaktion</strong> zwischen @lastResult.Chemical1Name und @lastResult.Chemical2Name.
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+
+            <!-- Mix Log -->
+            @if (mixLog.Count > 0)
+            {
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body p-4">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="fw-bold mb-0"><i class="bi bi-clock-history me-2"></i>Verlauf</h5>
+                            <button class="btn btn-sm btn-outline-secondary" @onclick="() => mixLog.Clear()">
+                                Leeren
+                            </button>
+                        </div>
+                        @foreach (var log in mixLog.AsEnumerable().Reverse())
+                        {
+                            var cssClass = log.Reaction != null ? "neutral" : "neutral";
+                            <div class="mix-log-item @cssClass">
+                                <strong>@log.Chemical1Name</strong> + <strong>@log.Chemical2Name</strong>
+                                @if (log.Reaction != null)
+                                {
+                                    <span class="text-muted"> → @log.Reaction.RelevantProduct</span>
+                                }
+                                else
+                                {
+                                    <span class="text-muted"> → Keine Reaktion</span>
+                                }
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+
+        <!-- Chemical Sidebar -->
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold mb-3"><i class="bi bi-beaker me-2"></i>Stoffe</h5>
+                    @foreach (var group in chemicals.GroupBy(c => c.ChemicalTypeID).OrderBy(g => g.Key))
+                    {
+                        <h6 class="text-muted fw-semibold mt-3 mb-2">@(group.Key == 1 ? "Edukte" : "Zusatzstoffe")</h6>
+                        <div class="d-flex flex-column gap-2 mb-2">
+                            @foreach (var chem in group)
+                            {
+                                <div class="compound-card"
+                                     style="background-color: @chem.Color;"
+                                     draggable="true"
+                                     @ondragstart="() => draggedChemical = chem">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <span class="color-dot" style="background-color: @chem.Color; border: 1px solid #ccc;"></span>
+                                        <div>
+                                            <strong>@chem.Name</strong>
+                                            <br /><small class="text-muted">@chem.Formula</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private List<ChemicalViewModel> chemicals = SeedData.Chemicals;
+    private List<ReactionViewModel> reactions = SeedData.Reactions;
+
+    private ChemicalViewModel? draggedChemical;
+    private ChemicalViewModel? slot1;
+    private ChemicalViewModel? slot2;
+    private int dragOverSlot;
+
+    private MixLogViewModel? lastResult;
+    private List<MixLogViewModel> mixLog = new();
+    private int logCounter;
+
+    private void Drop(int slot)
+    {
+        dragOverSlot = 0;
+        if (draggedChemical == null) return;
+
+        if (slot == 1)
+            slot1 = draggedChemical;
+        else
+            slot2 = draggedChemical;
+
+        draggedChemical = null;
+    }
+
+    private void Mix()
+    {
+        if (slot1 == null || slot2 == null) return;
+
+        var reaction = FindReaction(slot1.ChemicalID, slot2.ChemicalID);
+
+        var log = new MixLogViewModel
+        {
+            LogID = ++logCounter,
+            Chemical1Name = slot1.Name,
+            Chemical2Name = slot2.Name,
+            Reaction = reaction,
+            Timestamp = DateTime.Now
+        };
+
+        lastResult = log;
+        mixLog.Add(log);
+        ClearSlots();
+    }
+
+    private void ClearSlots()
+    {
+        slot1 = null;
+        slot2 = null;
+        dragOverSlot = 0;
+    }
+
+    private ReactionViewModel? FindReaction(int chem1Id, int chem2Id)
+    {
+        return reactions.FirstOrDefault(r =>
+            (r.Chemical1ID == chem1Id && r.Chemical2ID == chem2Id) ||
+            (r.Chemical1ID == chem2Id && r.Chemical2ID == chem1Id));
+    }
+}

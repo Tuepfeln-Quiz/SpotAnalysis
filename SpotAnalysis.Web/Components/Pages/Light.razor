@@ -1,0 +1,236 @@
+@page "/light"
+@inject NavigationManager Navigation
+
+<PageTitle>Light – Tüpfeln Digital</PageTitle>
+
+<PageHeader PageTitle="Light" />
+
+<div class="container py-4 flex-grow-1">
+    @if (selectedQuiz == null)
+    {
+        <!-- Quiz-Auswahl -->
+        <div class="mb-4">
+            <h4 class="fw-bold">Light-Quiz auswählen</h4>
+            <p class="text-muted">Vereinfachte Version – erkenne Reaktionen anhand von Beobachtungen.</p>
+        </div>
+
+        <div class="row g-4">
+            @foreach (var quiz in SeedData.LightQuizzes)
+            {
+                <div class="col-sm-6 col-lg-4">
+                    <div class="card card-interactive h-100" @onclick="() => SelectQuiz(quiz)">
+                        <div class="card-body p-4">
+                            <div class="d-flex align-items-center gap-2 mb-3">
+                                <span class="badge bg-purple">Light</span>
+                                <span class="text-muted small">@quiz.Questions.Count Fragen</span>
+                            </div>
+                            <h5 class="card-title fw-bold mb-2">@quiz.Name</h5>
+                            <p class="card-text text-muted small mb-0">
+                                <i class="bi bi-lightbulb me-1"></i>
+                                Beobachtung → Reaktion zuordnen
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else if (quizCompleted)
+    {
+        <!-- Quiz abgeschlossen -->
+        <div class="card border-0 shadow-sm">
+            <div class="card-body p-5 text-center">
+                <i class="bi bi-trophy-fill text-warning" style="font-size: 3rem;"></i>
+                <h3 class="fw-bold mt-3">Quiz abgeschlossen!</h3>
+                <p class="text-muted fs-5">
+                    @correctCount von @selectedQuiz.Questions.Count Fragen richtig beantwortet.
+                </p>
+                <div class="d-flex gap-3 justify-content-center mt-4">
+                    <button class="btn btn-primary" @onclick="RestartQuiz">
+                        <i class="bi bi-arrow-counterclockwise me-1"></i> Nochmal
+                    </button>
+                    <button class="btn btn-outline-secondary" @onclick="BackToList">
+                        <i class="bi bi-arrow-left me-1"></i> Zurück zur Übersicht
+                    </button>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        var question = CurrentQuestion;
+
+        <!-- Progress -->
+        <div class="mb-4">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <h5 class="fw-bold mb-0">@selectedQuiz.Name</h5>
+                <span class="text-muted">Frage @(currentQuestionIndex + 1) / @selectedQuiz.Questions.Count</span>
+            </div>
+            <div class="progress" style="height: 8px;">
+                <div class="progress-bar bg-purple" style="width: @ProgressPercent%"></div>
+            </div>
+        </div>
+
+        <!-- Aufgabe -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-body p-4">
+                <h5 class="fw-bold mb-3">
+                    <i class="bi bi-question-circle me-2 text-primary"></i>@question.Description
+                </h5>
+
+                <div class="row g-3 align-items-center mb-3">
+                    <div class="col-auto">
+                        <div class="compound-card" style="background-color: @question.Chemical.Color;">
+                            <strong>@question.Chemical.Name</strong>
+                            <br /><small class="text-muted">@question.Chemical.Formula</small>
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-arrow-right fs-4 text-muted"></i>
+                    </div>
+                    <div class="col">
+                        <div class="p-3 rounded" style="background-color: #f8f9fa; border: 1px solid #dee2e6;">
+                            <i class="bi bi-eye me-2"></i>
+                            <strong>Beobachtung:</strong> @question.ObservationDescription
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Antwort-Optionen -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-body p-4">
+                <h5 class="fw-bold mb-3"><i class="bi bi-list-check me-2"></i>Welche Reaktion passt?</h5>
+                <div class="d-flex flex-column gap-2">
+                    @foreach (var reaction in question.AvailableReactions)
+                    {
+                        var isSelected = selectedReactionId == reaction.ReactionID;
+                        var btnClass = "btn btn-outline-secondary text-start w-100";
+                        if (hasChecked && reaction.ReactionID == question.CorrectReactionID)
+                            btnClass = "btn btn-success text-start w-100";
+                        else if (hasChecked && isSelected && reaction.ReactionID != question.CorrectReactionID)
+                            btnClass = "btn btn-danger text-start w-100";
+                        else if (isSelected)
+                            btnClass = "btn btn-primary text-start w-100";
+
+                        <button class="@btnClass"
+                                @onclick="() => SelectReaction(reaction.ReactionID)"
+                                disabled="@hasChecked">
+                            <strong>@reaction.Chemical1Name + @reaction.Chemical2Name</strong>
+                            <br /><small>→ @reaction.RelevantProduct (@reaction.Formula)</small>
+                        </button>
+                    }
+                </div>
+
+                <div class="mt-3 d-flex gap-2">
+                    @if (!hasChecked)
+                    {
+                        <button class="btn btn-primary" @onclick="Check" disabled="@(selectedReactionId == 0)">
+                            <i class="bi bi-check-lg me-1"></i> Prüfen
+                        </button>
+                    }
+                    else
+                    {
+                        <button class="btn btn-primary" @onclick="NextQuestion">
+                            <i class="bi bi-arrow-right me-1"></i> Weiter
+                        </button>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Feedback -->
+        @if (hasChecked)
+        {
+            <div class="alert @(lastCorrect ? "alert-success" : "alert-danger")">
+                @if (lastCorrect)
+                {
+                    <i class="bi bi-check-circle-fill me-2"></i><strong>Richtig!</strong>
+                    var correct = question.AvailableReactions.First(r => r.ReactionID == question.CorrectReactionID);
+                    <br /><span>@correct.ObservationDescription</span>
+                }
+                else
+                {
+                    <i class="bi bi-x-circle-fill me-2"></i><strong>Leider falsch.</strong>
+                    var correct = question.AvailableReactions.First(r => r.ReactionID == question.CorrectReactionID);
+                    <br /><span>Richtig wäre: <strong>@correct.Chemical1Name + @correct.Chemical2Name → @correct.RelevantProduct</strong></span>
+                }
+            </div>
+        }
+    }
+</div>
+
+@code {
+    private LightQuizViewModel? selectedQuiz;
+    private int currentQuestionIndex;
+    private bool quizCompleted;
+    private int correctCount;
+
+    private int selectedReactionId;
+    private bool hasChecked;
+    private bool lastCorrect;
+
+    private LightQuestionViewModel CurrentQuestion => selectedQuiz!.Questions[currentQuestionIndex];
+    private int ProgressPercent => selectedQuiz!.Questions.Count > 0
+        ? (int)((double)currentQuestionIndex / selectedQuiz.Questions.Count * 100)
+        : 0;
+
+    private void SelectQuiz(LightQuizViewModel quiz)
+    {
+        selectedQuiz = quiz;
+        currentQuestionIndex = 0;
+        quizCompleted = false;
+        correctCount = 0;
+        ResetSelection();
+    }
+
+    private void SelectReaction(int reactionId)
+    {
+        if (!hasChecked)
+            selectedReactionId = reactionId;
+    }
+
+    private void Check()
+    {
+        if (selectedReactionId == 0 || selectedQuiz == null) return;
+
+        hasChecked = true;
+        lastCorrect = selectedReactionId == CurrentQuestion.CorrectReactionID;
+        if (lastCorrect) correctCount++;
+    }
+
+    private void NextQuestion()
+    {
+        ResetSelection();
+        if (currentQuestionIndex + 1 < selectedQuiz!.Questions.Count)
+        {
+            currentQuestionIndex++;
+        }
+        else
+        {
+            quizCompleted = true;
+        }
+    }
+
+    private void ResetSelection()
+    {
+        selectedReactionId = 0;
+        hasChecked = false;
+        lastCorrect = false;
+    }
+
+    private void RestartQuiz()
+    {
+        currentQuestionIndex = 0;
+        quizCompleted = false;
+        correctCount = 0;
+        ResetSelection();
+    }
+
+    private void BackToList()
+    {
+        selectedQuiz = null;
+        ResetSelection();
+    }
+}

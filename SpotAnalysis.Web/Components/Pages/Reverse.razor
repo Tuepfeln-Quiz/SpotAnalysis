@@ -1,0 +1,197 @@
+@page "/reverse"
+
+<PageTitle>Reverse – Tüpfeln Digital</PageTitle>
+
+<PageHeader PageTitle="Reverse" />
+
+<div class="container py-4 flex-grow-1">
+    @if (currentReaction != null)
+    {
+        <!-- Task area -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-body p-4">
+                <h5 class="fw-bold mb-3"><i class="bi bi-shuffle me-2"></i>Was entsteht bei dieser Reaktion?</h5>
+
+                <div class="d-flex align-items-center justify-content-center gap-3 mb-4">
+                    <div class="compound-card text-center" style="background-color: @GetChemicalColor(currentReaction.Chemical1ID);">
+                        <strong>@currentReaction.Chemical1Name</strong>
+                        <br /><small class="text-muted">@GetChemicalFormula(currentReaction.Chemical1ID)</small>
+                    </div>
+                    <span class="plus-symbol">+</span>
+                    <div class="compound-card text-center" style="background-color: @GetChemicalColor(currentReaction.Chemical2ID);">
+                        <strong>@currentReaction.Chemical2Name</strong>
+                        <br /><small class="text-muted">@GetChemicalFormula(currentReaction.Chemical2ID)</small>
+                    </div>
+                </div>
+
+                @if (!answered)
+                {
+                    <div class="d-flex flex-column gap-2 mb-3">
+                        @foreach (var option in answerOptions)
+                        {
+                            <button class="btn @(selectedAnswer == option ? "btn-primary" : "btn-outline-secondary") text-start"
+                                    @onclick="() => selectedAnswer = option">
+                                @option
+                            </button>
+                        }
+                    </div>
+
+                    <button class="btn btn-primary" @onclick="CheckAnswer" disabled="@(selectedAnswer == null)">
+                        <i class="bi bi-check-lg me-1"></i> Prüfen
+                    </button>
+                }
+                else
+                {
+                    @if (lastCorrect)
+                    {
+                        <div class="alert alert-success">
+                            <strong>Richtig!</strong>
+                            <br />@currentReaction.Formula
+                            <br /><em>@currentReaction.ObservationDescription</em>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="alert alert-danger">
+                            <strong>Leider falsch.</strong> Die richtige Antwort war: <strong>@currentReaction.RelevantProduct</strong>
+                            <br />@currentReaction.Formula
+                            <br /><em>@currentReaction.ObservationDescription</em>
+                        </div>
+                    }
+
+                    <button class="btn btn-primary" @onclick="NextTask">
+                        <i class="bi bi-arrow-right me-1"></i> Nächste Aufgabe
+                    </button>
+                }
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-body p-4 text-center">
+                <h5 class="fw-bold mb-3">Alle Reaktionen durchgespielt!</h5>
+                <p class="text-muted">Du hast alle verfügbaren Reaktionen bearbeitet.</p>
+                <button class="btn btn-primary" @onclick="ResetGame">
+                    <i class="bi bi-arrow-counterclockwise me-1"></i> Neu starten
+                </button>
+            </div>
+        </div>
+    }
+
+    <!-- History -->
+    @if (mixLog.Count > 0)
+    {
+        <div class="card border-0 shadow-sm">
+            <div class="card-body p-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold mb-0"><i class="bi bi-clock-history me-2"></i>Verlauf</h5>
+                    <button class="btn btn-sm btn-outline-secondary" @onclick="() => mixLog.Clear()">
+                        Leeren
+                    </button>
+                </div>
+                @foreach (var log in mixLog.AsEnumerable().Reverse())
+                {
+                    var cssClass = log.IsCorrect == true ? "correct" : "incorrect";
+                    <div class="mix-log-item @cssClass">
+                        <strong>@log.Chemical1Name</strong> + <strong>@log.Chemical2Name</strong>
+                        @if (log.Reaction != null)
+                        {
+                            <span class="text-muted"> → @log.Reaction.RelevantProduct</span>
+                        }
+                        <span class="float-end">@(log.IsCorrect == true ? "✓" : "✗")</span>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private List<ReactionViewModel> reactions = SeedData.Reactions;
+    private HashSet<int> usedReactionIds = new();
+    private Random rng = new();
+
+    private ReactionViewModel? currentReaction;
+    private List<string> answerOptions = new();
+    private string? selectedAnswer;
+    private bool answered;
+    private bool lastCorrect;
+
+    private List<MixLogViewModel> mixLog = new();
+    private int logCounter;
+
+    protected override void OnInitialized()
+    {
+        LoadNextReaction();
+    }
+
+    private void LoadNextReaction()
+    {
+        var available = reactions.Where(r => !usedReactionIds.Contains(r.ReactionID)).ToList();
+        if (available.Count == 0)
+        {
+            currentReaction = null;
+            return;
+        }
+
+        currentReaction = available[rng.Next(available.Count)];
+        usedReactionIds.Add(currentReaction.ReactionID);
+
+        // Build answer options: correct + 3 random wrong
+        var allProducts = reactions
+            .Select(r => r.RelevantProduct)
+            .Distinct()
+            .Where(p => p != currentReaction.RelevantProduct)
+            .OrderBy(_ => rng.Next())
+            .Take(3)
+            .ToList();
+
+        allProducts.Add(currentReaction.RelevantProduct);
+        answerOptions = allProducts.OrderBy(_ => rng.Next()).ToList();
+
+        selectedAnswer = null;
+        answered = false;
+    }
+
+    private void CheckAnswer()
+    {
+        if (selectedAnswer == null || currentReaction == null) return;
+
+        lastCorrect = selectedAnswer == currentReaction.RelevantProduct;
+        answered = true;
+
+        mixLog.Add(new MixLogViewModel
+        {
+            LogID = ++logCounter,
+            Chemical1Name = currentReaction.Chemical1Name,
+            Chemical2Name = currentReaction.Chemical2Name,
+            Reaction = currentReaction,
+            IsCorrect = lastCorrect,
+            Timestamp = DateTime.Now
+        });
+    }
+
+    private void NextTask()
+    {
+        LoadNextReaction();
+    }
+
+    private void ResetGame()
+    {
+        usedReactionIds.Clear();
+        mixLog.Clear();
+        logCounter = 0;
+        LoadNextReaction();
+    }
+
+    private string GetChemicalColor(int chemicalId)
+    {
+        return SeedData.Chemicals.FirstOrDefault(c => c.ChemicalID == chemicalId)?.Color ?? "#cccccc";
+    }
+
+    private string GetChemicalFormula(int chemicalId)
+    {
+        return SeedData.Chemicals.FirstOrDefault(c => c.ChemicalID == chemicalId)?.Formula ?? "";
+    }
+}

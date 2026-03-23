@@ -9,5 +9,6 @@ public class User {
     [Required]
     public string PasswordHash { get; set; } = null!;
 
-    public virtual ICollection<UserRole> UserRoles { get; set; } = [];
+    public virtual ICollection<Role> Roles { get; set; } = [];
+    public virtual ICollection<Group> Groups { get; set; } = [];
 }

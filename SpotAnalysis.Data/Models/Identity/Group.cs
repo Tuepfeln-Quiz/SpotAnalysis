@@ -9,6 +9,6 @@ public class Group {
 
     public string? Description { get; set; }
 
-    public virtual ICollection<GroupQuiz> GroupQuizzes { get; set; } = [];
-    public virtual ICollection<UserGroup> UserGroups { get; set; } = [];
+    public virtual ICollection<Quiz> Quizzes { get; set; } = [];
+    public virtual ICollection<User> Users { get; set; } = [];
 }

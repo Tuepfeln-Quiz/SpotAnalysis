@@ -59,7 +59,7 @@
     {
         Console.WriteLine("Authenticate method called with username: " + LoginVM.UserName + " and password: " + LoginVM.Password);
         //muss noch überlegt werden
-        @* try
+        try
         {
             var userAccount = _login.Login(LoginVM.UserName, LoginVM.Password);
             if (userAccount == null)
@@ -90,7 +90,7 @@
         {
             ErrorMessage = "Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut.";
             USRlogger.LogError(ex, "Authentifizierungsfehler");
-        } *@
+        }
 
         if (!string.IsNullOrEmpty(ErrorMessage)) return;
         NavigationManager.NavigateTo("/");

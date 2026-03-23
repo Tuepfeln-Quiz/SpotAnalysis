@@ -65,6 +65,18 @@ body {
     transform: scale(1.02);
 }
 
+.compound-card-static {
+    cursor: default;
+}
+
+.compound-card-static:hover {
+    transform: none;
+}
+
+.compound-card-static:active {
+    cursor: default;
+}
+
 .mix-log-item {
     border-radius: 8px;
     padding: 0.5rem 0.75rem;

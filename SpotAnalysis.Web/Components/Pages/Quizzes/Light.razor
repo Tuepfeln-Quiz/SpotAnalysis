@@ -79,13 +79,27 @@
                 </h5>
 
                 <div class="task-row">
-                    <div class="compound-card chemical-@(question.Chemical.ChemicalTypeName.ToLowerInvariant()) task-educt" style="border-color: @ColorHelper.GetBorderColor(question.Chemical.MethodOutputs.GetValueOrDefault("Eigenfarbe"))">
+                    <div class="compound-card compound-card-static chemical-@(question.Chemical.ChemicalTypeName.ToLowerInvariant()) task-educt" style="border-color: @ColorHelper.GetBorderColor(question.Chemical.MethodOutputs.GetValueOrDefault("Eigenfarbe"))">
                         <SubstanceCard Chemical="question.Chemical" />
                     </div>
                     <span class="fs-4 text-muted fw-bold task-operator">+</span>
-                    <div class="task-educt d-flex align-items-center justify-content-center rounded px-3" style="background-color: #e9ecef; border: 2px dashed #adb5bd;">
-                        <strong class="fs-4 text-muted">???</strong>
-                    </div>
+                    @if (hasChecked)
+                    {
+                        var correctReaction = question.AvailableReactions.First(r => r.ReactionID == question.CorrectReactionID);
+                        var unknownChemId = correctReaction.Chemical1ID == question.Chemical.ChemicalID
+                            ? correctReaction.Chemical2ID : correctReaction.Chemical1ID;
+                        var unknownChem = SeedData.Chemicals.First(c => c.ChemicalID == unknownChemId);
+                        <div class="compound-card compound-card-static chemical-@(unknownChem.ChemicalTypeName.ToLowerInvariant()) task-educt"
+                             style="border-color: @ColorHelper.GetBorderColor(unknownChem.MethodOutputs.GetValueOrDefault("Eigenfarbe"))">
+                            <SubstanceCard Chemical="unknownChem" />
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="task-educt d-flex align-items-center justify-content-center rounded px-3" style="background-color: #e9ecef; border: 2px dashed #adb5bd;">
+                            <strong class="fs-4 text-muted">???</strong>
+                        </div>
+                    }
                     <span class="task-operator"><i class="bi bi-arrow-right fs-4 text-muted"></i></span>
                     <div class="task-observation p-3 rounded" style="background-color: #f8f9fa; border: 1px solid #dee2e6;">
                         <i class="bi bi-eye me-2"></i>@question.ObservationDescription

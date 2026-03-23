@@ -1,17 +1,16 @@
 .task-row {
-    display: flex;
+    display: grid;
+    grid-template-columns: 1fr auto 1fr auto minmax(0, 1fr);
     align-items: stretch;
     gap: 0.75rem;
     margin-bottom: 1rem;
 }
 
 .task-educt {
-    flex: 0 0 auto;
     min-width: 0;
 }
 
 .task-observation {
-    flex: 1 1 0;
     min-width: 0;
     display: flex;
     align-items: center;
@@ -21,5 +20,4 @@
 .task-operator {
     display: flex;
     align-items: center;
-    flex-shrink: 0;
 }

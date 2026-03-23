@@ -1,5 +1,5 @@
-﻿using Data.Data;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
+using SpotAnalysis.Data;
 
 namespace SpotAnalysis.Services.Tests;
 

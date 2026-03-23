@@ -1,7 +1,7 @@
-﻿using Data.Data;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using SpotAnalysis.Services.DTOs;
-using Data.Models.Identity;
+using SpotAnalysis.Data;
+using SpotAnalysis.Data.Models.Identity;
 
 namespace SpotAnalysis.Services.Services;
 

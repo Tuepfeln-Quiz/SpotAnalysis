@@ -1,11 +1,8 @@
-
-
+@using SpotAnalysis.Services.Services;
 
 <div class="input-group">
     <InputText @bind-Value="Value" class="form-control" />
-
-    @* usage in registration form with <UsernameGenerator @bind-Value="RegisterVM.UserName" /> *@
-    <button class="btn btn-outline-secondary" @onclick="Generate">
+    <button type="button" class="btn btn-outline-secondary" @onclick="Generate">
         🎲
     </button>
 </div>
@@ -16,10 +13,10 @@
 
     [Inject] public IUsernameService UsernameService { get; set; } = default!;
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
         if (string.IsNullOrWhiteSpace(Value))
-            Generate();
+            await Generate();
     }
 
     private async Task Generate()

@@ -57,6 +57,4 @@ nunit-*.xml
 /.idea
 
 # ignore Migrations Folder
-/SpotAnalysis.Data/Data/Migrations
-
-SpotAnalysis.sln.DotSettings.user
+/SpotAnalysis.Data/**/Migrations

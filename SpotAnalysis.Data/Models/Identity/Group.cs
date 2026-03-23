@@ -1,5 +1,6 @@
-﻿namespace DataAccessLayer.Models.Identity;
+﻿namespace SpotAnalysis.Data.Models.Identity;
 
+[Index(nameof(Name), IsUnique = true)]
 public class Group {
     [Key]
     public int GroupID { get; set; }
@@ -9,6 +10,6 @@ public class Group {
 
     public string? Description { get; set; }
 
-    public virtual ICollection<GroupQuiz> GroupQuizzes { get; set; } = [];
-    public virtual ICollection<UserGroup> UserGroups { get; set; } = [];
+    public virtual ICollection<Quiz> Quizzes { get; set; } = [];
+    public virtual ICollection<User> Users { get; set; } = [];
 }

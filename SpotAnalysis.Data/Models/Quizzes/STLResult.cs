@@ -1,6 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
-
-namespace DataAccessLayer.Models.SpotTestLight;
+﻿namespace SpotAnalysis.Data.Models.Quizzes;
 
 public class STLResult {
     [Key]
@@ -17,7 +15,7 @@ public class STLResult {
     public QuizAttempt Attempt { get; set; } = null!;
 
     [DeleteBehavior(DeleteBehavior.Restrict)]
-    public STLQuestion Question { get; set; } = null!;
+    public Question Question { get; set; } = null!;
 
     [ForeignKey(nameof(ChosenChemicalID))]
     [DeleteBehavior(DeleteBehavior.Restrict)]

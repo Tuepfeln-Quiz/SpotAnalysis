@@ -1,4 +1,4 @@
-﻿namespace DataAccessLayer.Models.Identity; 
+﻿namespace SpotAnalysis.Data.Models.Identity; 
 public class User {
     [Key]
     public int UserID { get; set; }
@@ -9,5 +9,6 @@ public class User {
     [Required]
     public string PasswordHash { get; set; } = null!;
 
-    public virtual ICollection<UserRole> UserRoles { get; set; } = [];
+    public virtual ICollection<Role> Roles { get; set; } = [];
+    public virtual ICollection<Group> Groups { get; set; } = [];
 }

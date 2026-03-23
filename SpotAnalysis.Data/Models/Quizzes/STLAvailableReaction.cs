@@ -1,4 +1,4 @@
-﻿namespace DataAccessLayer.Models.SpotTestLight;
+﻿namespace SpotAnalysis.Data.Models.Quizzes;
 
 
 [PrimaryKey(nameof(QuestionID), nameof(ReactionID))]
@@ -8,7 +8,7 @@ public class STLAvailableReaction {
 
 
     [DeleteBehavior(DeleteBehavior.Restrict)]
-    public STLQuestion STLQuestion { get; set; } = null!;
+    public Question Question { get; set; } = null!;
 
     [DeleteBehavior(DeleteBehavior.Restrict)]
     public Reaction Reaction { get; set; } = null!;

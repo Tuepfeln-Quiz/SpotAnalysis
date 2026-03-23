@@ -1,4 +1,6 @@
-﻿namespace DataAccessLayer.Data;
+﻿using SpotAnalysis.Data.Models;
+
+namespace SpotAnalysis.Data;
 
 public class AnalysisContext : DbContext {
 
@@ -6,8 +8,6 @@ public class AnalysisContext : DbContext {
 
     #region Users, Roles, Groups
     public virtual DbSet<User> Users { get; set; }
-    public virtual DbSet<UserRole> UserRoles { get; set; }
-    public virtual DbSet<UserGroup> UserGroups { get; set; }
     public virtual DbSet<Role> Roles { get; set; }
     public virtual DbSet<Group> Groups { get; set; }
 
@@ -27,16 +27,16 @@ public class AnalysisContext : DbContext {
 
     #region Quizzes
     public virtual DbSet<Quiz> Quizzes { get; set; }
-    public virtual DbSet<GroupQuiz> GroupQuizzes { get; set; }
-    public virtual DbSet<QuizType> QuizTypes { get; set; }
     public virtual DbSet<QuizStatus> QuizStatus { get; set; }
     public virtual DbSet<QuizAttempt> QuizAttempts { get; set; }
+    public virtual DbSet<Question> Questions { get; set; }
+    public virtual DbSet<QuizQuestion> QuizQuestions { get; set; }
+    public virtual DbSet<QuestionType> QuestionTypes { get; set; }
 
     #endregion Quizzes
 
 
     #region SpotTest
-    public virtual DbSet<STQuestion> STQuestion { get; set; }
     public virtual DbSet<STAvailableChemical> STAvailableChemicals { get; set; }
     public virtual DbSet<STAvailableMethod> STAvailableMethods { get; set; }
     public virtual DbSet<STResult> STResults { get; set; }
@@ -47,7 +47,6 @@ public class AnalysisContext : DbContext {
 
 
     #region SpotTestLight
-    public virtual DbSet<STLQuestion> STLQuestions { get; set; }
     public virtual DbSet<STLAvailableReaction> STLAvailableReactions { get; set; }
     public virtual DbSet<STLResult> STLResults { get; set; }
 
@@ -60,5 +59,31 @@ public class AnalysisContext : DbContext {
         if (!optionsBuilder.IsConfigured) {
             optionsBuilder.UseSqlServer(@"Data Source=(localdb)\MSSQLLocalDB;Initial Catalog=SpotAnalysis;Connect Timeout= 30;Integrated Security=True;Encrypt=True;Trust Server Certificate=False;");
         }
+    }
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder) {
+        modelBuilder.Entity<User>()
+        .HasMany(u => u.Roles)
+        .WithMany(r => r.Users)
+        .UsingEntity(
+            u => u.HasOne(typeof(Role)).WithMany().HasForeignKey("RoleID").OnDelete(DeleteBehavior.Restrict),
+            r => r.HasOne(typeof(User)).WithMany().HasForeignKey("UserID").OnDelete(DeleteBehavior.Restrict)
+        );
+
+        modelBuilder.Entity<User>()
+        .HasMany(u => u.Groups)
+        .WithMany(r => r.Users)
+        .UsingEntity(
+            u => u.HasOne(typeof(Group)).WithMany().HasForeignKey("GroupID").OnDelete(DeleteBehavior.Restrict),
+            g => g.HasOne(typeof(User)).WithMany().HasForeignKey("UserID").OnDelete(DeleteBehavior.Restrict)
+            );
+
+        modelBuilder.Entity<Quiz>()
+        .HasMany(q => q.Groups)
+        .WithMany(g => g.Quizzes)
+        .UsingEntity(
+            q => q.HasOne(typeof(Group)).WithMany().HasForeignKey("GroupID").OnDelete(DeleteBehavior.Restrict),
+            g => g.HasOne(typeof(Quiz)).WithMany().HasForeignKey("QuizID").OnDelete(DeleteBehavior.Restrict)
+            );
     }
 }

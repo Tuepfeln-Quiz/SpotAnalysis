@@ -1,4 +1,4 @@
-﻿namespace DataAccessLayer.Models.Quizzes; 
+﻿namespace SpotAnalysis.Data.Models.Quizzes; 
 public class QuizStatus {
     [Key]
     public int QuizStatusID { get; set; }

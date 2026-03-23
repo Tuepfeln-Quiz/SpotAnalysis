@@ -1,4 +1,4 @@
-﻿namespace DataAccessLayer.Models; 
+﻿namespace SpotAnalysis.Data.Models; 
 public class ChemicalType {
     [Key]
     public int ChemicalTypeID { get; set; }

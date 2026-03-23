@@ -1,6 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
-
-namespace DataAccessLayer.Models.SpotTest;
+﻿namespace SpotAnalysis.Data.Models.Quizzes;
 
 public class STChemicalResult {
     [Key]

@@ -1,4 +1,4 @@
-﻿namespace DataAccessLayer.Models.Quizzes;
+﻿namespace SpotAnalysis.Data.Models.Quizzes;
 
 public class QuizAttempt {
     [Key]

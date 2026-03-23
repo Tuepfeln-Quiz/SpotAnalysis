@@ -1,6 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
-
-namespace DataAccessLayer.Models.SpotTest;
+﻿namespace SpotAnalysis.Data.Models.Quizzes;
 
 public class STResult {
     [Key]
@@ -16,7 +14,7 @@ public class STResult {
 
     [ForeignKey(nameof(QuestionID))]
     [DeleteBehavior(DeleteBehavior.Restrict)]
-    public STQuestion Question { get; set; } = null!;
+    public Question Question { get; set; } = null!;
 
     public virtual ICollection<STChemicalResult> ChemicalResults { get; set; } = [];
     public virtual ICollection<STLog> STLogs { get; set; } = [];

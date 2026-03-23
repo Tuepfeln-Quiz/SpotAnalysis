@@ -24,6 +24,15 @@ public class TestTeacherService : BaseDatabaseTest
 
         var groups = await TeacherService.GetGroups(1);
         
-        Assert.That(groups.Any(g => g.Name == "Test Group"));
+        Assert.That(groups.Count, Is.EqualTo(1));
+        Assert.That(groups[0].Name, Is.EqualTo("Test Group"));
+    }
+
+    [Test]
+    public async Task TestTeacherGetStudents()
+    {
+        var students = await TeacherService.GetStudents(1);
+        
+        Assert.That(students.Count, Is.EqualTo(0));
     }
 }

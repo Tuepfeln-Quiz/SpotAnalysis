@@ -1,4 +1,6 @@
-﻿namespace SpotAnalysis.Data.Models.Identity; 
+﻿namespace SpotAnalysis.Data.Models.Identity;
+
+[Index(nameof(UserName), IsUnique = true)]
 public class User {
     [Key]
     public int UserID { get; set; }

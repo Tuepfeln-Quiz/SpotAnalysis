@@ -23,7 +23,7 @@ public class Chemical {
     [DeleteBehavior(DeleteBehavior.Restrict)]
     public ChemicalType ChemicalType { get; set; } = null!;
 
-    public virtual ICollection<MethodOutput> MehtodOutputs { get; set; } = [];
+    public virtual ICollection<MethodOutput> MethodOutputs { get; set; } = [];
 
     [InverseProperty(nameof(Reaction.Chemical1))]
     public virtual ICollection<Reaction> Chemical1Reactions { get; set; } = [];

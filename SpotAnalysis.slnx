@@ -2,6 +2,7 @@
   <Project Path="ExcelImportExport.Tests/ExcelImportExport.Tests.csproj" />
   <Project Path="ExcelImportExport/ExcelImportExport.csproj" />
   <Project Path="SpotAnalysis.Data/SpotAnalysis.Data.csproj" Id="b7bc0d4d-0a9f-4820-9fb5-f3552de99e2a" />
+  <Project Path="SpotAnalysis.Services.Tests/SpotAnalysis.Services.Tests.csproj" />
   <Project Path="SpotAnalysis.Services/SpotAnalysis.Services.csproj" />
   <Project Path="SpotAnalysis.Web.Tests/SpotAnalysis.Web.Tests.csproj" />
   <Project Path="SpotAnalysis.Web/SpotAnalysis.Web.csproj" Id="a30fe9d9-579b-4b76-980d-b5aea0cd3a54" />

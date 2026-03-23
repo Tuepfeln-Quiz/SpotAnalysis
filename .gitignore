@@ -58,3 +58,4 @@ nunit-*.xml
 
 # ignore Migrations Folder
 /SpotAnalysis.Data/Data/Migrations
+/SpotAnalysis.Web/bash.exe.stackdump

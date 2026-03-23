@@ -1,0 +1,31 @@
+
+
+
+<div class="input-group">
+    <InputText @bind-Value="Value" class="form-control" />
+
+    @* usage in registration form with <UsernameGenerator @bind-Value="RegisterVM.UserName" /> *@
+    <button class="btn btn-outline-secondary" @onclick="Generate">
+        🎲
+    </button>
+</div>
+
+@code {
+    [Parameter] public string Value { get; set; } = "";
+    [Parameter] public EventCallback<string> ValueChanged { get; set; }
+
+    [Inject] public IUsernameService UsernameService { get; set; } = default!;
+
+    protected override void OnInitialized()
+    {
+        if (string.IsNullOrWhiteSpace(Value))
+            Generate();
+    }
+
+    private async Task Generate()
+    {
+        var name = UsernameService.Generate();
+        Value = name; // Update the local value
+        await ValueChanged.InvokeAsync(name);
+    }
+}

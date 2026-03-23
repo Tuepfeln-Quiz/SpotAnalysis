@@ -1,4 +1,4 @@
-﻿namespace Data.Models;
+﻿namespace SpotAnalysis.Data.Models.Lab;
 
 [PrimaryKey(nameof(ChemicalID), nameof(MethodID))]
 public class MethodOutput {

@@ -1,4 +1,4 @@
-﻿namespace Data.Models.Identity; 
+﻿namespace SpotAnalysis.Data.Models.Identity; 
 public class Role {
     [Key]
     public int RoleID { get; set; }

@@ -1,4 +1,4 @@
-﻿namespace Data.Data;
+﻿namespace SpotAnalysis.Data;
 
 public class AnalysisContext : DbContext {
 
@@ -25,15 +25,16 @@ public class AnalysisContext : DbContext {
 
     #region Quizzes
     public virtual DbSet<Quiz> Quizzes { get; set; }
-    public virtual DbSet<QuizType> QuizTypes { get; set; }
     public virtual DbSet<QuizStatus> QuizStatus { get; set; }
     public virtual DbSet<QuizAttempt> QuizAttempts { get; set; }
+    public virtual DbSet<Question> Questions { get; set; }
+    public virtual DbSet<QuizQuestion> QuizQuestions { get; set; }
+    public virtual DbSet<QuestionType> QuestionTypes { get; set; }
 
     #endregion Quizzes
 
 
     #region SpotTest
-    public virtual DbSet<STQuestion> STQuestion { get; set; }
     public virtual DbSet<STAvailableChemical> STAvailableChemicals { get; set; }
     public virtual DbSet<STAvailableMethod> STAvailableMethods { get; set; }
     public virtual DbSet<STResult> STResults { get; set; }
@@ -44,7 +45,6 @@ public class AnalysisContext : DbContext {
 
 
     #region SpotTestLight
-    public virtual DbSet<STLQuestion> STLQuestions { get; set; }
     public virtual DbSet<STLAvailableReaction> STLAvailableReactions { get; set; }
     public virtual DbSet<STLResult> STLResults { get; set; }
 

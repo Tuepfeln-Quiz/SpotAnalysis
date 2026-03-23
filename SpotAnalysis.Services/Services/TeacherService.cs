@@ -11,16 +11,15 @@ public class TeacherService(IDbContextFactory<AnalysisContext> factory) : ITeach
     {
         await using var ctx = await factory.CreateDbContextAsync();
 
-        return ctx.Users.Select(s => new StudentDto
-        {
-            Id = s.UserID,
-            UserName = s.UserName,
-            AssignedGroups = s.Groups.Select(g => new GroupDto
+        return ctx.Users.Where(u => u.UserID == teacherId).SelectMany(g => g.Groups)
+            .SelectMany(g => g.Users)
+            .Distinct()
+            .Where(u => u.UserID != teacherId)
+            .Select(u => new StudentDto
             {
-                Id = g.GroupID,
-                Name = g.Name,
-            }).ToList(),
-        }).ToList();
+                Id = u.UserID,
+                UserName = u.UserName,
+            }).ToList();
     }
 
     public async Task<List<StudentDto>> GetStudentsByGroup(int teacherId, int groupId)

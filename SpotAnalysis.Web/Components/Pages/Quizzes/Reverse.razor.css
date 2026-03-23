@@ -3,3 +3,21 @@
     font-weight: bold;
     color: #6b7280;
 }
+
+::deep .compound-card-static {
+    cursor: default;
+}
+
+::deep .compound-card-static:hover {
+    transform: none;
+}
+
+::deep .compound-card-static:active {
+    cursor: default;
+}
+
+::deep .answer-label {
+    width: 140px;
+    flex-shrink: 0;
+    white-space: nowrap;
+}

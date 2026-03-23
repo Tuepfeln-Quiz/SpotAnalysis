@@ -1,4 +1,4 @@
-﻿namespace Data.Models.Identity; 
+﻿namespace SpotAnalysis.Data.Models.Identity; 
 public class User {
     [Key]
     public int UserID { get; set; }

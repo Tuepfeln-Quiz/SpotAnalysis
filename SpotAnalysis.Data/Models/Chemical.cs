@@ -1,8 +1,4 @@
-﻿using Data.Models.SpotTestLight;
-using Data.Models.SpotTest;
-using System.ComponentModel.DataAnnotations.Schema;
-
-namespace Data.Models;
+﻿namespace SpotAnalysis.Data.Models;
 
 
 [Index(nameof(ChemicalTypeID))]
@@ -36,8 +32,8 @@ public class Chemical {
     public virtual ICollection<Reaction> Chemical2Reactions { get; set; } = [];
 
     public virtual ICollection<STAvailableChemical> STAvailableChemicals { get; set; } = [];
-    public virtual ICollection<STLQuestion> STLQuestions {  get; set; } = [];
-    public virtual ICollection<STQuestion> STQuestions { get; set; } = [];
+    public virtual ICollection<STLInput> STLInputs { get; set; } = [];
+
 
     public virtual ICollection<STResult> STResults { get; set; } = [];
     public virtual ICollection<STLResult> STLResults { get; set; } = [];

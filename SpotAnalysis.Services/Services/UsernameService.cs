@@ -1,4 +1,4 @@
-namespace SpotAnalysis_Api.Services;
+namespace SpotAnalysis.Services.Services;
 
 public class UsernameService : IUsernameService
 {

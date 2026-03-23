@@ -1,9 +1,11 @@
+using System.Text.RegularExpressions;
+
 namespace SpotAnalysis.Services.Services;
 
 public class UsernameService : IUsernameService
 {
     private static readonly Random random = new();
-
+    private string Cap(string u) => char.ToUpper(u[0]) + u.Substring(1);
 
     private static readonly string[] Adjectives =
     {
@@ -35,9 +37,9 @@ public class UsernameService : IUsernameService
 
     public string Generate()
     {
-        var adjective = Adjectives[random.Next(Adjectives.Length)];
-        var noun = Nouns[random.Next(Nouns.Length)];
+        var adjective = Adjectives[Random.Shared.Next(Adjectives.Length)];
+        var noun = Nouns[Random.Shared.Next(Nouns.Length)];
 
-        return $"{adjective} {noun}";
+        return $"{adjective} {Cap(noun)}";
     }
 }

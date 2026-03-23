@@ -1,11 +1,13 @@
 @using SpotAnalysis.Services.Services;
 
 <div class="input-group">
-    <InputText style="padding-left: 4rem; font-weight: bold;" @bind-Value="Value" class="form-control" />
+    <InputText style="padding-left: 4rem;" 
+               @bind-Value="Value" 
+               class="form-control font-bold"/>
     <button type="button" 
             class="btn btn-outline-secondary" 
             @onclick="Generate"
-            title="Generate random username 🎲">
+            title="Generate random username, choose wisely 🎲">
         🎲
     </button>
 </div>

@@ -1,0 +1,23 @@
+.task-row {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr auto minmax(0, 1fr);
+    align-items: stretch;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.task-educt {
+    min-width: 0;
+}
+
+.task-observation {
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    word-break: break-word;
+}
+
+.task-operator {
+    display: flex;
+    align-items: center;
+}

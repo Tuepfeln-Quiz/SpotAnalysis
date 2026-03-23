@@ -1,0 +1,215 @@
+@page "/reverse"
+
+<PageTitle>Reverse – Tüpfeln Digital</PageTitle>
+
+<PageHeader PageTitle="Reverse" />
+
+<div class="container py-4 flex-grow-1">
+    @if (currentReaction != null)
+    {
+        <!-- Task area -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-body p-4">
+                <h5 class="fw-bold mb-3"><i class="bi bi-shuffle me-2"></i>Was entsteht bei dieser Reaktion?</h5>
+
+                @{ var chem1 = GetChemical(currentReaction.Chemical1ID); }
+                @{ var chem2 = GetChemical(currentReaction.Chemical2ID); }
+                <div class="d-flex align-items-center justify-content-center gap-3 mb-4">
+                    <div class="compound-card compound-card-static text-center chemical-@(chem1.ChemicalTypeName.ToLowerInvariant())" style="border-color: @ColorHelper.GetBorderColor(chem1.MethodOutputs.GetValueOrDefault("Eigenfarbe"))">
+                        <SubstanceCard Chemical="chem1" />
+                    </div>
+                    <span class="plus-symbol">+</span>
+                    <div class="compound-card compound-card-static text-center chemical-@(chem2.ChemicalTypeName.ToLowerInvariant())" style="border-color: @ColorHelper.GetBorderColor(chem2.MethodOutputs.GetValueOrDefault("Eigenfarbe"))">
+                        <SubstanceCard Chemical="chem2" />
+                    </div>
+                </div>
+
+                @if (!answered)
+                {
+                    <div class="d-flex flex-column gap-2 mb-3">
+                        <div class="row align-items-center">
+                            <label class="col-auto fw-semibold answer-label">Produkt</label>
+                            <div class="col">
+                                <input type="text" class="form-control" placeholder="z.B. Silber(I)chlorid"
+                                       @bind="answerName" />
+                            </div>
+                        </div>
+                        <div class="row align-items-center">
+                            <label class="col-auto fw-semibold answer-label">Formel</label>
+                            <div class="col">
+                                <input type="text" class="form-control" placeholder="z.B. AgCl"
+                                       @bind="answerFormula" />
+                            </div>
+                        </div>
+                        <div class="row align-items-center">
+                            <label class="col-auto fw-semibold answer-label">Beobachtung</label>
+                            <div class="col">
+                                <input type="text" class="form-control" placeholder="z.B. Weißer Niederschlag"
+                                       @bind="answerObservation" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <button class="btn btn-primary" @onclick="CheckAnswer"
+                            disabled="@(string.IsNullOrWhiteSpace(answerName) && string.IsNullOrWhiteSpace(answerFormula) && string.IsNullOrWhiteSpace(answerObservation))">
+                        <i class="bi bi-check-lg me-1"></i> Prüfen
+                    </button>
+                }
+                else
+                {
+                    <div class="d-flex flex-column gap-2 mb-3">
+                        <div class="row align-items-center">
+                            <label class="col-auto fw-semibold answer-label">Produktname</label>
+                            <div class="col">
+                                <div class="input-group">
+                                    <input type="text" class="form-control @(nameCorrect ? "border-success" : "border-danger")" value="@answerName" disabled />
+                                    <span class="input-group-text @(nameCorrect ? "text-success" : "text-danger")">
+                                        <i class="bi @(nameCorrect ? "bi-check-lg" : "bi-x-lg")"></i>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row align-items-center">
+                            <label class="col-auto fw-semibold answer-label">Formel</label>
+                            <div class="col">
+                                <div class="input-group">
+                                    <input type="text" class="form-control @(formulaCorrect ? "border-success" : "border-danger")" value="@answerFormula" disabled />
+                                    <span class="input-group-text @(formulaCorrect ? "text-success" : "text-danger")">
+                                        <i class="bi @(formulaCorrect ? "bi-check-lg" : "bi-x-lg")"></i>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row align-items-center">
+                            <label class="col-auto fw-semibold answer-label">Beobachtung</label>
+                            <div class="col">
+                                <div class="input-group">
+                                    <input type="text" class="form-control @(observationCorrect ? "border-success" : "border-danger")" value="@answerObservation" disabled />
+                                    <span class="input-group-text @(observationCorrect ? "text-success" : "text-danger")">
+                                        <i class="bi @(observationCorrect ? "bi-check-lg" : "bi-x-lg")"></i>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    @if (lastCorrect)
+                    {
+                        <div class="alert alert-success">
+                            <strong>Richtig!</strong>
+                            <br />@currentReaction.Formula
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="alert alert-danger">
+                            Richtige Antwort: <strong>@currentReaction.RelevantProduct</strong>
+                            <br />@currentReaction.Formula
+                            <br /><em>@currentReaction.ObservationDescription</em>
+                        </div>
+                    }
+
+                    <button class="btn btn-primary" @onclick="NextTask">
+                        <i class="bi bi-arrow-right me-1"></i> Nächste Aufgabe
+                    </button>
+                }
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-body p-4 text-center">
+                <h5 class="fw-bold mb-3">Alle Reaktionen durchgespielt!</h5>
+                <p class="text-muted">Du hast alle verfügbaren Reaktionen bearbeitet.</p>
+                <button class="btn btn-primary" @onclick="ResetGame">
+                    <i class="bi bi-arrow-counterclockwise me-1"></i> Neu starten
+                </button>
+            </div>
+        </div>
+    }
+
+</div>
+
+@code {
+    private List<ReactionViewModel> reactions = SeedData.Reactions;
+    private HashSet<int> usedReactionIds = new();
+    private Random rng = new();
+
+    private ReactionViewModel? currentReaction;
+    private string answerName = "";
+    private string answerFormula = "";
+    private string answerObservation = "";
+    private bool answered;
+    private bool lastCorrect;
+    private bool nameCorrect;
+    private bool formulaCorrect;
+    private bool observationCorrect;
+
+
+    protected override void OnInitialized()
+    {
+        LoadNextReaction();
+    }
+
+    private void LoadNextReaction()
+    {
+        var available = reactions.Where(r => !usedReactionIds.Contains(r.ReactionID)).ToList();
+        if (available.Count == 0)
+        {
+            currentReaction = null;
+            return;
+        }
+
+        currentReaction = available[rng.Next(available.Count)];
+        usedReactionIds.Add(currentReaction.ReactionID);
+
+        answerName = "";
+        answerFormula = "";
+        answerObservation = "";
+        answered = false;
+    }
+
+    private void CheckAnswer()
+    {
+        if (currentReaction == null) return;
+
+        nameCorrect = NormalizeText(answerName) == NormalizeText(currentReaction.RelevantProduct);
+        formulaCorrect = NormalizeFormula(answerFormula) == NormalizeFormula(currentReaction.Formula.Split('→').LastOrDefault()?.Trim() ?? "");
+        observationCorrect = NormalizeText(answerObservation) == NormalizeText(currentReaction.ObservationDescription);
+
+        lastCorrect = nameCorrect && formulaCorrect && observationCorrect;
+        answered = true;
+    }
+
+    private void NextTask()
+    {
+        LoadNextReaction();
+    }
+
+    private void ResetGame()
+    {
+        usedReactionIds.Clear();
+        LoadNextReaction();
+    }
+
+    private ChemicalViewModel GetChemical(int chemicalId)
+    {
+        return SeedData.Chemicals.First(c => c.ChemicalID == chemicalId);
+    }
+
+    private static string NormalizeText(string text)
+    {
+        return text.Trim().ToLowerInvariant();
+    }
+
+    private static string NormalizeFormula(string formula)
+    {
+        return formula.Trim().ToLowerInvariant()
+            .Replace("₀", "0").Replace("₁", "1").Replace("₂", "2")
+            .Replace("₃", "3").Replace("₄", "4").Replace("₅", "5")
+            .Replace("₆", "6").Replace("₇", "7").Replace("₈", "8")
+            .Replace("₉", "9")
+            .Replace(" ", "");
+    }
+}

@@ -1,7 +1,7 @@
-﻿using Data.Models.Identity;
+﻿using Data.Data;
 using Microsoft.EntityFrameworkCore;
-using Data.Data;
 using SpotAnalysis.Services.DTOs;
+using Data.Models.Identity;
 
 namespace SpotAnalysis.Services.Services;
 
@@ -53,18 +53,25 @@ public class TeacherService(IDbContextFactory<AnalysisContext> factory) : ITeach
             .Select(g => new GroupDto
             {
                 Id = g.GroupID,
-                Name = g.Name,
+                Name = g.Name
             }).ToList();
     }
 
     public async Task CreateGroup(int teacherId, ConfigGroupDto group)
     {
         await using var ctx = await factory.CreateDbContextAsync();
-        ctx.Groups.Add(new Group
+        var user = await  ctx.Users.SingleAsync(u => u.UserID == teacherId);
+        
+        var qGroup = new Group
         {
             Name = group.Name,
             Description = group.Description,
-        });
+        };
+        
+        qGroup.Users.Add(user);
+
+        ctx.Groups.Add(qGroup);
+        
         await ctx.SaveChangesAsync();
     }
 

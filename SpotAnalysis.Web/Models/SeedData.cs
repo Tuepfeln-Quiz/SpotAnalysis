@@ -8,23 +8,25 @@ public static class SeedData
     {
         // Edukte
         new() { ChemicalID = 1, Name = "Eisen(III)chlorid", Formula = "FeCl₃", ChemicalTypeID = 1, ChemicalTypeName = "Edukt",
-            MethodOutputs = new() { ["pH-Papier"] = "rot", ["Flammenfärbung"] = "keine" } },
+            MethodOutputs = new() { ["Eigenfarbe"] = "orange", ["pH-Papier"] = "rot", ["Flammenfärbung"] = "keine" } },
         new() { ChemicalID = 2, Name = "Blei(II)nitrat", Formula = "Pb(NO₃)₂", ChemicalTypeID = 1, ChemicalTypeName = "Edukt",
-            MethodOutputs = new() { ["pH-Papier"] = "orange", ["Flammenfärbung"] = "keine" } },
+            MethodOutputs = new() { ["Eigenfarbe"] = "keine", ["pH-Papier"] = "orange", ["Flammenfärbung"] = "keine" } },
         new() { ChemicalID = 3, Name = "Kaliumiodid", Formula = "KI", ChemicalTypeID = 1, ChemicalTypeName = "Edukt",
-            MethodOutputs = new() { ["pH-Papier"] = "grün", ["Flammenfärbung"] = "violett" } },
+            MethodOutputs = new() { ["Eigenfarbe"] = "keine", ["pH-Papier"] = "grün", ["Flammenfärbung"] = "violett" } },
         new() { ChemicalID = 4, Name = "Natriumcarbonat", Formula = "NaCO₃", ChemicalTypeID = 1, ChemicalTypeName = "Edukt",
-            MethodOutputs = new() { ["pH-Papier"] = "blau", ["Flammenfärbung"] = "orange" } },
+            MethodOutputs = new() { ["Eigenfarbe"] = "keine", ["pH-Papier"] = "blau", ["Flammenfärbung"] = "orange" } },
         new() { ChemicalID = 5, Name = "Silber(I)nitrat", Formula = "AgNO₃", ChemicalTypeID = 1, ChemicalTypeName = "Edukt",
-            MethodOutputs = new() { ["pH-Papier"] = "orange", ["Flammenfärbung"] = "keine" } },
+            MethodOutputs = new() { ["Eigenfarbe"] = "keine", ["pH-Papier"] = "orange", ["Flammenfärbung"] = "keine" } },
         new() { ChemicalID = 6, Name = "Strontiumchlorid", Formula = "SrCl₂", ChemicalTypeID = 1, ChemicalTypeName = "Edukt",
-            MethodOutputs = new() { ["pH-Papier"] = "orange", ["Flammenfärbung"] = "rot" } },
+            MethodOutputs = new() { ["Eigenfarbe"] = "keine", ["pH-Papier"] = "orange", ["Flammenfärbung"] = "rot" } },
         new() { ChemicalID = 7, Name = "Bariumhydroxid", Formula = "Ba(OH)₂", ChemicalTypeID = 1, ChemicalTypeName = "Edukt",
-            MethodOutputs = new() { ["pH-Papier"] = "blau", ["Flammenfärbung"] = "grün" } },
+            MethodOutputs = new() { ["Eigenfarbe"] = "keine", ["pH-Papier"] = "blau", ["Flammenfärbung"] = "grün" } },
 
         // Zusatzstoffe
-        new() { ChemicalID = 8, Name = "Natriumhydroxid", Formula = "NaOH", ChemicalTypeID = 2, ChemicalTypeName = "Zusatzstoff" },
-        new() { ChemicalID = 9, Name = "Salzsäure", Formula = "HCl", ChemicalTypeID = 2, ChemicalTypeName = "Zusatzstoff" },
+        new() { ChemicalID = 8, Name = "Natriumhydroxid", Formula = "NaOH", ChemicalTypeID = 2, ChemicalTypeName = "Zusatzstoff",
+            MethodOutputs = new() { ["Eigenfarbe"] = "keine" } },
+        new() { ChemicalID = 9, Name = "Salzsäure", Formula = "HCl", ChemicalTypeID = 2, ChemicalTypeName = "Zusatzstoff",
+            MethodOutputs = new() { ["Eigenfarbe"] = "keine" } },
     };
 
     // ── Reactions ──────────────────────────────────────────────────────

@@ -1,0 +1,34 @@
+<div class="d-flex justify-content-between align-items-baseline gap-2">
+    <strong>@Chemical.Name</strong>
+    <span class="text-muted">@Chemical.Formula</span>
+</div>
+
+@{
+    var eigenfarbe = Chemical.MethodOutputs.GetValueOrDefault("Eigenfarbe");
+    var flame = Chemical.MethodOutputs.GetValueOrDefault("Flammenfärbung");
+    var phPaper = Chemical.MethodOutputs.GetValueOrDefault("pH-Papier");
+}
+@if (eigenfarbe != null || flame != null || phPaper != null)
+{
+    <div class="d-flex flex-wrap gap-2 mt-1">
+        @if (eigenfarbe != null)
+        {
+            <small title="Eigenfarbe" style="color: @ColorHelper.GetCssColor(eigenfarbe);"><strong><TestTubeIcon /> @eigenfarbe</strong></small>
+        }
+        @if (flame != null)
+        {
+            <small title="Flammenfärbung" style="color: @ColorHelper.GetCssColor(flame);"><strong><FlameIcon /> @flame</strong></small>
+        }
+        @if (phPaper != null)
+        {
+            <small title="pH-Papier Färbung" style="color: @ColorHelper.GetCssColor(phPaper);"><strong><PhPaperIcon /> @phPaper</strong></small>
+        }
+    </div>
+}
+
+@TrailingContent
+
+@code {
+    [Parameter] public ChemicalViewModel Chemical { get; set; } = default!;
+    [Parameter] public RenderFragment? TrailingContent { get; set; }
+}

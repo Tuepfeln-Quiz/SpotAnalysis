@@ -78,33 +78,17 @@
                     <i class="bi bi-question-circle me-2 text-primary"></i>@question.Description
                 </h5>
 
-                <div class="row g-3 align-items-center mb-3">
-                    <div class="col-auto">
-                        <div class="compound-card chemical-@(question.Chemical.ChemicalTypeName.ToLowerInvariant())">
-                            <strong>@question.Chemical.Name</strong>
-                            <br /><small class="text-muted">@question.Chemical.Formula</small>
-                            @if (question.Chemical.MethodOutputs.TryGetValue("Flammenfärbung", out var flame))
-                            {
-                                <br /><small style="color: @FlameColorHelper.GetCssColor(flame);"><FlameIcon /> @flame</small>
-                            }
-                        </div>
+                <div class="task-row">
+                    <div class="compound-card chemical-@(question.Chemical.ChemicalTypeName.ToLowerInvariant()) task-educt" style="border-color: @ColorHelper.GetBorderColor(question.Chemical.MethodOutputs.GetValueOrDefault("Eigenfarbe"))">
+                        <SubstanceCard Chemical="question.Chemical" />
                     </div>
-                    <div class="col-auto">
-                        <span class="fs-4 text-muted fw-bold">+</span>
+                    <span class="fs-4 text-muted fw-bold task-operator">+</span>
+                    <div class="task-educt d-flex align-items-center justify-content-center rounded px-3" style="background-color: #e9ecef; border: 2px dashed #adb5bd;">
+                        <strong class="fs-4 text-muted">???</strong>
                     </div>
-                    <div class="col-auto">
-                        <div class="p-3 rounded text-center" style="background-color: #e9ecef; border: 2px dashed #adb5bd; min-width: 80px;">
-                            <strong class="fs-4 text-muted">???</strong>
-                        </div>
-                    </div>
-                    <div class="col-auto">
-                        <i class="bi bi-arrow-right fs-4 text-muted"></i>
-                    </div>
-                    <div class="col">
-                        <div class="p-3 rounded" style="background-color: #f8f9fa; border: 1px solid #dee2e6;">
-                            <i class="bi bi-eye me-2"></i>
-                            <strong>Beobachtung:</strong> @question.ObservationDescription
-                        </div>
+                    <span class="task-operator"><i class="bi bi-arrow-right fs-4 text-muted"></i></span>
+                    <div class="task-observation p-3 rounded" style="background-color: #f8f9fa; border: 1px solid #dee2e6;">
+                        <i class="bi bi-eye me-2"></i>@question.ObservationDescription
                     </div>
                 </div>
             </div>

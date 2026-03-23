@@ -4,7 +4,10 @@
 
 <PageHeader PageTitle="Sandbox" />
 
-<div class="container py-4 flex-grow-1">
+<div class="container py-4 flex-grow-1"
+     @ondrop="DropOutside"
+     @ondrop:preventDefault
+     @ondragover:preventDefault>
     <div class="row g-4">
         <!-- Workspace -->
         <div class="col-lg-8">
@@ -17,25 +20,24 @@
                             <div class="drop-zone @(dragOverSlot == 1 ? "drag-over" : "")"
                                  @ondrop="() => Drop(1)"
                                  @ondrop:preventDefault
+                                 @ondrop:stopPropagation
                                  @ondragover="() => dragOverSlot = 1"
                                  @ondragover:preventDefault
                                  @ondragleave="() => dragOverSlot = 0">
                                 @if (slot1 != null)
                                 {
-                                    <div class="selected-chemical">
-                                        <span class="color-dot chemical-@(slot1.ChemicalTypeName.ToLowerInvariant())"></span>
-                                        <strong>@slot1.Name</strong>
-                                        <br /><small class="text-muted">@slot1.Formula</small>
-                                        <button class="btn btn-sm btn-outline-secondary mt-2" @onclick="() => slot1 = null">
-                                            <i class="bi bi-x-lg"></i>
-                                        </button>
+                                    <div class="compound-card chemical-@(slot1.ChemicalTypeName.ToLowerInvariant()) h-100"
+                                         style="border-color: @ColorHelper.GetBorderColor(slot1.MethodOutputs.GetValueOrDefault("Eigenfarbe"))"
+                                         draggable="true"
+                                         @ondragstart="() => { draggedChemical = slot1; dragSource = 1; }">
+                                        <SubstanceCard Chemical="slot1" />
                                     </div>
                                 }
                                 else
                                 {
                                     <div class="text-muted">
                                         <i class="bi bi-plus-circle fs-3 d-block mb-2"></i>
-                                        Stoff 1 hierher ziehen
+                                        Stoff hierher ziehen
                                     </div>
                                 }
                             </div>
@@ -44,25 +46,24 @@
                             <div class="drop-zone @(dragOverSlot == 2 ? "drag-over" : "")"
                                  @ondrop="() => Drop(2)"
                                  @ondrop:preventDefault
+                                 @ondrop:stopPropagation
                                  @ondragover="() => dragOverSlot = 2"
                                  @ondragover:preventDefault
                                  @ondragleave="() => dragOverSlot = 0">
                                 @if (slot2 != null)
                                 {
-                                    <div class="selected-chemical">
-                                        <span class="color-dot chemical-@(slot2.ChemicalTypeName.ToLowerInvariant())"></span>
-                                        <strong>@slot2.Name</strong>
-                                        <br /><small class="text-muted">@slot2.Formula</small>
-                                        <button class="btn btn-sm btn-outline-secondary mt-2" @onclick="() => slot2 = null">
-                                            <i class="bi bi-x-lg"></i>
-                                        </button>
+                                    <div class="compound-card chemical-@(slot2.ChemicalTypeName.ToLowerInvariant()) h-100"
+                                         style="border-color: @ColorHelper.GetBorderColor(slot2.MethodOutputs.GetValueOrDefault("Eigenfarbe"))"
+                                         draggable="true"
+                                         @ondragstart="() => { draggedChemical = slot2; dragSource = 2; }">
+                                        <SubstanceCard Chemical="slot2" />
                                     </div>
                                 }
                                 else
                                 {
                                     <div class="text-muted">
                                         <i class="bi bi-plus-circle fs-3 d-block mb-2"></i>
-                                        Stoff 2 hierher ziehen
+                                        Stoff hierher ziehen
                                     </div>
                                 }
                             </div>
@@ -88,22 +89,30 @@
                         <h5 class="fw-bold mb-3"><i class="bi bi-lightning-fill me-2 text-warning"></i>Ergebnis</h5>
                         @if (lastResult.Reaction != null)
                         {
-                            <div class="alert alert-success">
-                                <strong>@lastResult.Reaction.Formula</strong>
-                                <br />
-                                <span>Produkt: @lastResult.Reaction.RelevantProduct</span>
-                                <br />
-                                <em>@lastResult.Reaction.ObservationDescription</em>
-                                @if (lastResult.Reaction.ImagePath != null)
-                                {
-                                    <img src="@lastResult.Reaction.ImagePath" class="img-fluid rounded mt-2" alt="Reaktionsbild" />
-                                }
+                            <div class="alert alert-success d-flex align-items-center gap-3 mb-0">
+                                <div class="flex-grow-1">
+                                    <strong>@lastResult.Reaction.Formula</strong>
+                                    <br />
+                                    <span>Produkt: @lastResult.Reaction.RelevantProduct</span>
+                                    <br />
+                                    <em>@lastResult.Reaction.ObservationDescription</em>
+                                </div>
+                                <img src="@(lastResult.Reaction.ImagePath ?? "images/placeholder-reaction.svg")"
+                                     class="rounded flex-shrink-0"
+                                     style="width: 80px; height: 80px; object-fit: cover;"
+                                     alt="Reaktionsbild" />
                             </div>
                         }
                         else
                         {
-                            <div class="alert alert-secondary">
-                                <strong>Keine bekannte Reaktion</strong> zwischen @lastResult.Chemical1Name und @lastResult.Chemical2Name.
+                            <div class="alert alert-secondary d-flex align-items-center gap-3 mb-0">
+                                <div class="flex-grow-1">
+                                    <strong>Keine bekannte Reaktion</strong> zwischen @lastResult.Chemical1Name und @lastResult.Chemical2Name.
+                                </div>
+                                <img src="images/placeholder-reaction.svg"
+                                     class="rounded flex-shrink-0"
+                                     style="width: 80px; height: 80px; object-fit: cover;"
+                                     alt="Kein Ergebnis" />
                             </div>
                         }
                     </div>
@@ -145,27 +154,21 @@
         <div class="col-lg-4">
             <div class="card border-0 shadow-sm">
                 <div class="card-body p-4">
-                    <h5 class="fw-bold mb-3"><i class="bi bi-beaker me-2"></i>Stoffe</h5>
-                    @foreach (var group in chemicals.GroupBy(c => c.ChemicalTypeID).OrderBy(g => g.Key))
+                    <input type="text" class="form-control form-control-lg mb-3"
+                           placeholder="Stoffe suchen..."
+                           @bind="searchTerm"
+                           @bind:event="oninput" />
+                    @foreach (var group in FilteredChemicals.GroupBy(c => c.ChemicalTypeID).OrderBy(g => g.Key))
                     {
                         <h6 class="text-muted fw-semibold mt-3 mb-2">@(group.Key == 1 ? "Edukte" : "Zusatzstoffe")</h6>
                         <div class="d-flex flex-column gap-2 mb-2">
                             @foreach (var chem in group)
                             {
                                 <div class="compound-card chemical-@(chem.ChemicalTypeName.ToLowerInvariant())"
+                                     style="border-color: @ColorHelper.GetBorderColor(chem.MethodOutputs.GetValueOrDefault("Eigenfarbe"))"
                                      draggable="true"
-                                     @ondragstart="() => draggedChemical = chem">
-                                    <div class="d-flex align-items-center gap-2">
-                                        <span class="color-dot chemical-@(chem.ChemicalTypeName.ToLowerInvariant())" style="border: 1px solid #ccc;"></span>
-                                        <div>
-                                            <strong>@chem.Name</strong>
-                                            <br /><small class="text-muted">@chem.Formula</small>
-                                            @if (chem.MethodOutputs.TryGetValue("Flammenfärbung", out var flame))
-                                            {
-                                                <br /><small style="color: @FlameColorHelper.GetCssColor(flame);"><FlameIcon /> @flame</small>
-                                            }
-                                        </div>
-                                    </div>
+                                     @ondragstart="() => { draggedChemical = chem; dragSource = 0; }">
+                                    <SubstanceCard Chemical="chem" />
                                 </div>
                             }
                         </div>
@@ -180,7 +183,9 @@
     private List<ChemicalViewModel> chemicals = SeedData.Chemicals;
     private List<ReactionViewModel> reactions = SeedData.Reactions;
 
+    private string searchTerm = "";
     private ChemicalViewModel? draggedChemical;
+    private int dragSource; // 0 = sidebar, 1 = slot1, 2 = slot2
     private ChemicalViewModel? slot1;
     private ChemicalViewModel? slot2;
     private int dragOverSlot;
@@ -189,10 +194,21 @@
     private List<MixLogViewModel> mixLog = new();
     private int logCounter;
 
+    private IEnumerable<ChemicalViewModel> FilteredChemicals =>
+        string.IsNullOrWhiteSpace(searchTerm)
+            ? chemicals
+            : chemicals.Where(c =>
+                c.Name.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+                c.Formula.Contains(searchTerm, StringComparison.OrdinalIgnoreCase));
+
     private void Drop(int slot)
     {
         dragOverSlot = 0;
         if (draggedChemical == null) return;
+
+        // Remove from source slot if dragged from a slot
+        if (dragSource == 1) slot1 = null;
+        if (dragSource == 2) slot2 = null;
 
         if (slot == 1)
             slot1 = draggedChemical;
@@ -200,6 +216,15 @@
             slot2 = draggedChemical;
 
         draggedChemical = null;
+    }
+
+    private void DropOutside()
+    {
+        // Dropped outside both slots → remove from source slot
+        if (dragSource == 1) slot1 = null;
+        if (dragSource == 2) slot2 = null;
+        draggedChemical = null;
+        dragOverSlot = 0;
     }
 
     private void Mix()
@@ -219,7 +244,6 @@
 
         lastResult = log;
         mixLog.Add(log);
-        ClearSlots();
     }
 
     private void ClearSlots()

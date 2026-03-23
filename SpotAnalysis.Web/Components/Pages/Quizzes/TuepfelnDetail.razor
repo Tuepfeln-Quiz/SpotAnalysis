@@ -317,14 +317,8 @@ else
                             <h5 class="fw-bold mb-3"><i class="bi bi-beaker me-2"></i>Zusatzstoffe</h5>
                             @foreach (var chem in question.AvailableChemicals)
                             {
-                                <div class="compound-card mb-2 chemical-@(chem.ChemicalTypeName.ToLowerInvariant())">
-                                    <div class="d-flex align-items-center gap-2">
-                                        <span class="color-dot chemical-@(chem.ChemicalTypeName.ToLowerInvariant())" style="border: 1px solid #ccc;"></span>
-                                        <div>
-                                            <strong>@chem.Name</strong>
-                                            <br /><small class="text-muted">@chem.Formula</small>
-                                        </div>
-                                    </div>
+                                <div class="compound-card mb-2 chemical-@(chem.ChemicalTypeName.ToLowerInvariant())" style="border-color: @ColorHelper.GetBorderColor(chem.MethodOutputs.GetValueOrDefault("Eigenfarbe"))">
+                                    <SubstanceCard Chemical="chem" />
                                 </div>
                             }
                         </div>

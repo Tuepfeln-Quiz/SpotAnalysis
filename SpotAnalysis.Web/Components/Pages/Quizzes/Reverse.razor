@@ -12,25 +12,15 @@
             <div class="card-body p-4">
                 <h5 class="fw-bold mb-3"><i class="bi bi-shuffle me-2"></i>Was entsteht bei dieser Reaktion?</h5>
 
+                @{ var chem1 = GetChemical(currentReaction.Chemical1ID); }
+                @{ var chem2 = GetChemical(currentReaction.Chemical2ID); }
                 <div class="d-flex align-items-center justify-content-center gap-3 mb-4">
-                    <div class="compound-card text-center @GetChemicalTypeClass(currentReaction.Chemical1ID)">
-                        <strong>@currentReaction.Chemical1Name</strong>
-                        <br /><small class="text-muted">@GetChemicalFormula(currentReaction.Chemical1ID)</small>
-                        @{ var flame1 = GetFlameColor(currentReaction.Chemical1ID); }
-                        @if (flame1 != null)
-                        {
-                            <br /><small style="color: @FlameColorHelper.GetCssColor(flame1);"><FlameIcon /> @flame1</small>
-                        }
+                    <div class="compound-card text-center chemical-@(chem1.ChemicalTypeName.ToLowerInvariant())" style="border-color: @ColorHelper.GetBorderColor(chem1.MethodOutputs.GetValueOrDefault("Eigenfarbe"))">
+                        <SubstanceCard Chemical="chem1" />
                     </div>
                     <span class="plus-symbol">+</span>
-                    <div class="compound-card text-center @GetChemicalTypeClass(currentReaction.Chemical2ID)">
-                        <strong>@currentReaction.Chemical2Name</strong>
-                        <br /><small class="text-muted">@GetChemicalFormula(currentReaction.Chemical2ID)</small>
-                        @{ var flame2 = GetFlameColor(currentReaction.Chemical2ID); }
-                        @if (flame2 != null)
-                        {
-                            <br /><small style="color: @FlameColorHelper.GetCssColor(flame2);"><FlameIcon /> @flame2</small>
-                        }
+                    <div class="compound-card text-center chemical-@(chem2.ChemicalTypeName.ToLowerInvariant())" style="border-color: @ColorHelper.GetBorderColor(chem2.MethodOutputs.GetValueOrDefault("Eigenfarbe"))">
+                        <SubstanceCard Chemical="chem2" />
                     </div>
                 </div>
 
@@ -195,22 +185,8 @@
         LoadNextReaction();
     }
 
-    private string GetChemicalTypeClass(int chemicalId)
+    private ChemicalViewModel GetChemical(int chemicalId)
     {
-        var chem = SeedData.Chemicals.FirstOrDefault(c => c.ChemicalID == chemicalId);
-        return chem != null ? $"chemical-{chem.ChemicalTypeName.ToLowerInvariant()}" : "";
-    }
-
-    private string GetChemicalFormula(int chemicalId)
-    {
-        return SeedData.Chemicals.FirstOrDefault(c => c.ChemicalID == chemicalId)?.Formula ?? "";
-    }
-
-    private string? GetFlameColor(int chemicalId)
-    {
-        var chem = SeedData.Chemicals.FirstOrDefault(c => c.ChemicalID == chemicalId);
-        if (chem != null && chem.MethodOutputs.TryGetValue("Flammenfärbung", out var flame))
-            return flame;
-        return null;
+        return SeedData.Chemicals.First(c => c.ChemicalID == chemicalId);
     }
 }

@@ -1,6 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
-
-namespace SpotAnalysis.Data.Models.Lab;
+﻿namespace SpotAnalysis.Data.Models;
 
 
 [Index(nameof(ChemicalTypeID))]

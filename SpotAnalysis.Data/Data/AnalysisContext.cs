@@ -58,6 +58,16 @@ public class AnalysisContext : DbContext {
             optionsBuilder.UseSqlServer(@"Data Source=(localdb)\MSSQLLocalDB;Initial Catalog=SpotAnalysis;Connect Timeout= 30;Integrated Security=True;Encrypt=True;Trust Server Certificate=False;");
         }
     }
+    
+    public AnalysisContext(DbContextOptions<AnalysisContext> options)
+        : base(options)
+    {
+    }
+
+    public AnalysisContext() : base()
+    {
+        
+    }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder) {
         modelBuilder.Entity<User>()

@@ -61,6 +61,5 @@ nunit-*.xml
 /SpotAnalysis.Web/bash.exe.stackdump
 /bash.exe.stackdump
 
-/SpotAnalysis.Data/**/Migrations
-
 *.sln.DotSettings.user
+/SpotAnalysis.Data/**/Migrations

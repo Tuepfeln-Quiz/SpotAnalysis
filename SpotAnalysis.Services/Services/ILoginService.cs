@@ -1,4 +1,6 @@
-﻿namespace SpotAnalysis.Services;
+﻿using Models.Identity;
+
+namespace SpotAnalysis.Services;
 
 public interface ILoginService
 {

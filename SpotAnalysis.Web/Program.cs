@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.Authentication.Cookies;
+using SpotAnalysis.Services.Services;
 using SpotAnalysis.Web.Components;
 
 namespace SpotAnalysis.Web
@@ -11,6 +13,22 @@ namespace SpotAnalysis.Web
             // Add services to the container.
             builder.Services.AddRazorComponents()
                 .AddInteractiveServerComponents();
+
+            builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+            .AddCookie(options =>
+            {
+                options.Cookie.Name = "auth_token";
+                options.LoginPath = "/login";
+                options.Cookie.MaxAge = TimeSpan.FromMinutes(30);
+                options.AccessDeniedPath = "/access-denied";
+                options.Cookie.SameSite = SameSiteMode.Lax;   // sehr wichtig
+                options.Cookie.HttpOnly = true;
+                options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+            }); //this is cookie auth ---- not JWT
+
+            builder.Services.AddHttpContextAccessor();
+            builder.Services.AddCascadingAuthenticationState();
+            builder.Services.AddScoped<LoginService>();
 
             var app = builder.Build();
 

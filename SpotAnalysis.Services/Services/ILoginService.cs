@@ -1,6 +1,6 @@
 ﻿using Models.Identity;
 
-namespace SpotAnalysis.Services;
+namespace SpotAnalysis.Services.Services;
 
 public interface ILoginService
 {

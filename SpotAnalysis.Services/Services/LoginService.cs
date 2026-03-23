@@ -1,5 +1,5 @@
-namespace SpotAnalysis.Services;
-using SpotAnalysis.Data;
+namespace SpotAnalysis.Services.Services;
+using Data.Data;
 
 public class LoginService : ILoginService
 {

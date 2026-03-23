@@ -6,5 +6,5 @@ public class Role {
     [Required]
     public string Title { get; set; } = null!;
 
-    public virtual ICollection<UserRole> UserRoles { get; set; } = [];
+    public virtual ICollection<User> Users { get; set; } = [];
 }

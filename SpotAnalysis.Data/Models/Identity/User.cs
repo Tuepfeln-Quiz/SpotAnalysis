@@ -1,4 +1,4 @@
-﻿namespace DataAccessLayer.Models.Identity; 
+﻿namespace Models.Identity; 
 public class User {
     [Key]
     public int UserID { get; set; }

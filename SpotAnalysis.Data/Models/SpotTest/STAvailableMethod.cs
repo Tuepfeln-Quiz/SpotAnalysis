@@ -1,4 +1,4 @@
-﻿namespace DataAccessLayer.Models.SpotTest;
+﻿namespace Models.SpotTest;
 
 [PrimaryKey(nameof(QuestionID), nameof(MethodID))]
 public class STAvailableMethod {

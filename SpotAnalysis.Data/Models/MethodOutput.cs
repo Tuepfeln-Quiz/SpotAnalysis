@@ -1,4 +1,4 @@
-﻿namespace DataAccessLayer.Models;
+﻿namespace Models;
 
 [PrimaryKey(nameof(ChemicalID), nameof(MethodID))]
 public class MethodOutput {

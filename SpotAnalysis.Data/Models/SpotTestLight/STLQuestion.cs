@@ -1,4 +1,4 @@
-﻿namespace DataAccessLayer.Models.SpotTestLight;
+﻿namespace Models.SpotTestLight;
 
 public class STLQuestion {
     [Key]

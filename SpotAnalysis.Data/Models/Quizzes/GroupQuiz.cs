@@ -1,4 +1,4 @@
-﻿namespace DataAccessLayer.Models.Quizzes;
+﻿namespace Models.Quizzes;
 
 [PrimaryKey(nameof(GroupID), nameof(QuizID))]
 public class GroupQuiz {

@@ -1,8 +1,8 @@
 ﻿global using System.ComponentModel.DataAnnotations;
 global using Microsoft.EntityFrameworkCore;
 
-global using DataAccessLayer.Models;
-global using DataAccessLayer.Models.Identity;
-global using DataAccessLayer.Models.Quizzes;
-global using DataAccessLayer.Models.SpotTest;
-global using DataAccessLayer.Models.SpotTestLight;
+global using Models;
+global using Models.Identity;
+global using Models.Quizzes;
+global using Models.SpotTest;
+global using Models.SpotTestLight;

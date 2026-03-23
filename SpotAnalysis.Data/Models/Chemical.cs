@@ -1,8 +1,8 @@
-﻿using DataAccessLayer.Models.SpotTestLight;
-using DataAccessLayer.Models.SpotTest;
+﻿using Models.SpotTestLight;
+using Models.SpotTest;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace DataAccessLayer.Models;
+namespace Models;
 
 
 [Index(nameof(ChemicalTypeID))]

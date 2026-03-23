@@ -1,4 +1,4 @@
-﻿namespace DataAccessLayer.Models; 
+﻿namespace Models; 
 public class ChemicalType {
     [Key]
     public int ChemicalTypeID { get; set; }

@@ -1,4 +1,4 @@
-﻿namespace DataAccessLayer.Models.SpotTest; 
+﻿namespace Models.SpotTest; 
 public class STQuestion {
     [Key]
     public int QuestionID { get; set; }

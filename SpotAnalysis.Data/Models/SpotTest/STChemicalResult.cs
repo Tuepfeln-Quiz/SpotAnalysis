@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 
-namespace DataAccessLayer.Models.SpotTest;
+namespace Models.SpotTest;
 
 public class STChemicalResult {
     [Key]

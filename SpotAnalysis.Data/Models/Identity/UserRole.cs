@@ -1,4 +1,4 @@
-﻿namespace DataAccessLayer.Models.Identity;
+﻿namespace Models.Identity;
 
 [PrimaryKey(nameof(UserID), nameof(RoleID))]
 public class UserRole {

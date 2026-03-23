@@ -1,4 +1,4 @@
-﻿namespace SpotAnalysis_Api.Services;
+﻿namespace SpotAnalysis.Services;
 
 public interface IStudentService
 {

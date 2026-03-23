@@ -1,4 +1,4 @@
-namespace SpotAnalysis_Api.Services;
+namespace SpotAnalysis.Services;
 using SpotAnalysis.Data;
 
 public class LoginService : ILoginService

@@ -1,4 +1,4 @@
-﻿namespace Data.Models.Identity;
+﻿namespace SpotAnalysis.Data.Models.Identity;
 
 [Index(nameof(Name), IsUnique = true)]
 public class Group {

@@ -1,4 +1,4 @@
-﻿namespace Data.Models.SpotTest;
+﻿namespace SpotAnalysis.Data.Models.Quizzes;
 
 [PrimaryKey(nameof(QuestionID), nameof(MethodID))]
 public class STAvailableMethod {
@@ -7,7 +7,7 @@ public class STAvailableMethod {
 
 
     [DeleteBehavior(DeleteBehavior.Restrict)]
-    public STQuestion Question { get; set; } = null!;
+    public Question Question { get; set; } = null!;
 
     [DeleteBehavior(DeleteBehavior.Restrict)]
     public Method Method { get; set; } = null!;

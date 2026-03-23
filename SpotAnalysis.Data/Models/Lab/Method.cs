@@ -1,6 +1,4 @@
-﻿using Data.Models.SpotTest;
-
-namespace Data.Models; 
+﻿namespace SpotAnalysis.Data.Models.Lab; 
 public class Method {
     [Key]
     public int MethodID { get; set; }

@@ -1,4 +1,4 @@
-﻿namespace SpotAnalysis.Data;
+﻿namespace Data.Data;
 
 public class AnalysisContext : DbContext {
 

@@ -21,9 +21,9 @@
                 <h3>Register</h3>
             </div>
 
-            <div class="mb-5">
+            <div class="mb-4">
                     <UsernameGenerator @bind-Value="LoginVM.UserName" />
-                    <label class="username-label text-gray">* generate username</label>
+                    <label class="username-label text-gray"><b>* generate username</b></label>
                 <ValidationMessage For="() => LoginVM.UserName" />
 
             </div>

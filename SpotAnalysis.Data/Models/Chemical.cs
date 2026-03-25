@@ -37,4 +37,5 @@ public class Chemical {
 
     public virtual ICollection<STResult> STResults { get; set; } = [];
     public virtual ICollection<STLResult> STLResults { get; set; } = [];
+    public virtual ICollection<STChemicalResult> STChemicalResults { get; set; } = [];
 }

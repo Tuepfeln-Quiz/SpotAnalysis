@@ -1,11 +1,17 @@
 @using SpotAnalysis.Services.Services
 
+=======
+@using SpotAnalysis.Services.Services;
+>>>>>>> 839c953df9a3d2e79aa116cb57fb448c4c5705f3
 
 <div class="input-group">
-    <InputText @bind-Value="Value" class="form-control" />
-
-    @* usage in registration form with <UsernameGenerator @bind-Value="RegisterVM.UserName" /> *@
-    <button class="btn btn-outline-secondary" @onclick="Generate">
+    <InputText style="padding-left: 4rem;" 
+               @bind-Value="Value" 
+               class="form-control font-bold"/>
+    <button type="button" 
+            class="btn btn-outline-secondary" 
+            @onclick="Generate"
+            title="Generate random username, choose wisely 🎲">
         🎲
     </button>
 </div>
@@ -16,10 +22,10 @@
 
     [Inject] public IUsernameService UsernameService { get; set; } = default!;
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
         if (string.IsNullOrWhiteSpace(Value))
-            Generate();
+            await Generate();
     }
 
     private async Task Generate()

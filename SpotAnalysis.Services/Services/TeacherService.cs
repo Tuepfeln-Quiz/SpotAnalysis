@@ -12,6 +12,7 @@ public class TeacherService(IDbContextFactory<AnalysisContext> factory) : ITeach
         return ctx.Users
             .Where(u => u.UserID == teacherId && u.Roles.Any(r => r.Title == "teacher"));
     }
+    // Tested
     public async Task<List<StudentDto>> GetStudents(Guid teacherId)
     {
         await using var ctx = await factory.CreateDbContextAsync();
@@ -27,6 +28,7 @@ public class TeacherService(IDbContextFactory<AnalysisContext> factory) : ITeach
             }).ToList();
     }
 
+    // Tested
     public async Task<List<StudentDto>> GetStudentsByGroup(Guid teacherId, int groupId)
     {
         await using var ctx = await factory.CreateDbContextAsync();
@@ -47,6 +49,7 @@ public class TeacherService(IDbContextFactory<AnalysisContext> factory) : ITeach
             }).ToList();
     }
 
+    // Tested
     public async Task<List<GroupDto>> GetGroups(Guid teacherId)
     {
         await using var ctx = await factory.CreateDbContextAsync();
@@ -55,10 +58,12 @@ public class TeacherService(IDbContextFactory<AnalysisContext> factory) : ITeach
             .Select(g => new GroupDto
             {
                 Id = g.GroupID,
-                Name = g.Name
+                Name = g.Name,
+                Description = g.Description,
             }).ToList();
     }
 
+    // Tested
     public async Task CreateGroup(Guid teacherId, ConfigGroupDto group)
     {
         await using var ctx = await factory.CreateDbContextAsync();

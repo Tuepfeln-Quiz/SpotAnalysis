@@ -1,10 +1,13 @@
 @page "/login"
 @using System.Runtime.InteropServices
+@using Microsoft.AspNetCore.Authentication
+@using Microsoft.AspNetCore.Authentication.Cookies
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Components.Authorization
 @using SpotAnalysis.Services
 @using SpotAnalysis.Services.Services
 @using SpotAnalysis.Services.DTOs
+@using System.Security.Claims
 @inject ILogger<Login> USRlogger;
 @inject NavigationManager NavigationManager;
 @inject AuthenticationStateProvider AuthStateProvider;
@@ -59,7 +62,7 @@
     {
         Console.WriteLine("Authenticate method called with username: " + LoginVM.UserName + " and password: " + LoginVM.Password);
         //muss noch überlegt werden
-        @* try
+        try
         {
             var userAccount = _login.Login(LoginVM.UserName, LoginVM.Password);
             if (userAccount == null)
@@ -71,7 +74,7 @@
             var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.Name, userAccount.UserName),
-                new Claim(ClaimTypes.Role, userAccount.Roles?.FirstOrDefault()?.RoleName),
+                new Claim(ClaimTypes.Role, userAccount.Roles?.FirstOrDefault()?.Title)
             };
 
             var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
@@ -90,7 +93,7 @@
         {
             ErrorMessage = "Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut.";
             USRlogger.LogError(ex, "Authentifizierungsfehler");
-        } *@
+        }
 
         if (!string.IsNullOrEmpty(ErrorMessage)) return;
         NavigationManager.NavigateTo("/");

@@ -1,12 +1,11 @@
 ﻿namespace SpotAnalysis.Data.Models;
 
 
-[Index(nameof(ChemicalTypeID))]
+[Index(nameof(Type))]
 public class Chemical {
     [Key]
     public int ChemicalID { get; set; }
-
-    public int ChemicalTypeID { get; set; }
+    public ChemicalType Type { get; set; }
 
     [Required]
     public string Name { get; set; } = null!;
@@ -19,9 +18,6 @@ public class Chemical {
 
     public string? ImagePath { get; set; }
 
-
-    [DeleteBehavior(DeleteBehavior.Restrict)]
-    public ChemicalType ChemicalType { get; set; } = null!;
 
     public virtual ICollection<MethodOutput> MethodOutputs { get; set; } = [];
 

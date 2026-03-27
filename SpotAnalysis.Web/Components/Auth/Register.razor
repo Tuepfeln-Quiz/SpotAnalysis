@@ -90,13 +90,19 @@
     public HttpContext? HttpContext { get; set; }
 
     [SupplyParameterFromForm]
-    public LoginDTO LoginVM { get; set; } = new();
+    public LoginDTO? LoginVM { get; set; }
 
     public string ConfirmPassword { get; set; } = string.Empty;
     private string? ErrorMessage { get; set; }
 
     private async Task Authenticate()
     {
+        if (LoginVM == null)
+        {
+            ErrorMessage = "Username and passwords are required.";
+            return;
+        }
+
         Console.WriteLine("Authenticate method called with username: " + LoginVM.UserName + " and password: " + LoginVM.Password + " and confirm password: " + ConfirmPassword);
 
         @* if (!isValid(LoginVM.Password))

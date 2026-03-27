@@ -54,16 +54,28 @@
 
 @code {
     [SupplyParameterFromForm]
-    public LoginDTO LoginVM { get; set; } = new();
+    public LoginDTO? LoginVM { get; set; }
 
     private string? ErrorMessage { get; set; }
 
     private async Task Authenticate()
     {
+        if (LoginVM == null)
+        {
+            ErrorMessage = "Username and password are required.";
+            return;
+        }
+
         Console.WriteLine("Authenticate method called with username: " + LoginVM.UserName + " and password: " + LoginVM.Password);
         //muss noch überlegt werden
         try
         {
+            if (string.IsNullOrEmpty(LoginVM.UserName) || string.IsNullOrEmpty(LoginVM.Password))
+            {
+                ErrorMessage = "Username and password are required.";
+                return;
+            }
+
             var userAccount = _login.Login(LoginVM.UserName, LoginVM.Password);
             if (userAccount == null)
             {
@@ -71,10 +83,17 @@
                 return;
             }
 
+            if (HttpContextAccessor?.HttpContext == null)
+            {
+                ErrorMessage = "An error occurred. Please try again.";
+                USRlogger.LogError("HttpContext is null");
+                return;
+            }
+
             var claims = new List<Claim>
             {
-                new Claim(ClaimTypes.Name, userAccount.UserName),
-                new Claim(ClaimTypes.Role, userAccount.Roles?.FirstOrDefault()?.Title)
+                new Claim(ClaimTypes.Name, userAccount.UserName ?? string.Empty),
+                new Claim(ClaimTypes.Role, userAccount.Roles?.FirstOrDefault()?.Title ?? string.Empty)
             };
 
             var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);

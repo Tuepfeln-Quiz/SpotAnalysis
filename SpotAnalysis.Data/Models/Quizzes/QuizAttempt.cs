@@ -3,7 +3,7 @@
 public class QuizAttempt {
     [Key]
     public int AttemptID { get; set; }
-    public int UserID { get; set; }
+    public Guid UserID { get; set; }
     public int QuizID { get; set; }
     public DateTime Started { get; set; }
     public DateTime Completed { get; set; }

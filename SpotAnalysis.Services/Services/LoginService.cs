@@ -8,7 +8,6 @@ using SpotAnalysis.Data.Models.Identity;
 public class LoginService : ILoginService 
 {
     private readonly AnalysisContext _context;
-    private readonly string Salt = "S0m3R@nd0mS@lt!Because_I-Don't_Want_You_To_Crack_My_Passwords_and_i-Dont-wanna-add.a_GUID_as_salt";
 
     public LoginService(AnalysisContext context)
     {
@@ -28,7 +27,7 @@ public class LoginService : ILoginService
         var user = _context.Users.FirstOrDefault(u => u.UserName == userName);
         if (user == null) return null;
 
-        var hashedPassword = new ArgonProvider.ArgonOutput(password, Salt);
+        var hashedPassword = new ArgonProvider.ArgonOutput(password, user.UserID);
         var storedHash = ArgonProvider.ArgonOutput.FromParamString(user.PasswordHash);
         if (hashedPassword.Compare(storedHash))
         {

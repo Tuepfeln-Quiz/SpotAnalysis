@@ -2,6 +2,6 @@
 
 public interface IRoleService
 {
-    public void AddUserToRole(int userId, int roleId);
-    public void RemoveUserFromRole(int userId, int roleId);
+    public void AddRoleToUser(Guid userId, int roleId);
+    public void RemoveRoleFromUser(Guid userId, int roleId);
 }

@@ -1,10 +1,11 @@
-﻿namespace SpotAnalysis.Services.Services;
-using SpotAnalysis.Data.Models.Identity;
+﻿using SpotAnalysis.Services.DTOs;
+
+namespace SpotAnalysis.Services.Services;
 
 public interface IStudentService
 {
-    public User Register(string password, string? code);
-    // public List<QuizDto> GetQuizzesByType(QuizTypeEnum type);
-    // public List<QuestionDto> JoinQuiz(int quizId);
-    // public QuestionResultDto ValidateQuestion(QuestionInputDto userInput);
+    public void Register(string userName, string password, string? email);
+    public List<QuizOverviewDto> GetQuizzes(Guid studentId);
+    public List<QuizDto> OpenQuiz(Guid studentId, int quizId);
+    public void ValidateAndSaveQuestion(ValAndSaveQuestionDto questionResult);
 }

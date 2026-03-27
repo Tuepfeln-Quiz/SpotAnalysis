@@ -37,8 +37,8 @@ public class LoginService : ILoginService
             return null;
         }
 
-        var hashedPassword = new ArgonProvider.ArgonOutput(password, user.UserID);
-        var storedHash = ArgonProvider.ArgonOutput.FromParamString(user.PasswordHash);
+        var hashedPassword = new PasswordProvider.Password(password, user.UserID);
+        var storedHash = PasswordProvider.Password.FromParamString(user.PasswordHash);
         if (hashedPassword.Compare(storedHash))
         {
             return user;

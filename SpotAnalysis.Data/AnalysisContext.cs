@@ -39,7 +39,6 @@ public class AnalysisContext : DbContext {
     public virtual DbSet<STAvailableMethod> STAvailableMethods { get; set; }
     public virtual DbSet<STResult> STResults { get; set; }
     public virtual DbSet<STChemicalResult> STChemicalResults { get; set; }
-    public virtual DbSet<STLog> STLogs { get; set; }
 
     #endregion SpotTest
 

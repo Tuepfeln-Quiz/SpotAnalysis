@@ -38,7 +38,7 @@ namespace SpotAnalysis.Web
             builder.Services.AddHttpContextAccessor();
             builder.Services.AddCascadingAuthenticationState();
 
-            builder.Services.AddScoped<LoginService>();
+            builder.Services.AddScoped<ILoginService, LoginService>();
 
             var app = builder.Build();
 

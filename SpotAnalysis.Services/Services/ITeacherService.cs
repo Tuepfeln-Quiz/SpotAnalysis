@@ -4,16 +4,16 @@ namespace SpotAnalysis.Services.Services;
 
 public interface ITeacherService
 {
-    public List<StudentDto> GetStudents(int teacherId);
-    public List<StudentDto> GetStudentsByGroup(int teacherId, int groupId);
+    public Task<List<StudentDto>> GetStudents(int teacherId);
+    public Task<List<StudentDto>> GetStudentsByGroup(int teacherId, int groupId);
     
-    public List<GroupDto> GetGroups(int teacherId);
-    public void CreateGroup(int teacherId, ConfigGroupDto group);
-    public void UpdateGroup(int teacherId, ConfigGroupDto group);
-    public void DeleteGroup(int teacherId, int groupId);
+    public Task<List<GroupDto>> GetGroups(int teacherId);
+    public Task CreateGroup(int teacherId, ConfigGroupDto group);
+    public Task UpdateGroup(int teacherId, ConfigGroupDto group);
+    public Task DeleteGroup(int teacherId, int groupId);
     
-    public void AssignUserToGroup(int userId, int groupId);
-    public void RemoveUserFromGroup(int userId, int groupId);
+    public Task AssignUserToGroup(int teacherId, int userId, int groupId);
+    public Task RemoveUserFromGroup(int teacherId, int userId, int groupId);
     
     // public List<QuizDto> GetQuizzesByType(QuizTypeEnum type);
     // public void CreateQuiz(CreateQuizDto quiz);

@@ -1,16 +1,11 @@
-﻿using Data.Models.SpotTestLight;
-using Data.Models.SpotTest;
-using System.ComponentModel.DataAnnotations.Schema;
-
-namespace Data.Models;
+﻿namespace SpotAnalysis.Data.Models;
 
 
-[Index(nameof(ChemicalTypeID))]
+[Index(nameof(Type))]
 public class Chemical {
     [Key]
     public int ChemicalID { get; set; }
-
-    public int ChemicalTypeID { get; set; }
+    public ChemicalType Type { get; set; }
 
     [Required]
     public string Name { get; set; } = null!;
@@ -24,10 +19,7 @@ public class Chemical {
     public string? ImagePath { get; set; }
 
 
-    [DeleteBehavior(DeleteBehavior.Restrict)]
-    public ChemicalType ChemicalType { get; set; } = null!;
-
-    public virtual ICollection<MethodOutput> MehtodOutputs { get; set; } = [];
+    public virtual ICollection<MethodOutput> MethodOutputs { get; set; } = [];
 
     [InverseProperty(nameof(Reaction.Chemical1))]
     public virtual ICollection<Reaction> Chemical1Reactions { get; set; } = [];
@@ -36,9 +28,10 @@ public class Chemical {
     public virtual ICollection<Reaction> Chemical2Reactions { get; set; } = [];
 
     public virtual ICollection<STAvailableChemical> STAvailableChemicals { get; set; } = [];
-    public virtual ICollection<STLQuestion> STLQuestions {  get; set; } = [];
-    public virtual ICollection<STQuestion> STQuestions { get; set; } = [];
+    public virtual ICollection<STLInput> STLInputs { get; set; } = [];
+
 
     public virtual ICollection<STResult> STResults { get; set; } = [];
     public virtual ICollection<STLResult> STLResults { get; set; } = [];
+    public virtual ICollection<STChemicalResult> STChemicalResults { get; set; } = [];
 }

@@ -1,3 +1,106 @@
+/* ===== Tüpfeln Digital Custom Styles ===== */
+
+:root {
+    --bg-main: #f5f0eb;
+    --purple-600: #6b21a8;
+    --purple-800: #4c1d95;
+    --purple-gradient: linear-gradient(135deg, #6b21a8, #4c1d95);
+    --card-radius: 16px;
+    --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.08);
+    --shadow-card-hover: 0 4px 16px rgba(0, 0, 0, 0.12);
+}
+
+body {
+    background-color: var(--bg-main);
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+}
+
+.card-interactive {
+    border: none;
+    border-radius: var(--card-radius);
+    box-shadow: var(--shadow-card);
+    transition: transform 0.2s, box-shadow 0.2s;
+    cursor: pointer;
+}
+
+.card-interactive:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-card-hover);
+}
+
+.drop-zone {
+    border: 2px dashed #ccc;
+    border-radius: var(--card-radius);
+    padding: 2rem;
+    text-align: center;
+    transition: border-color 0.2s, background-color 0.2s;
+}
+
+.drop-zone.drag-over {
+    border-color: var(--purple-600);
+    background-color: rgba(107, 33, 168, 0.05);
+}
+
+.compound-card {
+    border-radius: 12px;
+    padding: 0.75rem;
+    cursor: grab;
+    transition: transform 0.15s;
+    border: 2px solid transparent;
+}
+
+.chemical-edukt {
+    background-color: #f5f5f5;
+}
+
+.chemical-zusatzstoff {
+    background-color: #dbeafe;
+}
+
+.compound-card:active {
+    cursor: grabbing;
+}
+
+.compound-card:hover {
+    transform: scale(1.02);
+}
+
+.compound-card-static {
+    cursor: default;
+}
+
+.compound-card-static:hover {
+    transform: none;
+}
+
+.compound-card-static:active {
+    cursor: default;
+}
+
+.mix-log-item {
+    border-radius: 8px;
+    padding: 0.5rem 0.75rem;
+    margin-bottom: 0.25rem;
+    font-size: 0.875rem;
+}
+
+.mix-log-item.correct {
+    background-color: #d1fae5;
+    border-left: 3px solid #10b981;
+}
+
+.mix-log-item.incorrect {
+    background-color: #fee2e2;
+    border-left: 3px solid #ef4444;
+}
+
+.mix-log-item.neutral {
+    background-color: #f3f4f6;
+    border-left: 3px solid #9ca3af;
+}
+
+/* ===== End Custom Styles ===== */
+
 html, body {
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
 }
@@ -13,7 +116,7 @@ a, .btn-link {
 }
 
 .btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
-  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
+  box-shadow: 0 0 0 0.05rem white, 0 0 0 0.15rem #258cfb;
 }
 
 .content {
@@ -58,3 +161,7 @@ h1:focus {
 .form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
     text-align: start;
 }
+
+.text-gray { color: #8a8686; }
+
+.font-bold { font-weight: bold; }

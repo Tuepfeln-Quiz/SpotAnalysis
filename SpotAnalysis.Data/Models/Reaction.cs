@@ -1,6 +1,4 @@
-﻿using Data.Models.SpotTestLight;
-
-namespace Data.Models;
+﻿namespace SpotAnalysis.Data.Models;
 
 public class Reaction {
     [Key]

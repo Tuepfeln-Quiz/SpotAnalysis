@@ -16,7 +16,6 @@ public class AnalysisContext : DbContext {
 
     #region Educts, Products, Additives
     public virtual DbSet<Chemical> Chemicals { get; set; }
-    public virtual DbSet<ChemicalType> ChemicalTypes { get; set; }
     public virtual DbSet<Method> Methods { get; set; }
     public virtual DbSet<MethodOutput> MethodOutputs { get; set; }
     public virtual DbSet<Reaction> Reactions { get; set; }
@@ -31,7 +30,6 @@ public class AnalysisContext : DbContext {
     public virtual DbSet<QuizAttempt> QuizAttempts { get; set; }
     public virtual DbSet<Question> Questions { get; set; }
     public virtual DbSet<QuizQuestion> QuizQuestions { get; set; }
-    public virtual DbSet<QuestionType> QuestionTypes { get; set; }
 
     #endregion Quizzes
 
@@ -59,6 +57,16 @@ public class AnalysisContext : DbContext {
         if (!optionsBuilder.IsConfigured) {
             optionsBuilder.UseSqlServer(@"Data Source=(localdb)\MSSQLLocalDB;Initial Catalog=SpotAnalysis;Connect Timeout= 30;Integrated Security=True;Encrypt=True;Trust Server Certificate=False;");
         }
+    }
+    
+    public AnalysisContext(DbContextOptions<AnalysisContext> options)
+        : base(options)
+    {
+    }
+
+    public AnalysisContext() : base()
+    {
+        
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder) {

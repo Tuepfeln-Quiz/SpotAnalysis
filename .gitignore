@@ -57,4 +57,9 @@ nunit-*.xml
 /.idea
 
 # ignore Migrations Folder
+/SpotAnalysis.Data/Data/Migrations
+/SpotAnalysis.Web/bash.exe.stackdump
+/bash.exe.stackdump
+
+*.sln.DotSettings.user
 /SpotAnalysis.Data/**/Migrations

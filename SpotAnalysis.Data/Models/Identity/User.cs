@@ -1,7 +1,11 @@
-﻿namespace SpotAnalysis.Data.Models.Identity; 
+﻿namespace SpotAnalysis.Data.Models.Identity;
+
+[Index(nameof(UserName), IsUnique = true)]
 public class User {
     [Key]
-    public int UserID { get; set; }
+    [StringLength(36, MinimumLength = 36)]
+    [DatabaseGenerated(DatabaseGeneratedOption.None)]
+    public string UserID { get; set; } = null!;
 
     [Required]
     public string UserName { get; set; } = null!;

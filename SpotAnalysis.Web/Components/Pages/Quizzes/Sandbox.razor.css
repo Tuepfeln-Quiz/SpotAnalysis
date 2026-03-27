@@ -1,0 +1,23 @@
+::deep .drop-zone {
+    min-height: 160px;
+    display: flex;
+}
+
+::deep .drop-zone:has(.compound-card) {
+    padding: 0;
+    border-style: solid;
+    border-color: transparent;
+}
+
+::deep .drop-zone > .compound-card {
+    width: 100%;
+    min-height: 160px;
+}
+
+::deep .drop-zone > .text-muted {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}

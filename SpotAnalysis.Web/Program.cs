@@ -15,7 +15,7 @@ namespace SpotAnalysis.Web
            
             builder.Services.AddDbContext<AnalysisContext>(options =>
                 options.UseSqlServer(
-                    builder.Configuration.GetConnectionString("DefaultConnection")));
+                    builder.Configuration.GetConnectionString("MyDatabase")));
 
             builder.Services.AddScoped<IUsernameService, UsernameService>();
 

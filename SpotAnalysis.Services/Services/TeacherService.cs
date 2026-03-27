@@ -7,11 +7,16 @@ namespace SpotAnalysis.Services.Services;
 
 public class TeacherService(IDbContextFactory<AnalysisContext> factory) : ITeacherService
 {
+    private static IQueryable<User> Teacher(AnalysisContext ctx, int teacherId)
+    {
+        return ctx.Users
+            .Where(u => u.UserID == teacherId && u.Roles.Any(r => r.Title == "teacher"));
+    }
     public async Task<List<StudentDto>> GetStudents(int teacherId)
     {
         await using var ctx = await factory.CreateDbContextAsync();
 
-        return ctx.Users.Where(u => u.UserID == teacherId).SelectMany(g => g.Groups)
+        return Teacher(ctx, teacherId).SelectMany(u => u.Groups)
             .SelectMany(g => g.Users)
             .Distinct()
             .Where(u => u.UserID != teacherId)
@@ -26,8 +31,7 @@ public class TeacherService(IDbContextFactory<AnalysisContext> factory) : ITeach
     {
         await using var ctx = await factory.CreateDbContextAsync();
 
-        return ctx.Users.Where(u => u.UserID == teacherId)
-            .SelectMany(u => u.Groups)
+        return Teacher(ctx, teacherId).SelectMany(u => u.Groups)
             .Where(g => g.GroupID == groupId)
             .SelectMany(g => g.Users)
             .Where(u => u.UserID != teacherId)
@@ -47,8 +51,7 @@ public class TeacherService(IDbContextFactory<AnalysisContext> factory) : ITeach
     {
         await using var ctx = await factory.CreateDbContextAsync();
 
-        return ctx.Users.Where(u => u.UserID == teacherId)
-            .SelectMany(u => u.Groups)
+        return Teacher(ctx, teacherId).SelectMany(u => u.Groups)
             .Select(g => new GroupDto
             {
                 Id = g.GroupID,
@@ -59,7 +62,7 @@ public class TeacherService(IDbContextFactory<AnalysisContext> factory) : ITeach
     public async Task CreateGroup(int teacherId, ConfigGroupDto group)
     {
         await using var ctx = await factory.CreateDbContextAsync();
-        var user = await  ctx.Users.SingleAsync(u => u.UserID == teacherId);
+        var user = await Teacher(ctx, teacherId).SingleAsync();
         
         var qGroup = new Group
         {
@@ -77,7 +80,7 @@ public class TeacherService(IDbContextFactory<AnalysisContext> factory) : ITeach
     public async Task UpdateGroup(int teacherId, ConfigGroupDto group)
     {
         await using var ctx = await factory.CreateDbContextAsync();
-        var qGroup = await ctx.Users.Where(u => u.UserID == teacherId).SelectMany(u => u.Groups).SingleAsync(g => g.Name == group.Name);
+        var qGroup = await Teacher(ctx, teacherId).SelectMany(u => u.Groups).SingleAsync(g => g.Name == group.Name);
         
         qGroup.Description = group.Description;
         qGroup.Name = group.Name;
@@ -88,7 +91,7 @@ public class TeacherService(IDbContextFactory<AnalysisContext> factory) : ITeach
     public async Task DeleteGroup(int teacherId, int groupId)
     {
         await using var ctx = await factory.CreateDbContextAsync();
-        var qGroup = await ctx.Users.Where(u => u.UserID == teacherId).SelectMany(u => u.Groups).SingleAsync(g => g.GroupID == groupId);
+        var qGroup = await Teacher(ctx, teacherId).SelectMany(u => u.Groups).SingleAsync(g => g.GroupID == groupId);
         ctx.Groups.Remove(qGroup);
         
         await ctx.SaveChangesAsync();
@@ -98,7 +101,7 @@ public class TeacherService(IDbContextFactory<AnalysisContext> factory) : ITeach
     {
         await using var ctx = await factory.CreateDbContextAsync();
         var user = await ctx.Users.SingleAsync(u => u.UserID == userId);
-        var group = await ctx.Users.Where(u => u.UserID == teacherId).SelectMany(u => u.Groups).SingleAsync(g => g.GroupID == groupId);
+        var group = await Teacher(ctx, teacherId).SelectMany(u => u.Groups).SingleAsync(g => g.GroupID == groupId);
         group.Users.Add(user);
         
         await ctx.SaveChangesAsync();
@@ -108,7 +111,7 @@ public class TeacherService(IDbContextFactory<AnalysisContext> factory) : ITeach
     {
         await using var ctx =  await factory.CreateDbContextAsync();
         var user = await ctx.Users.SingleAsync(u => u.UserID == userId);
-        var group = await ctx.Users.Where(u => u.UserID == teacherId).SelectMany(u => u.Groups).SingleAsync(g => g.GroupID == groupId);
+        var group = await Teacher(ctx, teacherId).SelectMany(u => u.Groups).SingleAsync(g => g.GroupID == groupId);
         group.Users.Remove(user);
         
         await ctx.SaveChangesAsync();

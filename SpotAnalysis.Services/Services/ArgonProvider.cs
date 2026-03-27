@@ -25,15 +25,13 @@ public static class ArgonProvider
         private readonly byte[] _hash;
         private readonly byte[] _salt;
         
-        public ArgonOutput(string password, string salt)
+        public ArgonOutput(string password, Guid salt)
         {
             if (string.IsNullOrEmpty(password)) throw new ArgumentException("Password cannot be null or empty");
-            if (string.IsNullOrEmpty(salt)) throw new ArgumentException("Salt cannot be null or empty");
-            if (salt.Length < 8) throw new ArgumentException("Salt must be at least 8 characters long");
             if (password.Length < 8) throw new ArgumentException("Password must be at least 8 characters long");
             
-            _salt = Encoding.ASCII.GetBytes(salt);
-            _hash = DigestPw(password, salt);
+            _salt = salt.ToByteArray();
+            _hash = DigestPw(password, _salt);
         }
 
         private ArgonOutput(byte[] hash, byte[] salt)
@@ -78,10 +76,9 @@ public static class ArgonProvider
         return gen;
     }
     
-    private static byte[] DigestPw(string password, string salt)
+    private static byte[] DigestPw(string password, byte[] salt)
     {
-        var saltBytes = Encoding.ASCII.GetBytes(salt);
-        var gen = NewGenerator(saltBytes);
+        var gen = NewGenerator(salt);
         var result = new byte[ArgonOutputLength];
         gen.GenerateBytes(password.ToArray(), result);
 

@@ -16,7 +16,6 @@ public class AnalysisContext : DbContext {
 
     #region Educts, Products, Additives
     public virtual DbSet<Chemical> Chemicals { get; set; }
-    public virtual DbSet<ChemicalType> ChemicalTypes { get; set; }
     public virtual DbSet<Method> Methods { get; set; }
     public virtual DbSet<MethodOutput> MethodOutputs { get; set; }
     public virtual DbSet<Reaction> Reactions { get; set; }
@@ -31,7 +30,6 @@ public class AnalysisContext : DbContext {
     public virtual DbSet<QuizAttempt> QuizAttempts { get; set; }
     public virtual DbSet<Question> Questions { get; set; }
     public virtual DbSet<QuizQuestion> QuizQuestions { get; set; }
-    public virtual DbSet<QuestionType> QuestionTypes { get; set; }
 
     #endregion Quizzes
 
@@ -41,7 +39,6 @@ public class AnalysisContext : DbContext {
     public virtual DbSet<STAvailableMethod> STAvailableMethods { get; set; }
     public virtual DbSet<STResult> STResults { get; set; }
     public virtual DbSet<STChemicalResult> STChemicalResults { get; set; }
-    public virtual DbSet<STLog> STLogs { get; set; }
 
     #endregion SpotTest
 

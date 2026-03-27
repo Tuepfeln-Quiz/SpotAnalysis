@@ -10,6 +10,7 @@ namespace SpotAnalysis.Web
         {
             var builder = WebApplication.CreateBuilder(args);
 
+            builder.Services.AddScoped<IUsernameService, UsernameService>();
             // Add services to the container.
             builder.Services.AddRazorComponents()
                 .AddInteractiveServerComponents();

@@ -7,12 +7,12 @@ namespace SpotAnalysis.Services.Services;
 
 public class TeacherService(IDbContextFactory<AnalysisContext> factory) : ITeacherService
 {
-    private static IQueryable<User> Teacher(AnalysisContext ctx, int teacherId)
+    private static IQueryable<User> Teacher(AnalysisContext ctx, Guid teacherId)
     {
         return ctx.Users
             .Where(u => u.UserID == teacherId && u.Roles.Any(r => r.Title == "teacher"));
     }
-    public async Task<List<StudentDto>> GetStudents(int teacherId)
+    public async Task<List<StudentDto>> GetStudents(Guid teacherId)
     {
         await using var ctx = await factory.CreateDbContextAsync();
 
@@ -27,7 +27,7 @@ public class TeacherService(IDbContextFactory<AnalysisContext> factory) : ITeach
             }).ToList();
     }
 
-    public async Task<List<StudentDto>> GetStudentsByGroup(int teacherId, int groupId)
+    public async Task<List<StudentDto>> GetStudentsByGroup(Guid teacherId, int groupId)
     {
         await using var ctx = await factory.CreateDbContextAsync();
 
@@ -47,7 +47,7 @@ public class TeacherService(IDbContextFactory<AnalysisContext> factory) : ITeach
             }).ToList();
     }
 
-    public async Task<List<GroupDto>> GetGroups(int teacherId)
+    public async Task<List<GroupDto>> GetGroups(Guid teacherId)
     {
         await using var ctx = await factory.CreateDbContextAsync();
 
@@ -59,7 +59,7 @@ public class TeacherService(IDbContextFactory<AnalysisContext> factory) : ITeach
             }).ToList();
     }
 
-    public async Task CreateGroup(int teacherId, ConfigGroupDto group)
+    public async Task CreateGroup(Guid teacherId, ConfigGroupDto group)
     {
         await using var ctx = await factory.CreateDbContextAsync();
         var user = await Teacher(ctx, teacherId).SingleAsync();
@@ -77,7 +77,7 @@ public class TeacherService(IDbContextFactory<AnalysisContext> factory) : ITeach
         await ctx.SaveChangesAsync();
     }
 
-    public async Task UpdateGroup(int teacherId, ConfigGroupDto group)
+    public async Task UpdateGroup(Guid teacherId, ConfigGroupDto group)
     {
         await using var ctx = await factory.CreateDbContextAsync();
         var qGroup = await Teacher(ctx, teacherId).SelectMany(u => u.Groups).SingleAsync(g => g.Name == group.Name);
@@ -88,7 +88,7 @@ public class TeacherService(IDbContextFactory<AnalysisContext> factory) : ITeach
         await ctx.SaveChangesAsync();
     }
 
-    public async Task DeleteGroup(int teacherId, int groupId)
+    public async Task DeleteGroup(Guid teacherId, int groupId)
     {
         await using var ctx = await factory.CreateDbContextAsync();
         var qGroup = await Teacher(ctx, teacherId).SelectMany(u => u.Groups).SingleAsync(g => g.GroupID == groupId);
@@ -97,7 +97,7 @@ public class TeacherService(IDbContextFactory<AnalysisContext> factory) : ITeach
         await ctx.SaveChangesAsync();
     }
 
-    public async Task AssignUserToGroup(int teacherId, int userId, int groupId)
+    public async Task AssignUserToGroup(Guid teacherId, Guid userId, int groupId)
     {
         await using var ctx = await factory.CreateDbContextAsync();
         var user = await ctx.Users.SingleAsync(u => u.UserID == userId);
@@ -107,7 +107,7 @@ public class TeacherService(IDbContextFactory<AnalysisContext> factory) : ITeach
         await ctx.SaveChangesAsync();
     }
 
-    public async Task RemoveUserFromGroup(int teacherId, int userId, int groupId)
+    public async Task RemoveUserFromGroup(Guid teacherId, Guid userId, int groupId)
     {
         await using var ctx =  await factory.CreateDbContextAsync();
         var user = await ctx.Users.SingleAsync(u => u.UserID == userId);

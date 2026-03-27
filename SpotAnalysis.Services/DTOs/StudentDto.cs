@@ -2,7 +2,7 @@
 
 public class StudentDto
 {
-    public required int Id { get; init; }
+    public required Guid Id { get; init; }
     public required string UserName { get; init; }
     /// <summary>
     /// There will be the groups displayed where the corresponding teacher is also part of.

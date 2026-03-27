@@ -3,6 +3,7 @@
 [Index(nameof(UserName), IsUnique = true)]
 public class User {
     [Key]
+    [DatabaseGenerated(DatabaseGeneratedOption.None)]
     public Guid UserID { get; set; }
 
     [Required]

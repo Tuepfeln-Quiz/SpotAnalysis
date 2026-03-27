@@ -84,7 +84,7 @@
     public HttpContext? HttpContext { get; set; }
 
     [SupplyParameterFromForm]
-    public LoginDTO LoginVM { get; set; } = new();
+    public LoginDto LoginVM { get; set; } = new();
 
     public string ConfirmPassword { get; set; } = string.Empty;
     private string? ErrorMessage { get; set; }

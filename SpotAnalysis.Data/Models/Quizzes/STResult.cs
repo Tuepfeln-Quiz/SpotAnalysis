@@ -5,7 +5,6 @@ public class STResult {
     public int ResultID { get; set; }
     public int AttemptID { get; set; }
     public int QuestionID { get; set; }
-    public bool IsCorrect { get; set; }
 
 
     [ForeignKey(nameof(AttemptID))]

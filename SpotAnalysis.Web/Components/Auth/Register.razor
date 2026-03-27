@@ -10,7 +10,7 @@
 @inject NavigationManager NavigationManager;
 @inject AuthenticationStateProvider AuthStateProvider
 @inject IHttpContextAccessor HttpContextAccessor;
-@inject ILoginService _login;
+@* @inject IStudentService _StudentService; *@
 
 <div class="row">
     <div class="col-lg-4 offset-lg-4 pt-4 pb-4 border">
@@ -89,29 +89,28 @@
     [CascadingParameter]
     public HttpContext? HttpContext { get; set; }
 
-    [SupplyParameterFromForm]
-    public LoginDTO? LoginVM { get; set; }
+    public LoginDTO LoginVM { get; set; } = new();
 
     public string ConfirmPassword { get; set; } = string.Empty;
     private string? ErrorMessage { get; set; }
 
     private async Task Authenticate()
     {
-        if (LoginVM == null)
-        {
-            ErrorMessage = "Username and passwords are required.";
-            return;
-        }
-
+        ErrorMessage = null;
         Console.WriteLine("Authenticate method called with username: " + LoginVM.UserName + " and password: " + LoginVM.Password + " and confirm password: " + ConfirmPassword);
 
-        @* if (!isValid(LoginVM.Password))
+        if (!isValid(LoginVM.Password))
         {
             ErrorMessage = "Passwort muss:\nmin.8 Zeichen lang sein\nmin. 1 Großbuchstabe\nmin.1 Kleinbuchstabe\nmin.1 Zahl und 1 Sonderzeichen enthalten.";
             return;
         }
+        if(LoginVM.Password != ConfirmPassword)
+        {
+            ErrorMessage = "Passwörter stimmen nicht überein.";
+            return;
+        }
 
-        var userAccount = _login.Register(LoginVM);
+        @* var userAccount = _StudentService.Register(LoginVM);
 
         if (userAccount == null)
         {
@@ -121,10 +120,11 @@
         else
         {
             var claims = new List<Claim>
-        {
-            new Claim(ClaimTypes.Name, userAccount.UserName),
-            new Claim(ClaimTypes.Role, userAccount.Roles.FirstOrDefault().RoleName)
-        };
+            {
+                new Claim(ClaimTypes.Name, userAccount.UserName ?? string.Empty),
+                new Claim(ClaimTypes.Role, userAccount.Roles?.FirstOrDefault()?.Title ?? string.Empty)
+            };
+
             var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
             var principal = new ClaimsPrincipal(identity);
             await HttpContext.SignInAsync(principal);
@@ -132,8 +132,11 @@
         } *@
     }
 
-    private bool isValid(string pw)
+    private bool isValid(string? pw)
     {
+        if (string.IsNullOrEmpty(pw))
+            return false;
+
         var isv = Regex.IsMatch(pw,
         @"^(?=.*[a-z])      # mind. 1 Kleinbuchstabe
               (?=.*[A-Z])      # mind. 1 Großbuchstabe

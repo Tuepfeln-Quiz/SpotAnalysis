@@ -53,21 +53,13 @@
 </div>
 
 @code {
-    [SupplyParameterFromForm]
-    public LoginDTO? LoginVM { get; set; }
+    public LoginDTO LoginVM { get; set; } = new();
 
     private string? ErrorMessage { get; set; }
 
     private async Task Authenticate()
     {
-        if (LoginVM == null)
-        {
-            ErrorMessage = "Username and password are required.";
-            return;
-        }
-
         Console.WriteLine("Authenticate method called with username: " + LoginVM.UserName + " and password: " + LoginVM.Password);
-        //muss noch überlegt werden
         try
         {
             if (string.IsNullOrEmpty(LoginVM.UserName) || string.IsNullOrEmpty(LoginVM.Password))

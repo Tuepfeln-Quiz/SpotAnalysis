@@ -8,6 +8,7 @@
 
     <ItemGroup>
       <PackageReference Include="BouncyCastle.Cryptography" Version="2.7.0-beta.98" />
+        <ProjectReference Include="..\SpotAnalysis.Data\SpotAnalysis.Data.csproj" />
     </ItemGroup>
 
 </Project>

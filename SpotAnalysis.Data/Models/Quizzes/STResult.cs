@@ -16,5 +16,4 @@ public class STResult {
     public Question Question { get; set; } = null!;
 
     public virtual ICollection<STChemicalResult> ChemicalResults { get; set; } = [];
-    public virtual ICollection<STLog> STLogs { get; set; } = [];
 }

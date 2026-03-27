@@ -6,52 +6,64 @@ namespace SpotAnalysis.Services.Tests;
 [TestFixture]
 public abstract class BaseDatabaseTest
 {
-    protected AnalysisContext Context;
+    private AnalysisContext _context;
     protected IDbContextFactory<AnalysisContext> ContextFactory;
 
-    private const string ConnectionString =
+    private const string ConnectionStringIntegrated =
         @"Data Source=(localdb)\MSSQLLocalDB;Initial Catalog=TuepfelnTest;Integrated Security=True;Connect Timeout=30;Encrypt=False;Trust Server Certificate=False;Application Intent=ReadWrite;Multi Subnet Failover=False;Command Timeout=30";
+
+    // ReSharper disable once UnusedMember.Local
+    private const string ConnectionStringLocal =
+        @"Server=tcp:localhost,1433;Database=TuepfelnTest;User Id=sa;Password=p4ssw0rd!;TrustServerCertificate=True;Encrypt=False;";
     
     [OneTimeSetUp]
     public async Task RunBeforeAllTests()
     {
         var options = new DbContextOptionsBuilder<AnalysisContext>()
-            .UseSqlServer(ConnectionString)
+            .UseSqlServer(ConnectionStringIntegrated)
             .Options;
         
         ContextFactory = new TestDbContextFactory(options);
 
-        Context = await ContextFactory.CreateDbContextAsync();
+        _context = await ContextFactory.CreateDbContextAsync();
 
-        await Context.Database.EnsureDeletedAsync();
-        await Context.Database.MigrateAsync();
+        await _context.Database.EnsureDeletedAsync();
+        await _context.Database.MigrateAsync();
 
         var seedSql = await File.ReadAllTextAsync(Path.Join(AppDomain.CurrentDomain.BaseDirectory, "seed.sql"));
         if (!string.IsNullOrEmpty(seedSql))
         {
-            await Context.Database.ExecuteSqlRawAsync(seedSql);
+            await _context.Database.ExecuteSqlRawAsync(seedSql);
         }
     }
 
     [SetUp]
-    public async Task Init()
+    public Task Init()
     {
-        // Optional: Use Respawn here if you want to wipe 
-        // user-generated data between tests while keeping seed data.
-        Context = new AnalysisContext(new DbContextOptionsBuilder<AnalysisContext>()
-            .UseSqlServer(ConnectionString).Options);
+        try
+        {
+            // Optional: Use Respawn here if you want to wipe 
+            // user-generated data between tests while keeping seed data.
+            _context = new AnalysisContext(new DbContextOptionsBuilder<AnalysisContext>()
+                .UseSqlServer(ConnectionStringIntegrated).Options);
+            return Task.CompletedTask;
+        }
+        catch (Exception exception)
+        {
+            return Task.FromException(exception);
+        }
     }
 
     [TearDown]
     public void Cleanup()
     {
-        Context.Dispose();
+        _context.Dispose();
     }
     
     [OneTimeTearDown]
     public void GlobalTeardown()
     {
-        Context?.Dispose();
+        _context.Dispose();
     }
     
     private class TestDbContextFactory(DbContextOptions<AnalysisContext> options) : IDbContextFactory<AnalysisContext>

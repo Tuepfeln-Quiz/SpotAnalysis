@@ -96,9 +96,15 @@ public class TeacherService(IDbContextFactory<AnalysisContext> factory) : ITeach
     public async Task DeleteGroup(Guid teacherId, int groupId)
     {
         await using var ctx = await factory.CreateDbContextAsync();
-        var qGroup = await Teacher(ctx, teacherId).SelectMany(u => u.Groups).SingleAsync(g => g.GroupID == groupId);
-        ctx.Groups.Remove(qGroup);
+        var teacher = Teacher(ctx, teacherId);
+        var qGroup = await teacher.SelectMany(u => u.Groups)
+            .Include(g => g.Users)
+            .SingleAsync(g => g.GroupID == groupId);
+       
+        qGroup.Users.Remove(teacher.Single());
+        await ctx.SaveChangesAsync();
         
+        ctx.Groups.Remove(qGroup);
         await ctx.SaveChangesAsync();
     }
 
@@ -115,8 +121,14 @@ public class TeacherService(IDbContextFactory<AnalysisContext> factory) : ITeach
     public async Task RemoveUserFromGroup(Guid teacherId, Guid userId, int groupId)
     {
         await using var ctx =  await factory.CreateDbContextAsync();
+        
         var user = await ctx.Users.SingleAsync(u => u.UserID == userId);
-        var group = await Teacher(ctx, teacherId).SelectMany(u => u.Groups).SingleAsync(g => g.GroupID == groupId);
+        
+        var group = await Teacher(ctx, teacherId)
+            .SelectMany(u => u.Groups)
+            .Include(u => u.Users)
+            .SingleAsync(g => g.GroupID == groupId);
+
         group.Users.Remove(user);
         
         await ctx.SaveChangesAsync();

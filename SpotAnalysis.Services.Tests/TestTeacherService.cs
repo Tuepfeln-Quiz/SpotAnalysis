@@ -5,34 +5,46 @@ namespace SpotAnalysis.Services.Tests;
 
 public class TestTeacherService : BaseDatabaseTest
 {
-    protected ITeacherService TeacherService;
+#pragma warning disable CA1859
+    private ITeacherService _teacherService;
+#pragma warning restore CA1859
 
     [OneTimeSetUp]
     public void InitTeacherService()
     {
-        TeacherService = new TeacherService(ContextFactory);
+        _teacherService = new TeacherService(ContextFactory);
     }
     
-    [Test]
+    [Test, Order(1)]
     public async Task TestTeacherCreateGroup()
     {
-        await TeacherService.CreateGroup(1, new ConfigGroupDto
+        await _teacherService.CreateGroup(1, new ConfigGroupDto
         {
             Name = "Test Group",
             Description = "Test description"
         });
 
-        var groups = await TeacherService.GetGroups(1);
+        var groups = await _teacherService.GetGroups(1);
         
-        Assert.That(groups.Count, Is.EqualTo(1));
+        Assert.That(groups, Has.Count.EqualTo(1));
         Assert.That(groups[0].Name, Is.EqualTo("Test Group"));
     }
 
-    [Test]
+    [Test, Order(2)]
     public async Task TestTeacherGetStudents()
     {
-        var students = await TeacherService.GetStudents(1);
+        var students = await _teacherService.GetStudents(1);
         
-        Assert.That(students.Count, Is.EqualTo(0));
+        Assert.That(students, Is.Empty);
+    }
+
+    [Test, Order(3)]
+    public async Task TestTeacherAssignStudent()
+    {
+        await _teacherService.AssignUserToGroup(1, 3, 1);
+        
+        var students = await _teacherService.GetStudents(1);
+        
+        Assert.That(students, Has.Count.EqualTo(1));
     }
 }

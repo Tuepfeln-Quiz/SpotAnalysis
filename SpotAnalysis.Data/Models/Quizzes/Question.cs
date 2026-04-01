@@ -8,7 +8,12 @@ public class Question {
     
     [Required]
     public string Description { get; set; } = null!;
+    public Guid CreatedBy { get; set; }
 
+
+    [ForeignKey(nameof(CreatedBy))]
+    [DeleteBehavior(DeleteBehavior.Restrict)]
+    public User Creator { get; set; } = null!;
 
     public virtual ICollection<STLInput> STLInputs { get; set; } = [];
     public virtual ICollection<STAvailableChemical> STAvailableChemicals { get; set; } = [];

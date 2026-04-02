@@ -14,4 +14,7 @@ public class User {
 
     public virtual ICollection<Role> Roles { get; set; } = [];
     public virtual ICollection<Group> Groups { get; set; } = [];
+
+    public virtual ICollection<Quiz> Quizzes { get; set; } = [];
+    public virtual ICollection<Question> Questions {  get; set; } = [];
 }

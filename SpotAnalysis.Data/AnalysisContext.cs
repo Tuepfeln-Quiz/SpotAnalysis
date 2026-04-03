@@ -26,7 +26,6 @@ public class AnalysisContext : DbContext {
 
     #region Quizzes
     public virtual DbSet<Quiz> Quizzes { get; set; }
-    public virtual DbSet<QuizStatus> QuizStatus { get; set; }
     public virtual DbSet<QuizAttempt> QuizAttempts { get; set; }
     public virtual DbSet<Question> Questions { get; set; }
     public virtual DbSet<QuizQuestion> QuizQuestions { get; set; }

@@ -19,4 +19,5 @@ public class Question {
     public virtual ICollection<STAvailableChemical> STAvailableChemicals { get; set; } = [];
     public virtual ICollection<STAvailableMethod> STAvailableMehtods { get; set; } = [];
     public virtual ICollection<STLAvailableReaction> STAvailableReactions { get; set; } = [];
+    public virtual ICollection<QuizQuestion> QuizQuestions { get; set; } = [];
 }

@@ -16,4 +16,6 @@ public class Quiz {
     public virtual ICollection<Group> Groups { get; set; } = [];
     public virtual ICollection<Question> Questions { get; set; } = [];
     public virtual ICollection<QuizAttempt> Attempts { get; set; } = [];
+
+    public virtual ICollection<QuizQuestion> QuizQuestions { get; set; } = [];
 }

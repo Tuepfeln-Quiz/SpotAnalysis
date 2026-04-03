@@ -4,8 +4,8 @@ namespace SpotAnalysis.Services.Services;
 
 public interface IStudentService
 {
-    public void Register(string userName, string password, string? email);
-    public List<QuizOverviewDto> GetQuizzes(Guid studentId);
-    public List<QuizDto> OpenQuiz(Guid studentId, int quizId);
-    public void ValidateAndSaveQuestion(ValAndSaveQuestionDto questionResult);
+    public Task Register(string userName, string password, string? email);
+    public Task<List<QuizOverviewDto>> GetQuizzes(Guid studentId);
+    public Task<QuizDto> OpenQuiz(Guid studentId, int quizId);
+    public Task ValidateAndSaveQuestion(ValAndSaveQuestionDto questionResult);
 }

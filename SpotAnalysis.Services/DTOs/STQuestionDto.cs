@@ -10,15 +10,15 @@ public class STQuestionDto
     public List<ChemicalQuestionDto> Chemicals { get; init; }
     public List<MethodQuestionDto> Methods { get; init; }
 
-    public static STQuestionDto FromQuestion(Question question)
+    public static STQuestionDto FromQuestion(QuizQuestion question)
     {
         return new STQuestionDto
         {
             Id = question.QuestionID,
-            Description = question.Description,
-            Order = 1, //TODO: use correct order number
-            Chemicals = question.STAvailableChemicals.Select(ChemicalQuestionDto.FromAvailable).ToList(),
-            Methods = question.STAvailableMehtods.Select(am => new MethodQuestionDto
+            Description = question.Question.Description,
+            Order = question.Order,
+            Chemicals = question.Question.STAvailableChemicals.Select(ChemicalQuestionDto.FromAvailable).ToList(),
+            Methods = question.Question.STAvailableMehtods.Select(am => new MethodQuestionDto
             {
                 Name = am.Method.Name,
                 Id = am.MethodID,

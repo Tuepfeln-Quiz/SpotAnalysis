@@ -1,6 +1,4 @@
-﻿#undef PASSWORD_PROVIDER_DETERMINISTIC
-
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Security.Cryptography;
 using Org.BouncyCastle.Crypto.Generators;
 using Org.BouncyCastle.Crypto.Parameters;
@@ -17,8 +15,6 @@ public static class PasswordProvider
     private const int ArgonIterations = 4;
     private const int ArgonOutputLength = 32;
     
-    private static readonly Queue<Guid> DeterministicOverrides = new();
-    
     private static string ParameterString(byte[] hash, byte[] salt)
     {
         return $"$argon2id$v={Argon2Version}$m={ArgonMemory},t={ArgonIterations},p={ArgonParallelism}${Convert.ToBase64String(salt)}${Convert.ToBase64String(hash)}";
@@ -33,9 +29,6 @@ public static class PasswordProvider
         {
             if (string.IsNullOrEmpty(password)) throw new ArgumentException("Password cannot be null or empty");
             if (password.Length < 8) throw new ArgumentException("Password must be at least 8 characters long");
-            
-            if (DeterministicOverrides.Count > 0)
-                salt = DeterministicOverrides.Dequeue();
             
             _salt = salt.ToByteArray();
             _hash = DigestPw(password, _salt);
@@ -90,11 +83,5 @@ public static class PasswordProvider
         gen.GenerateBytes(password.ToArray(), result);
 
         return result;
-    }
-    
-    [Conditional("PASSWORD_PROVIDER_DETERMINISTIC")]
-    public static async void NextChosenGuid(Guid next)
-    {
-        DeterministicOverrides.Enqueue(next);
     }
 }

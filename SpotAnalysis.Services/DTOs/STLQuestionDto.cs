@@ -10,15 +10,15 @@ public class STLQuestionDto
     public required ChemicalDto Educt { get; init; }
     public required string Observation { get; init; }
 
-    public static STLQuestionDto FromQuestion(Question question)
+    public static STLQuestionDto FromQuestion(QuizQuestion question)
     {
         return new STLQuestionDto
         {
             Id = question.QuestionID,
-            Description = question.Description,
-            Order = 1, //TODO: use correct order number
-            Educt = ChemicalDto.FromInput(question.STLInputs.ElementAt(0)),
-            Observation = question.STLInputs.ElementAt(0).Observation.Description
+            Description = question.Question.Description,
+            Order = question.Order,
+            Educt = ChemicalDto.FromInput(question.Question.STLInputs.ElementAt(0)),
+            Observation = question.Question.STLInputs.ElementAt(0).Observation.Description
         };
     }
 }

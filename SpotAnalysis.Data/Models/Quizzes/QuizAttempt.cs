@@ -1,7 +1,7 @@
 ﻿namespace SpotAnalysis.Data.Models.Quizzes;
 
 [Table("QuizAttempts")]
-[PrimaryKey(nameof(AttemptID), nameof(UserID), nameof(QuizID))]
+[PrimaryKey(nameof(AttemptID))]
 public class QuizAttempt {
     public int AttemptID { get; set; }
     public Guid UserID { get; set; }

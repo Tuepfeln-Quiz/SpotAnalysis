@@ -10,17 +10,18 @@ namespace SpotAnalysis.Services.Services;
 
 public class StudentService(IDbContextFactory<AnalysisContext> factory) : IStudentService
 {
-    public async Task Register(string userName, string password, string? email)
+    public async Task Register(string userName, string password, string? email, Guid? userId)
     {
-        var userId = Guid.NewGuid();
-        var passwordString = new PasswordProvider.Password(password, userId).ParamString();
+        var newGuid = userId ?? Guid.NewGuid();
+
+        var passwordString = new PasswordProvider.Password(password, newGuid).ParamString();
         
         await using var context = await factory.CreateDbContextAsync();
         var newUser = new User
         {
             UserName = userName,
             PasswordHash = passwordString,
-            UserID = userId
+            UserID = newGuid
         };
         newUser.Roles.Add(await context.Roles.SingleAsync(r => r.Title == "student"));
         context.Users.Add(newUser);
@@ -65,8 +66,8 @@ public class StudentService(IDbContextFactory<AnalysisContext> factory) : IStude
             .Select(q => new QuizDto
             {
                 Name = q.Name,
-                STLQuestions = q.Questions.Where(qq => qq.Type == QuestionType.SpotTestLight).Select(STLQuestionDto.FromQuestion).ToList(),
-                STQuestions = q.Questions.Where(qq => qq.Type == QuestionType.SpotTest).Select(STQuestionDto.FromQuestion).ToList(),
+                STLQuestions = q.QuizQuestions.Where(qq => qq.Question.Type == QuestionType.SpotTestLight).Select(STLQuestionDto.FromQuestion).ToList(),
+                STQuestions = q.QuizQuestions.Where(qq => qq.Question.Type == QuestionType.SpotTest).Select(STQuestionDto.FromQuestion).ToList(),
             }).SingleAsync();
     }
 

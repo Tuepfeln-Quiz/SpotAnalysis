@@ -1,35 +1,36 @@
 
 namespace SpotAnalysis.Services.Services;
 
-using System.Security.Cryptography.X509Certificates;
+using Microsoft.EntityFrameworkCore;
 using SpotAnalysis.Data;
 using SpotAnalysis.Data.Models.Identity;
 
-public class LoginService : ILoginService 
+public class LoginService : ILoginService
 {
-    private readonly AnalysisContext _context;
+    private readonly IDbContextFactory<AnalysisContext> _contextFactory;
 
-    public LoginService(AnalysisContext context)
+    public LoginService(IDbContextFactory<AnalysisContext> contextFactory)
     {
-        _context = context;
+        _contextFactory = contextFactory;
     }
 
-    public User? ChangePassword(string userName, string oldPassword, string newPassword)
+    public async Task<User?> ChangePassword(string userName, string oldPassword, string newPassword)
     {
-        System.Console.WriteLine("ChangePassword method called with username: " + userName + ", old password: " + oldPassword + " and new password: " + newPassword);
+        System.Console.WriteLine("ChangePassword method called with username: " + userName);
         return null;
     }
 
-    public User? Login(string userName, string password)
+    public async Task<User?> Login(string userName, string password)
     {
-        System.Console.WriteLine("Login method called with username: " + userName + " and password: " + password);
+        System.Console.WriteLine("Login method called with username: " + userName);
 
         if (string.IsNullOrEmpty(userName) || string.IsNullOrEmpty(password))
         {
             return null;
         }
 
-        var user = _context.Users.FirstOrDefault(u => u.UserName == userName);
+        using var context = _contextFactory.CreateDbContext();
+        var user = context.Users.FirstOrDefault(u => u.UserName == userName);
         if (user == null) return null;
         
         if (string.IsNullOrEmpty(user.PasswordHash))

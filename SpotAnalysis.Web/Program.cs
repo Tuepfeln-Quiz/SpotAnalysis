@@ -13,7 +13,7 @@ namespace SpotAnalysis.Web
             var builder = WebApplication.CreateBuilder(args);
 
            
-            builder.Services.AddDbContext<AnalysisContext>(options =>
+            builder.Services.AddDbContextFactory<AnalysisContext>(options =>
                 options.UseSqlServer(
                     builder.Configuration.GetConnectionString("MyDatabase")));
 

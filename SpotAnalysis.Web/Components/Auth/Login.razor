@@ -14,7 +14,7 @@
 @inject AuthenticationStateProvider AuthStateProvider;
 @inject IHttpContextAccessor HttpContextAccessor;  
 
-@inject ILoginService _login;
+@inject IUserService UserService;
 
 @attribute [AllowAnonymous]
 
@@ -69,7 +69,7 @@
                 return;
             }
 
-            var userAccount = await _login.Login(LoginVM.UserName, LoginVM.Password);
+            var userAccount = await UserService.Login(LoginVM.UserName, LoginVM.Password);
             if (userAccount == null)
             {
                 ErrorMessage = "Invalid username or password.";

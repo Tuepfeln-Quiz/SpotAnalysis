@@ -8,7 +8,7 @@ namespace SpotAnalysis.Services.Services;
 
 public class QuizService(IDbContextFactory<AnalysisContext> factory) : IQuizService
 {
-    public List<QuizDto> GetQuizzes()
+    public List<QuizDto> GetAllQuizzes()
     {
         throw new NotImplementedException();
     }
@@ -71,6 +71,41 @@ public class QuizService(IDbContextFactory<AnalysisContext> factory) : IQuizServ
     }
 
     public async Task ValidateAndSaveQuestion(ValAndSaveQuestionDto questionResult)
+    {
+        throw new NotImplementedException();
+    }
+
+    public List<QuestionOverviewDto> GetQuestions()
+    {
+        throw new NotImplementedException();
+    }
+
+    public List<QuestionOverviewDto> GetQuestionsOfQuiz(int quizId)
+    {
+        throw new NotImplementedException();
+    }
+
+    public void CreateSTQuestion(ConfigSTQuestionDto question)
+    {
+        throw new NotImplementedException();
+    }
+
+    public void CreateSTLQuestion(ConfigSTLQuestionDto question)
+    {
+        throw new NotImplementedException();
+    }
+
+    public void UpdateSTQuestion(ConfigSTQuestionDto question)
+    {
+        throw new NotImplementedException();
+    }
+
+    public void UpdateSTLQuestion(ConfigSTLQuestionDto question)
+    {
+        throw new NotImplementedException();
+    }
+
+    public void DeleteQuestion(int questionId)
     {
         throw new NotImplementedException();
     }

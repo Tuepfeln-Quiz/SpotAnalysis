@@ -13,7 +13,7 @@ namespace SpotAnalysis.Web
             var builder = WebApplication.CreateBuilder(args);
 
            
-            builder.Services.AddDbContextFactory<AnalysisContext>(options =>
+            builder.Services.AddDbContext<AnalysisContext>(options =>
                 options.UseSqlServer(
                     builder.Configuration.GetConnectionString("MyDatabase")));
 
@@ -38,7 +38,7 @@ namespace SpotAnalysis.Web
             builder.Services.AddHttpContextAccessor();
             builder.Services.AddCascadingAuthenticationState();
 
-            builder.Services.AddScoped<IUserService, UserService>();
+            builder.Services.AddScoped<ILoginService, LoginService>();
             builder.Services.AddScoped<IXlsImportExportService, XlsImportExportService>();
 
             var app = builder.Build();

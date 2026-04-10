@@ -5,8 +5,8 @@ namespace SpotAnalysis.Services.DTOs;
     public class LoginDTO
     {
         [Required(AllowEmptyStrings = false, ErrorMessage = "Please provide a User Name")]
-        public required string UserName { get; set; }
+        public string? UserName { get; set; }
 
         [Required(AllowEmptyStrings = false, ErrorMessage = "Please provide a Password")]
-        public required string Password { get; set; }
+        public string? Password { get; set; }
     }

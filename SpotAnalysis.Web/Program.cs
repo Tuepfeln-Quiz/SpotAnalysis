@@ -39,7 +39,7 @@ public class Program
             builder.Services.AddCascadingAuthenticationState();
 
             builder.Services.AddScoped<ILoginService, LoginService>();
-            builder.Services.AddScoped<IXlsImportExportService, XlsImportExportService>();
+            builder.Services.AddScoped<IAdminService, AdminService>();
 
         var app = builder.Build();
 

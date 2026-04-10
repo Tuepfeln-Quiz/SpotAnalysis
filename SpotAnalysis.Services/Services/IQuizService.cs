@@ -8,4 +8,7 @@ public interface IQuizService
     public void CreateQuiz(ConfigQuizDto quiz);
     public void UpdateQuiz(ConfigQuizDto quiz);
     public void DeleteQuiz(int quizId);
+    public Task<List<QuizOverviewDto>> GetQuizzes(Guid studentId);
+    public Task<QuizDto> OpenQuiz(Guid studentId, int quizId);
+    public Task ValidateAndSaveQuestion(ValAndSaveQuestionDto questionResult);
 }

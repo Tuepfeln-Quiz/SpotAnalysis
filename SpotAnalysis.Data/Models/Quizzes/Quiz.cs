@@ -6,15 +6,16 @@ public class Quiz {
 
     [Required]
     public string Name { get; set; } = null!;
+    public Guid CreatedBy { get; set; }
 
-    public int QuizStatusID { get; set; }
 
-
+    [ForeignKey(nameof(CreatedBy))]
     [DeleteBehavior(DeleteBehavior.Restrict)]
-    public QuizStatus QuizStatus { get; set; } = null!;
+    public User Creator { get; set; } = null!;
 
-    
     public virtual ICollection<Group> Groups { get; set; } = [];
     public virtual ICollection<Question> Questions { get; set; } = [];
-    public virtual ICollection<QuizAttempt> QuizAttempts { get; set; } = [];
+    public virtual ICollection<QuizAttempt> Attempts { get; set; } = [];
+
+    public virtual ICollection<QuizQuestion> QuizQuestions { get; set; } = [];
 }

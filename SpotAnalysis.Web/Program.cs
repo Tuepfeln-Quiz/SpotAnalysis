@@ -39,8 +39,6 @@ namespace SpotAnalysis.Web
             builder.Services.AddCascadingAuthenticationState();
 
             builder.Services.AddScoped<IUserService, UserService>();
-            // builder.Services.AddScoped<IStudentService, StudentService>();
-            builder.Services.AddScoped<ILoginService, LoginService>();
             builder.Services.AddScoped<IXlsImportExportService, XlsImportExportService>();
 
             var app = builder.Build();

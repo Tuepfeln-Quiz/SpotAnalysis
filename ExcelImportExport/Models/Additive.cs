@@ -1,6 +1,6 @@
 using ExcelImportExport.Attributes;
 
-namespace ExcelImportExport.Tests.Models;
+namespace ExcelImportExport.Models;
 
 [ExcelSheet("Zusatzstoffe")]
 public class Additive

@@ -31,6 +31,9 @@
       <None Update="seed.sql">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </None>
+      <None Include="..\ExcelImportExport.Tests\TestSheet\Tuepfel_Import_Export.xlsx"
+            Link="TestSheet\Tuepfel_Import_Export.xlsx"
+            CopyToOutputDirectory="PreserveNewest" />
     </ItemGroup>
 
 </Project>

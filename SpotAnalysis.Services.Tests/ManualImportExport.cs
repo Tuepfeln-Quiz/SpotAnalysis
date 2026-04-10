@@ -11,9 +11,6 @@ namespace SpotAnalysis.Services.Tests;
 [TestFixture, Explicit("Läuft gegen die echte SpotAnalysis-DB — nur manuell ausführen")]
 public class ManualImportExport
 {
-    private const string ConnectionString =
-        @"Data Source=(localdb)\MSSQLLocalDB;Initial Catalog=SpotAnalysis;Connect Timeout=30;Integrated Security=True;Encrypt=True;Trust Server Certificate=False;";
-
     private static readonly string TestSheetDir = Path.Combine(
         TestContext.CurrentContext.TestDirectory, "TestSheet");
 
@@ -22,7 +19,7 @@ public class ManualImportExport
     private AnalysisContext CreateContext()
     {
         var options = new DbContextOptionsBuilder<AnalysisContext>()
-            .UseSqlServer(ConnectionString)
+            .UseSqlServer(TestConfiguration.GetConnectionString("MyDatabase"))
             .Options;
         return new AnalysisContext(options);
     }

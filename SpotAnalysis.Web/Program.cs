@@ -1,8 +1,6 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.EntityFrameworkCore;
-using SpotAnalysis.Services.Services;
+using SpotAnalysis.Services;
 using SpotAnalysis.Web.Components;
-using SpotAnalysis.Data;
 
 namespace SpotAnalysis.Web
 {
@@ -12,12 +10,7 @@ namespace SpotAnalysis.Web
         {
             var builder = WebApplication.CreateBuilder(args);
 
-           
-            builder.Services.AddDbContextFactory<AnalysisContext>(options =>
-                options.UseSqlServer(
-                    builder.Configuration.GetConnectionString("MyDatabase")));
-
-            builder.Services.AddScoped<IUsernameService, UsernameService>();
+            builder.Services.AddSpotAnalysis(builder.Configuration);
 
             // Add services to the container.
             builder.Services.AddRazorComponents()
@@ -37,9 +30,6 @@ namespace SpotAnalysis.Web
 
             builder.Services.AddHttpContextAccessor();
             builder.Services.AddCascadingAuthenticationState();
-
-            builder.Services.AddScoped<IUserService, UserService>();
-            builder.Services.AddScoped<IXlsImportExportService, XlsImportExportService>();
 
             var app = builder.Build();
 

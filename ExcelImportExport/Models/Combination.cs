@@ -1,6 +1,6 @@
 using ExcelImportExport.Attributes;
 
-namespace ExcelImportExport.Tests.Models;
+namespace ExcelImportExport.Models;
 
 [ExcelSheet("Kombinationen")]
 public class Combination

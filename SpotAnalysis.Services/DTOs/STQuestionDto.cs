@@ -18,7 +18,7 @@ public class STQuestionDto
             Description = question.Question.Description,
             Order = question.Order,
             Chemicals = question.Question.STAvailableChemicals.Select(ChemicalQuestionDto.FromAvailable).ToList(),
-            Methods = question.Question.STAvailableMehtods.Select(am => new MethodQuestionDto
+            Methods = question.Question.STAvailableMethods.Select(am => new MethodQuestionDto
             {
                 Name = am.Method.Name,
                 Id = am.MethodID,

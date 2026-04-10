@@ -14,7 +14,7 @@ public class LoginService : ILoginService
         _context = context;
     }
 
-    public User ChangePassword(string userName, string oldPassword, string newPassword)
+    public User? ChangePassword(string userName, string oldPassword, string newPassword)
     {
         System.Console.WriteLine("ChangePassword method called with username: " + userName + ", old password: " + oldPassword + " and new password: " + newPassword);
         return null;
@@ -24,8 +24,18 @@ public class LoginService : ILoginService
     {
         System.Console.WriteLine("Login method called with username: " + userName + " and password: " + password);
 
+        if (string.IsNullOrEmpty(userName) || string.IsNullOrEmpty(password))
+        {
+            return null;
+        }
+
         var user = _context.Users.FirstOrDefault(u => u.UserName == userName);
         if (user == null) return null;
+        
+        if (string.IsNullOrEmpty(user.PasswordHash))
+        {
+            return null;
+        }
 
         var hashedPassword = new PasswordProvider.Password(password, user.UserID);
         var storedHash = PasswordProvider.Password.FromParamString(user.PasswordHash);

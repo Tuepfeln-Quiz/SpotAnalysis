@@ -91,5 +91,17 @@ public class AnalysisContext : DbContext {
             q => q.HasOne(typeof(Group)).WithMany().HasForeignKey("GroupID").OnDelete(DeleteBehavior.Restrict),
             g => g.HasOne(typeof(Quiz)).WithMany().HasForeignKey("QuizID").OnDelete(DeleteBehavior.Restrict)
             );
+
+        modelBuilder.Entity<QuizAttempt>()
+        .HasOne(qa => qa.User)
+        .WithMany()
+        .HasForeignKey(qa => qa.UserID)
+        .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<QuizAttempt>()
+        .HasOne(qa => qa.Quiz)
+        .WithMany(q => q.QuizAttempts)
+        .HasForeignKey(qa => qa.QuizID)
+        .OnDelete(DeleteBehavior.Restrict);
     }
 }

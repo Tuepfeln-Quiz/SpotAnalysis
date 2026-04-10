@@ -1,4 +1,5 @@
-﻿using SpotAnalysis.Services.DTOs;
+﻿using SpotAnalysis.Data.Models.Identity;
+using SpotAnalysis.Services.DTOs;
 
 namespace SpotAnalysis.Services.Services;
 

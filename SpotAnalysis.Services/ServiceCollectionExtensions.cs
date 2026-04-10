@@ -15,10 +15,12 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddSpotAnalysis(
         this IServiceCollection services, IConfiguration configuration)
     {
-        services.AddDbContext<AnalysisContext>(options =>
+        services.AddDbContextFactory<AnalysisContext>(options =>
             options.UseSqlServer(configuration.GetConnectionString("MyDatabase")));
 
-        services.AddScoped<ILoginService, LoginService>();
+        services.AddScoped<IUserService, UserService>();
+        services.AddScoped<ITeacherService, TeacherService>();
+        services.AddScoped<IQuizService, QuizService>();
         services.AddScoped<IUsernameService, UsernameService>();
         services.AddScoped<IXlsImportExportService, XlsImportExportService>();
 

@@ -1,14 +1,11 @@
-﻿#define PASSWORD_PROVIDER_DETERMINISTIC
-
-using SpotAnalysis.Services.Services;
+﻿using SpotAnalysis.Services.Services;
 
 namespace SpotAnalysis.Services.Tests;
 
-public class TestStudentService : BaseDatabaseTest
+public class TestUserService : BaseDatabaseTest
 {
 #pragma warning disable CA1859
-    private IStudentService _studentService;
-    private ILoginService _loginService;
+    private IUserService _userService;
 #pragma warning restore CA1859
 
     #region Users
@@ -28,17 +25,16 @@ public class TestStudentService : BaseDatabaseTest
     [OneTimeSetUp]
     public void InitStudentService()
     {
-        _studentService = new StudentService(ContextFactory);
-        _loginService = new LoginService(ContextFactory);
+        _userService = new UserService(ContextFactory);
     }
 
     [Test]
-    public async Task TestAllStudentService()
+    public async Task TestAllUserService()
     {
         #region TestStudentRegister
 
         {
-            await _studentService.Register(StudentName3, StudentPassword3, null, Student3);
+            await _userService.Register(StudentName3, StudentPassword3, null, Student3);
         }
 
         #endregion
@@ -46,7 +42,7 @@ public class TestStudentService : BaseDatabaseTest
         #region TestStudentLogin
 
         {
-            var user = await _loginService.Login(StudentName3, StudentPassword3);
+            var user = await _userService.Login(StudentName3, StudentPassword3);
             Assert.That(user, Is.Not.Null);
         }
         
@@ -55,7 +51,7 @@ public class TestStudentService : BaseDatabaseTest
         #region TestStudentFailLogin
 
         {
-            var user = await _loginService.Login(StudentName3, "AWrongPassword");
+            var user = await _userService.Login(StudentName3, "AWrongPassword");
             Assert.That(user, Is.Null);
         }
         

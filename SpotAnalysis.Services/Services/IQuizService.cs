@@ -4,7 +4,7 @@ namespace SpotAnalysis.Services.Services;
 
 public interface IQuizService
 {
-    public List<QuizDto> GetQuizzes();
+    public List<QuizDto> GetAllQuizzes();
     public void CreateQuiz(ConfigQuizDto quiz);
     public void UpdateQuiz(ConfigQuizDto quiz);
     public void DeleteQuiz(int quizId);

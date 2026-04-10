@@ -1,0 +1,17 @@
+﻿@page "/test"
+@inject IAdminService AdminService
+
+<h3>Test</h3>
+
+@code {
+    override protected async Task OnInitializedAsync()
+    {
+        var configDto = new ConfigUserDto
+            {
+                UserName = "admin",
+                Password = "admin123",
+            };
+
+        await AdminService.CreateAdmin(configDto);
+    }
+}

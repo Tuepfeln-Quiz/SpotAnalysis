@@ -6,7 +6,7 @@ public interface IAdminService
 {
     public List<TeacherAdminDto> GetTeachers();
     public List<TeacherAdminDto> GetAdmins();
-    public void CreateAdmin(ConfigUserDto user);
+    public Task CreateAdmin(ConfigUserDto user);
     public void UpdateAdmin(ConfigUserDto user);
     public void DeleteAdmin(int adminId);
     public void CreateTeacher(ConfigUserDto user);

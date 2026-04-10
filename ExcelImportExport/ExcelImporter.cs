@@ -10,7 +10,12 @@ public static class ExcelImporter
     public static List<T> Import<T>(string filePath, string? sheetName = null) where T : new()
     {
         using var stream = File.OpenRead(filePath);
-        var workbook = OpenWorkbook(stream, GetFormatFromPath(filePath));
+        return Import<T>(stream, GetFormatFromPath(filePath), sheetName);
+    }
+
+    public static List<T> Import<T>(Stream stream, ExcelFormat format, string? sheetName = null) where T : new()
+    {
+        var workbook = OpenWorkbook(stream, format);
         var sheet = ResolveSheet(workbook, sheetName, typeof(T));
         return ReadSheet<T>(sheet);
     }
@@ -18,14 +23,24 @@ public static class ExcelImporter
     public static WorkbookReader Open(string filePath)
     {
         var stream = File.OpenRead(filePath);
-        var workbook = OpenWorkbook(stream, GetFormatFromPath(filePath));
+        return Open(stream, GetFormatFromPath(filePath));
+    }
+
+    public static WorkbookReader Open(Stream stream, ExcelFormat format)
+    {
+        var workbook = OpenWorkbook(stream, format);
         return new WorkbookReader(workbook, stream);
     }
 
     public static Dictionary<string, List<T>> ImportAllSheets<T>(string filePath) where T : new()
     {
         using var stream = File.OpenRead(filePath);
-        var workbook = OpenWorkbook(stream, GetFormatFromPath(filePath));
+        return ImportAllSheets<T>(stream, GetFormatFromPath(filePath));
+    }
+
+    public static Dictionary<string, List<T>> ImportAllSheets<T>(Stream stream, ExcelFormat format) where T : new()
+    {
+        var workbook = OpenWorkbook(stream, format);
         var result = new Dictionary<string, List<T>>();
 
         for (var i = 0; i < workbook.NumberOfSheets; i++)

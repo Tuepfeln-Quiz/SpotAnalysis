@@ -4,7 +4,7 @@
 public class QuizQuestion {
     public int QuizID { get; set; }
     public int QuestionID { get; set; }
-    public int OrderID { get; set; }
+    public int Order { get; set; }
 
 
     [DeleteBehavior(DeleteBehavior.Restrict)]

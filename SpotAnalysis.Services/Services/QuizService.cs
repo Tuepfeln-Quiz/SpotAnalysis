@@ -8,22 +8,53 @@ namespace SpotAnalysis.Services.Services;
 
 public class QuizService(IDbContextFactory<AnalysisContext> factory) : IQuizService
 {
-    public List<QuizDto> GetAllQuizzes()
+    public async Task<List<QuizOverviewDto>> GetAllQuizzes()
+    {
+        await using var dbContext = await factory.CreateDbContextAsync();
+
+        return await dbContext.Quizzes.Select(qu => new QuizOverviewDto
+        {
+            Id = qu.QuizID,
+            Name = qu.Name,
+            STCount = qu.Questions.Count(x => x.Type == QuestionType.SpotTest),
+            STLCount = qu.Questions.Count(x => x.Type == QuestionType.SpotTestLight)
+        }).ToListAsync();
+    }
+
+    public async Task CreateQuiz(Guid createdBy, ConfigQuizDto quiz)
+    {
+        await using var dbContext = await factory.CreateDbContextAsync();
+
+        await using var transaction = await dbContext.Database.BeginTransactionAsync();
+        
+        var newQuiz = new Quiz
+        {
+            Name = quiz.Name,
+            CreatedBy = createdBy
+        };
+
+        await dbContext.Quizzes.AddAsync(newQuiz);
+        await dbContext.SaveChangesAsync();
+
+        var quizQuestions = quiz.Questions.Select(x => new QuizQuestion
+        {
+            QuizID = newQuiz.QuizID,
+            QuestionID = x.Id,
+            Order = x.Order
+        });
+
+        await dbContext.QuizQuestions.AddRangeAsync(quizQuestions);
+        await dbContext.SaveChangesAsync();
+
+        await transaction.CommitAsync();
+    }
+
+    public Task UpdateQuiz(ConfigQuizDto quiz)
     {
         throw new NotImplementedException();
     }
 
-    public void CreateQuiz(ConfigQuizDto quiz)
-    {
-        throw new NotImplementedException();
-    }
-
-    public void UpdateQuiz(ConfigQuizDto quiz)
-    {
-        throw new NotImplementedException();
-    }
-
-    public void DeleteQuiz(int quizId)
+    public Task DeleteQuiz(int quizId)
     {
         throw new NotImplementedException();
     }
@@ -60,13 +91,15 @@ public class QuizService(IDbContextFactory<AnalysisContext> factory) : IQuizServ
                 Started = DateTime.Now
             });
         }
-        
+
         return await context.Quizzes.Where(q => q.QuizID == quizId)
             .Select(q => new QuizDto
             {
                 Name = q.Name,
-                STLQuestions = q.QuizQuestions.Where(qq => qq.Question.Type == QuestionType.SpotTestLight).Select(STLQuestionDto.FromQuestion).ToList(),
-                STQuestions = q.QuizQuestions.Where(qq => qq.Question.Type == QuestionType.SpotTest).Select(STQuestionDto.FromQuestion).ToList(),
+                STLQuestions = q.QuizQuestions.Where(qq => qq.Question.Type == QuestionType.SpotTestLight)
+                    .Select(STLQuestionDto.FromQuestion).ToList(),
+                STQuestions = q.QuizQuestions.Where(qq => qq.Question.Type == QuestionType.SpotTest)
+                    .Select(STQuestionDto.FromQuestion).ToList(),
             }).SingleAsync();
     }
 
@@ -75,37 +108,37 @@ public class QuizService(IDbContextFactory<AnalysisContext> factory) : IQuizServ
         throw new NotImplementedException();
     }
 
-    public List<QuestionOverviewDto> GetQuestions()
+    public async Task<List<QuestionOverviewDto>> GetQuestions()
     {
         throw new NotImplementedException();
     }
 
-    public List<QuestionOverviewDto> GetQuestionsOfQuiz(int quizId)
+    public async Task<List<QuestionOverviewDto>> GetQuestionsOfQuiz(int quizId)
     {
         throw new NotImplementedException();
     }
 
-    public void CreateSTQuestion(ConfigSTQuestionDto question)
+    public Task CreateSTQuestion(ConfigSTQuestionDto question)
     {
         throw new NotImplementedException();
     }
 
-    public void CreateSTLQuestion(ConfigSTLQuestionDto question)
+    public Task CreateSTLQuestion(ConfigSTLQuestionDto question)
     {
         throw new NotImplementedException();
     }
 
-    public void UpdateSTQuestion(ConfigSTQuestionDto question)
+    public Task UpdateSTQuestion(ConfigSTQuestionDto question)
     {
         throw new NotImplementedException();
     }
 
-    public void UpdateSTLQuestion(ConfigSTLQuestionDto question)
+    public Task UpdateSTLQuestion(ConfigSTLQuestionDto question)
     {
         throw new NotImplementedException();
     }
 
-    public void DeleteQuestion(int questionId)
+    public Task DeleteQuestion(int questionId)
     {
         throw new NotImplementedException();
     }

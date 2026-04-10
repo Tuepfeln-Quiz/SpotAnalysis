@@ -1,0 +1,6 @@
+{
+  "ConnectionStrings": {
+    "TestDatabase": "Data Source=(localdb)\\MSSQLLocalDB;Initial Catalog=TuepfelnTest;Integrated Security=True;Connect Timeout=30;Encrypt=False;Trust Server Certificate=False;Application Intent=ReadWrite;Multi Subnet Failover=False;Command Timeout=30",
+    "MyDatabase": "Data Source=(localdb)\\MSSQLLocalDB;Initial Catalog=SpotAnalysis;Connect Timeout=30;Integrated Security=True;Encrypt=True;Trust Server Certificate=False;"
+  }
+}

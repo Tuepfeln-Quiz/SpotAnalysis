@@ -8,6 +8,15 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <!-- Wird von den EF Core CLI-Tools benötigt, wenn dieses Projekt als startup-project verwendet wird.
+         Siehe SpotAnalysis.Data/EF-MIGRATIONS.md für die Migration-Befehle. -->
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.5">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
 		<ProjectReference Include="..\SpotAnalysis.Services\SpotAnalysis.Services.csproj" />
 	</ItemGroup>
 

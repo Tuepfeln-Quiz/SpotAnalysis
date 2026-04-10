@@ -9,18 +9,11 @@ public abstract class BaseDatabaseTest
     private AnalysisContext _context;
     protected IDbContextFactory<AnalysisContext> ContextFactory;
 
-    private const string ConnectionStringIntegrated =
-        @"Data Source=(localdb)\MSSQLLocalDB;Initial Catalog=TuepfelnTest;Integrated Security=True;Connect Timeout=30;Encrypt=False;Trust Server Certificate=False;Application Intent=ReadWrite;Multi Subnet Failover=False;Command Timeout=30";
-
-    // ReSharper disable once UnusedMember.Local
-    private const string ConnectionStringLocal =
-        @"Server=tcp:localhost,1433;Database=TuepfelnTest;User Id=sa;Password=p4ssw0rd!;TrustServerCertificate=True;Encrypt=False;";
-    
     [OneTimeSetUp]
     public async Task RunBeforeAllTests()
     {
         var options = new DbContextOptionsBuilder<AnalysisContext>()
-            .UseSqlServer(ConnectionStringIntegrated)
+            .UseSqlServer(TestConfiguration.GetConnectionString("TestDatabase"))
             .Options;
         
         ContextFactory = new TestDbContextFactory(options);
@@ -45,7 +38,7 @@ public abstract class BaseDatabaseTest
             // Optional: Use Respawn here if you want to wipe 
             // user-generated data between tests while keeping seed data.
             _context = new AnalysisContext(new DbContextOptionsBuilder<AnalysisContext>()
-                .UseSqlServer(ConnectionStringIntegrated).Options);
+                .UseSqlServer(TestConfiguration.GetConnectionString("TestDatabase")).Options);
             return Task.CompletedTask;
         }
         catch (Exception exception)

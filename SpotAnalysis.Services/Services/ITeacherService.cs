@@ -14,14 +14,4 @@ public interface ITeacherService
     
     public Task AssignUserToGroup(Guid teacherId, Guid userId, int groupId);
     public Task RemoveUserFromGroup(Guid teacherId, Guid userId, int groupId);
-    
-    // public List<QuizDto> GetQuizzesByType(QuizTypeEnum type);
-    // public void CreateQuiz(CreateQuizDto quiz);
-    // public void UpdateQuiz(UpdateQuizDto quiz);
-    // public void DeleteQuiz(int quizId);
-    
-    // public List<QuestionDto> GetQuestionsByType(QuestionTypeEnum type);
-    // public void CreateQuestion(CreateQuestionDto question);
-    // public void UpdateQuestion(UpdateQuestionDto question);
-    // public void DeleteQuestion(int questionId);
 }

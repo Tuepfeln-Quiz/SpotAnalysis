@@ -4,6 +4,7 @@
 @using Microsoft.AspNetCore.Authentication.Cookies
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Components.Authorization
+@using SpotAnalysis.Data.Models.Identity
 @using SpotAnalysis.Services
 @using SpotAnalysis.Services.Services
 @using SpotAnalysis.Services.DTOs
@@ -13,7 +14,7 @@
 @inject AuthenticationStateProvider AuthStateProvider;
 @inject IHttpContextAccessor HttpContextAccessor;  
 
-@inject ILoginService _login;
+@inject IUserService UserService;
 
 @attribute [AllowAnonymous]
 
@@ -53,28 +54,39 @@
 </div>
 
 @code {
-    [SupplyParameterFromForm]
-    public LoginDTO LoginVM { get; set; } = new();
+    public LoginDTO LoginVM { get; set; } = new() { UserName = string.Empty, Password = string.Empty };
 
     private string? ErrorMessage { get; set; }
 
     private async Task Authenticate()
     {
         Console.WriteLine("Authenticate method called with username: " + LoginVM.UserName + " and password: " + LoginVM.Password);
-        //muss noch überlegt werden
         try
         {
-            var userAccount = _login.Login(LoginVM.UserName, LoginVM.Password);
+            if (string.IsNullOrEmpty(LoginVM.UserName) || string.IsNullOrEmpty(LoginVM.Password))
+            {
+                ErrorMessage = "Username and password are required.";
+                return;
+            }
+
+            var userAccount = await UserService.Login(LoginVM.UserName, LoginVM.Password);
             if (userAccount == null)
             {
                 ErrorMessage = "Invalid username or password.";
                 return;
             }
 
+            if (HttpContextAccessor?.HttpContext == null)
+            {
+                ErrorMessage = "An error occurred. Please try again.";
+                USRlogger.LogError("HttpContext is null");
+                return;
+            }
+
             var claims = new List<Claim>
             {
-                new Claim(ClaimTypes.Name, userAccount.UserName),
-                new Claim(ClaimTypes.Role, userAccount.Roles?.FirstOrDefault()?.Title)
+                new Claim(ClaimTypes.Name, userAccount.UserName ?? string.Empty),
+                new Claim(ClaimTypes.Role, userAccount.Roles?.FirstOrDefault()?.Title ?? string.Empty)
             };
 
             var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);

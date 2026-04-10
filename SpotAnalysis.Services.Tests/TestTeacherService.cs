@@ -31,101 +31,122 @@ public class TestTeacherService : BaseDatabaseTest
     {
         _teacherService = new TeacherService(ContextFactory);
     }
-    
-    [Test, Order(1)]
-    public async Task TestTeacherCreateGroup()
-    {
-        await _teacherService.CreateGroup(Teacher1, new ConfigGroupDto
-        {
-            Name = GroupName1,
-            Description = GroupDescription1
-        });
 
-        var groups = await _teacherService.GetGroups(Teacher1);
-        
-        Assert.That(groups, Has.Count.EqualTo(1));
-        using (Assert.EnterMultipleScope())
+    [Test]
+    public async Task TestAllTeacherService()
+    {
+        #region TestCreateGroup
+
         {
-            Assert.That(groups[0].Name, Is.EqualTo(GroupName1));
-            Assert.That(groups[0].Description, Is.EqualTo(GroupDescription1));
+            await _teacherService.CreateGroup(Teacher1, new ConfigGroupDto
+            {
+                Name = GroupName1,
+                Description = GroupDescription1
+            });
+
+            var groups = await _teacherService.GetGroups(Teacher1);
+        
+            Assert.That(groups, Has.Count.EqualTo(1));
+            using (Assert.EnterMultipleScope())
+            {
+                Assert.That(groups[0].Name, Is.EqualTo(GroupName1));
+                Assert.That(groups[0].Description, Is.EqualTo(GroupDescription1));
+            }
         }
-    }
 
-    [Test, Order(2)]
-    public async Task TestTeacherGetStudents()
-    {
-        var students = await _teacherService.GetStudents(Teacher1);
-        
-        Assert.That(students, Is.Empty);
-    }
+        #endregion
 
-    [Test, Order(3)]
-    public async Task TestTeacherAssignStudent()
-    {
-        await _teacherService.AssignUserToGroup(Teacher1, Student1, GroupId1);
-        
-        var students = await _teacherService.GetStudents(Teacher1);
-        
-        Assert.That(students, Has.Count.EqualTo(1));
-    }
+        #region TestGetStudents
 
-    [Test, Order(4)]
-    public async Task TestFailStudentAssignStudent()
-    {
+        {
+            var students = await _teacherService.GetStudents(Teacher1);
+        
+            Assert.That(students, Is.Empty);
+        }
+
+        #endregion
+
+        #region TestAssignStudent
+
+        {
+            await _teacherService.AssignUserToGroup(Teacher1, Student1, GroupId1);
+        
+            var students = await _teacherService.GetStudents(Teacher1);
+        
+            Assert.That(students, Has.Count.EqualTo(1));
+            Assert.That(students[0].Id, Is.EqualTo(Student1));
+        }
+
+        #endregion
+
+        #region TestFailStudentAssign
+
         try
         {
             await _teacherService.AssignUserToGroup(Student1, Student2, GroupId1);
-            
+
             Assert.Fail("Should have thrown an InvalidOperationException");
         }
         catch (InvalidOperationException)
         {
-            Assert.Pass("Threw an InvalidOperationException");
+
         }
-       
-        Assert.Fail("Should have thrown an InvalidOperationException");
-    }
-    
-    [Test, Order(5)]
-    public async Task TestTeacherGetStudentsByGroup()
-    {
-        var students = await _teacherService.GetStudentsByGroup(Teacher1, GroupId1);
-        
-        Assert.That(students, Has.Count.EqualTo(1));
-    }
-
-    [Test, Order(6)]
-    public async Task TestTeacherUpdateGroup()
-    {
-        await _teacherService.UpdateGroup(Teacher1, new ConfigGroupDto
+        catch (Exception)
         {
-            Name = GroupName1,
-            Description = GroupDescription1 + "_edited"
-        });
-        
-        var groups = await _teacherService.GetGroups(Teacher1);
-        
-        Assert.That(groups, Has.Count.EqualTo(1));
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(groups[0].Name, Is.EqualTo(GroupName1));
-            Assert.That(groups[0].Description, Is.EqualTo(GroupDescription1 + "_edited"));
+            Assert.Fail("Should have thrown an InvalidOperationException");
         }
-    }
 
-    [Test, Order(7)]
-    public async Task TestTeacherRemoveUserFromGroup()
-    {
-        await _teacherService.RemoveUserFromGroup(Teacher1, Student1, GroupId1);
-        var groups = await _teacherService.GetGroups(Teacher1);
-        Assert.That(groups, Has.Count.EqualTo(1));
-    }
+        #endregion
 
-    [Test, Order(8)]
-    public async Task TestTeacherDeleteGroup()
-    {
-        await _teacherService.DeleteGroup(Teacher1, GroupId1);
-        var groups = await _teacherService.GetGroups(Teacher1);
-        Assert.That(groups, Has.Count.EqualTo(0));
+        #region TestGetStudentsByGroup
+
+        {
+            var students = await _teacherService.GetStudentsByGroup(Teacher1, GroupId1);
+        
+            Assert.That(students, Has.Count.EqualTo(1));
+        }
+
+        #endregion
+        
+        #region TestUpdateGroup
+
+        {
+            await _teacherService.UpdateGroup(Teacher1, new ConfigGroupDto
+            {
+                Name = GroupName1,
+                Description = GroupDescription1 + "_edited"
+            });
+        
+            var groups = await _teacherService.GetGroups(Teacher1);
+        
+            Assert.That(groups, Has.Count.EqualTo(1));
+            using (Assert.EnterMultipleScope())
+            {
+                Assert.That(groups[0].Name, Is.EqualTo(GroupName1));
+                Assert.That(groups[0].Description, Is.EqualTo(GroupDescription1 + "_edited"));
+            }
+        }
+        
+        #endregion
+
+        #region TestRemoveUserFromGroup
+
+        {
+            await _teacherService.RemoveUserFromGroup(Teacher1, Student1, GroupId1);
+            var students = await _teacherService.GetStudentsByGroup(Teacher1, GroupId1);
+            Assert.That(students, Has.Count.EqualTo(0));
+        }
+
+        #endregion
+
+        #region TestDeleteGroup
+
+        {
+            await _teacherService.DeleteGroup(Teacher1, GroupId1);
+            var groups = await _teacherService.GetGroups(Teacher1);
+            Assert.That(groups, Has.Count.EqualTo(0));
+        }
+
+        #endregion
     }
 }

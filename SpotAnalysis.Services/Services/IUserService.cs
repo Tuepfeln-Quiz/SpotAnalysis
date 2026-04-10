@@ -2,8 +2,9 @@
 
 namespace SpotAnalysis.Services.Services;
 
-public interface ILoginService
+public interface IUserService
 {
+    public Task Register(string userName, string password, string? email, Guid? userId);
     public Task<User?> Login(string userName, string password);
     public Task<User?> ChangePassword(string userName, string oldPassword, string newPassword);
 }

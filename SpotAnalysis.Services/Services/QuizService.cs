@@ -1,32 +1,31 @@
-﻿using System.Diagnostics;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using SpotAnalysis.Data;
 using SpotAnalysis.Data.Enums;
-using SpotAnalysis.Data.Models.Identity;
 using SpotAnalysis.Data.Models.Quizzes;
 using SpotAnalysis.Services.DTOs;
 
 namespace SpotAnalysis.Services.Services;
 
-public class StudentService(IDbContextFactory<AnalysisContext> factory) : IStudentService
+public class QuizService(IDbContextFactory<AnalysisContext> factory) : IQuizService
 {
-    public async Task Register(string userName, string password, string? email, Guid? userId)
+    public List<QuizDto> GetQuizzes()
     {
-        var newGuid = userId ?? Guid.NewGuid();
+        throw new NotImplementedException();
+    }
 
-        var passwordString = new PasswordProvider.Password(password, newGuid).ParamString();
-        
-        await using var context = await factory.CreateDbContextAsync();
-        var newUser = new User
-        {
-            UserName = userName,
-            PasswordHash = passwordString,
-            UserID = newGuid
-        };
-        newUser.Roles.Add(await context.Roles.SingleAsync(r => r.Title == "student"));
-        context.Users.Add(newUser);
-        
-        await context.SaveChangesAsync();
+    public void CreateQuiz(ConfigQuizDto quiz)
+    {
+        throw new NotImplementedException();
+    }
+
+    public void UpdateQuiz(ConfigQuizDto quiz)
+    {
+        throw new NotImplementedException();
+    }
+
+    public void DeleteQuiz(int quizId)
+    {
+        throw new NotImplementedException();
     }
 
     public async Task<List<QuizOverviewDto>> GetQuizzes(Guid studentId)

@@ -10,8 +10,7 @@
 public class STAvailableChemical {
     public int QuestionID { get; set; }
     public int ChemicalID { get; set; }
-    public int Order { get; set; }
-
+    public required int Order { get; set; }
 
     [DeleteBehavior(DeleteBehavior.Restrict)]
     public Question Question { get; set; } = null!;

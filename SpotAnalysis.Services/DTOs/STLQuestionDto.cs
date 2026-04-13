@@ -17,8 +17,8 @@ public class STLQuestionDto
             Id = question.QuestionID,
             Description = question.Question.Description,
             Order = question.Order,
-            Educt = ChemicalDto.FromInput(question.Question.STLInputs.ElementAt(0)),
-            Observation = question.Question.STLInputs.ElementAt(0).Observation.Description
+            Educt = ChemicalDto.FromInput(question.Question.STLInput!.Chemical1),
+            Observation = question.Question.STLInput.Observation.Description
         };
     }
 }

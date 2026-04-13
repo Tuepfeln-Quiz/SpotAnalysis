@@ -7,6 +7,16 @@
 		<BlazorDisableThrowNavigationException>true</BlazorDisableThrowNavigationException>
 	</PropertyGroup>
 
+  <ItemGroup>
+    <!-- Wird von den EF Core CLI-Tools benötigt, wenn dieses Projekt als startup-project verwendet wird.
+         Siehe SpotAnalysis.Data/EF-MIGRATIONS.md für die Migration-Befehle. -->
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.5">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
 	<ItemGroup>
 		<PackageReference Include="Serilog.AspNetCore" Version="10.0.0" />
 		<PackageReference Include="Serilog.Settings.Configuration" Version="10.0.0" />

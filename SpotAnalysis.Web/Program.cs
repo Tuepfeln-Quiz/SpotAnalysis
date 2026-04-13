@@ -13,11 +13,7 @@ public class Program
     {
         var builder = WebApplication.CreateBuilder(args);
 
-        builder.Services.AddDbContextFactory<AnalysisContext>(options =>
-            options.UseSqlServer(
-                builder.Configuration.GetConnectionString("MyDatabase")));
-
-        builder.Services.AddScoped<IUsernameService, UsernameService>();
+            builder.Services.AddSpotAnalysis(builder.Configuration);
 
         // Add services to the container.
         builder.Services.AddRazorComponents()
@@ -38,6 +34,7 @@ public class Program
         builder.Services.AddHttpContextAccessor();
         builder.Services.AddCascadingAuthenticationState();
 
+            var app = builder.Build();
         builder.Services.AddScoped<IUserService, UserService>();
         builder.Services.AddScoped<IXlsImportExportService, XlsImportExportService>();
         builder.Services.AddScoped<IAdminService, AdminService>();

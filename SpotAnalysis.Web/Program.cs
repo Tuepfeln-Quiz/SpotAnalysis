@@ -13,7 +13,7 @@ public class Program
         var builder = WebApplication.CreateBuilder(args);
 
            
-            builder.Services.AddDbContext<AnalysisContext>(options =>
+            builder.Services.AddDbContextFactory<AnalysisContext>(options =>
                 options.UseSqlServer(
                     builder.Configuration.GetConnectionString("MyDatabase")));
 
@@ -38,10 +38,12 @@ public class Program
             builder.Services.AddHttpContextAccessor();
             builder.Services.AddCascadingAuthenticationState();
 
+            builder.Services.AddScoped<IUserService, UserService>();
+            builder.Services.AddScoped<IXlsImportExportService, XlsImportExportService>();
             builder.Services.AddScoped<ILoginService, LoginService>();
             builder.Services.AddScoped<IAdminService, AdminService>();
 
-        var app = builder.Build();
+            var app = builder.Build();
 
             // Configure the HTTP request pipeline.
             if (!app.Environment.IsDevelopment())

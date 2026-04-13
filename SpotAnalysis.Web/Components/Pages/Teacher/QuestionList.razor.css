@@ -1,0 +1,65 @@
+.question-row {
+    background: white;
+    border-radius: 12px;
+    padding: 1rem 1.25rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+}
+
+.input-custom {
+    border-radius: 10px;
+    border: 1px solid #d1d5db;
+}
+
+.btn-pill {
+    background: #f3f4f6;
+    color: #374151;
+    padding: 0.3rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    border: none;
+}
+
+.btn-pill.active {
+    background: #6b21a8;
+    color: white;
+}
+
+.badge-type {
+    font-size: 0.7rem;
+    padding: 0.15rem 0.5rem;
+    border-radius: 12px;
+}
+
+.badge-st {
+    background: #ede9fe;
+    color: #6b21a8;
+}
+
+.badge-stl {
+    background: #dbeafe;
+    color: #2563eb;
+}
+
+.btn-primary-purple {
+    background: linear-gradient(135deg, #6b21a8, #4c1d95);
+    color: white;
+    border: none;
+    border-radius: 10px;
+}
+
+.btn-edit {
+    background: #ede9fe;
+    color: #6b21a8;
+    border: none;
+    border-radius: 8px;
+}
+
+.btn-delete {
+    background: #fee2e2;
+    color: #ef4444;
+    border: none;
+    border-radius: 8px;
+}

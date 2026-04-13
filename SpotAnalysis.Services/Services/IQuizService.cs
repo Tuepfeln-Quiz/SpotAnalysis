@@ -8,7 +8,7 @@ public interface IQuizService
     public Task<List<QuizOverviewDto>> GetAllQuizzes();
     public Task CreateQuiz(Guid createdBy, CreateQuizDto quiz);
     public Task UpdateQuiz(Guid updatedBy, UpdateQuizDto quiz);
-    public Task DeleteQuiz(int quizId);
+    public Task DeleteQuiz(Guid teacherId, int quizId);
     public Task AssignGroupToQuiz(int quizId, int groupId);
     public Task RemoveGroupToQuiz(int quizId, int groupId);
     

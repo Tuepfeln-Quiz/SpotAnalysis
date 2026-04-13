@@ -6,12 +6,12 @@ public class Quiz {
 
     [Required]
     public string Name { get; set; } = null!;
-    public Guid CreatedBy { get; set; }
+    public Guid? CreatedBy { get; set; }
 
 
     [ForeignKey(nameof(CreatedBy))]
-    [DeleteBehavior(DeleteBehavior.Restrict)]
-    public User Creator { get; set; } = null!;
+    [DeleteBehavior(DeleteBehavior.SetNull)]
+    public User? Creator { get; set; }
 
     public virtual ICollection<Group> Groups { get; set; } = [];
     public virtual ICollection<Question> Questions { get; set; } = [];

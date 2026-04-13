@@ -8,7 +8,6 @@ public class AnalysisContext : DbContext {
 
     #region Users, Roles, Groups
     public virtual DbSet<User> Users { get; set; }
-    public virtual DbSet<Role> Roles { get; set; }
     public virtual DbSet<Group> Groups { get; set; }
 
     #endregion Users, Roles, Groups
@@ -60,14 +59,6 @@ public class AnalysisContext : DbContext {
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder) {
-        modelBuilder.Entity<User>()
-        .HasMany(u => u.Roles)
-        .WithMany(r => r.Users)
-        .UsingEntity(
-            u => u.HasOne(typeof(Role)).WithMany().HasForeignKey("RoleID").OnDelete(DeleteBehavior.Restrict),
-            r => r.HasOne(typeof(User)).WithMany().HasForeignKey("UserID").OnDelete(DeleteBehavior.Restrict)
-        );
-
         modelBuilder.Entity<User>()
         .HasMany(u => u.Groups)
         .WithMany(r => r.Users)

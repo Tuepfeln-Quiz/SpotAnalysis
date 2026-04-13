@@ -14,7 +14,7 @@ public class User {
 
     public DateTime? LastLogin { get; set; }
 
-    public virtual ICollection<Role> Roles { get; set; } = [];
+    public virtual ISet<Role> Roles { get; set; } = new HashSet<Role>();
     public virtual ICollection<Group> Groups { get; set; } = [];
 
     public virtual ICollection<Quiz> Quizzes { get; set; } = [];

@@ -251,11 +251,41 @@
         var reactions = await ChemistryData.GetAllReactionsAsync();
         _allReactions = reactions;
 
-        // Methods will be loaded in Task 11 via ChemistryData.GetAllMethodsAsync()
+        var methods = await ChemistryData.GetAllMethodsAsync();
+        _allMethods = methods.Select(m => new MethodItem(m.Id, m.Name)).ToList();
 
         if (_isEdit)
         {
-            // Edit mode data loading will be completed in Task 11 via QuizService.GetQuestionDetail()
+            await LoadExistingQuestion();
+        }
+    }
+
+    private async Task LoadExistingQuestion()
+    {
+        var detail = await QuizService.GetQuestionDetail(QuestionId!.Value);
+        _description = detail.Description;
+        _questionType = detail.Type;
+
+        if (_questionType == QuestionType.SpotTest)
+        {
+            _selectedEducts = detail.Chemicals
+                .Where(c => !c.IsAdditive)
+                .Select(c => new ChemicalItem(c.Id, c.Name, c.Formula, c.Color))
+                .ToList();
+            _selectedAdditives = detail.Chemicals
+                .Where(c => c.IsAdditive)
+                .Select(c => new ChemicalItem(c.Id, c.Name, c.Formula, c.Color))
+                .ToList();
+            _selectedMethods = detail.Methods
+                .Select(m => new MethodItem(m.Id, m.Name))
+                .ToList();
+        }
+        else
+        {
+            _selectedReactionId = detail.ReactionId;
+            _selectedDistractors = detail.AvailableReactionIds
+                .Where(id => id != detail.ReactionId)
+                .ToList();
         }
     }
 

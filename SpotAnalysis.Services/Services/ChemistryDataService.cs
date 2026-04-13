@@ -161,6 +161,18 @@ public class ChemistryDataService(IDbContextFactory<AnalysisContext> factory) : 
         return quiz is null ? null : MapSpotTestQuiz(quiz);
     }
 
+    public async Task<List<MethodQuestionDto>> GetAllMethodsAsync()
+    {
+        await using var context = await factory.CreateDbContextAsync();
+        return await context.Methods
+            .AsNoTracking()
+            .Select(m => new MethodQuestionDto
+            {
+                Id = m.MethodID,
+                Name = m.Name
+            }).ToListAsync();
+    }
+
     private static SpotTestQuizDto MapSpotTestQuiz(Data.Models.Quizzes.Quiz quiz) => new()
     {
         QuizID = quiz.QuizID,

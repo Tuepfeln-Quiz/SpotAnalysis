@@ -291,6 +291,42 @@ public class QuizService(ILogger<QuizService> logger, IDbContextFactory<Analysis
             }).ToListAsync();
     }
 
+    public async Task<QuestionDetailDto> GetQuestionDetail(int questionId)
+    {
+        await using var dbContext = await factory.CreateDbContextAsync();
+
+        var question = await dbContext.Questions
+            .AsNoTracking()
+            .Where(q => q.QuestionID == questionId)
+            .Include(q => q.STAvailableChemicals)
+                .ThenInclude(c => c.Chemical)
+            .Include(q => q.STAvailableMethods)
+                .ThenInclude(m => m.Method)
+            .Include(q => q.STLAvailableReactions)
+            .SingleAsync();
+
+        return new QuestionDetailDto
+        {
+            Id = question.QuestionID,
+            Description = question.Description,
+            Type = question.Type,
+            Chemicals = question.STAvailableChemicals
+                .OrderBy(c => c.Order)
+                .Select(c => ChemicalQuestionDto.FromAvailable(c))
+                .ToList(),
+            Methods = question.STAvailableMethods
+                .Select(m => new MethodQuestionDto
+                {
+                    Id = m.MethodID,
+                    Name = m.Method.Name
+                }).ToList(),
+            ReactionId = question.ReactionID ?? 0,
+            AvailableReactionIds = question.STLAvailableReactions
+                .Select(r => r.ReactionID)
+                .ToList()
+        };
+    }
+
     public async Task<List<QuestionOverviewDto>> GetQuestionsOfQuiz(int quizId)
     {
         await using var dbContext = await factory.CreateDbContextAsync();

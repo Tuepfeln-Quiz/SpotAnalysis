@@ -1,5 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Org.BouncyCastle.Asn1.Pkcs;
+using Microsoft.Extensions.Logging;
 using SpotAnalysis.Data;
 using SpotAnalysis.Data.Enums;
 using SpotAnalysis.Data.Models;
@@ -8,13 +8,15 @@ using SpotAnalysis.Services.DTOs;
 
 namespace SpotAnalysis.Services.Services;
 
-public class QuizService(IDbContextFactory<AnalysisContext> factory) : IQuizService
+public class QuizService(ILogger<QuizService> logger, IDbContextFactory<AnalysisContext> factory) : IQuizService
 {
     public async Task<List<QuizOverviewDto>> GetAllQuizzes()
     {
         await using var dbContext = await factory.CreateDbContextAsync();
 
-        return await dbContext.Quizzes.Select(qu => new QuizOverviewDto
+        return await dbContext.Quizzes
+            .AsNoTracking()
+            .Select(qu => new QuizOverviewDto
         {
             Id = qu.QuizID,
             Name = qu.Name,
@@ -23,10 +25,9 @@ public class QuizService(IDbContextFactory<AnalysisContext> factory) : IQuizServ
         }).ToListAsync();
     }
 
-    public async Task CreateQuiz(Guid createdBy, ConfigQuizDto quiz)
+    public async Task CreateQuiz(Guid createdBy, CreateQuizDto quiz)
     {
         await using var dbContext = await factory.CreateDbContextAsync();
-
         await using var transaction = await dbContext.Database.BeginTransactionAsync();
         
         var newQuiz = new Quiz
@@ -51,12 +52,77 @@ public class QuizService(IDbContextFactory<AnalysisContext> factory) : IQuizServ
         await transaction.CommitAsync();
     }
 
-    public Task UpdateQuiz(ConfigQuizDto quiz)
+    public async Task UpdateQuiz(Guid updatedBy, UpdateQuizDto quiz)
     {
+        await using var dbContext = await factory.CreateDbContextAsync();
+        await using var transaction = await dbContext.Database.BeginTransactionAsync();
+
+        var existingQuiz = await dbContext.Quizzes.SingleOrDefaultAsync(x => x.QuizID == quiz.Id);
+
+        if (existingQuiz is null)
+        {
+            logger.LogError("Quiz with quiz id {quizId} does not exist.", quiz.Id);
+            throw new KeyNotFoundException("The quiz requested quiz does not exist");
+        }
+        
+        if (existingQuiz.CreatedBy != updatedBy)
+        {
+            logger.LogError("A quiz can only be updated by its creator! Creator id: {creatorId}, Updator id: {updatedBy}", 
+                existingQuiz.CreatedBy, updatedBy);
+            
+            // throw new Exception
+            return;
+        }
+
+        existingQuiz.Name = quiz.Name;
+
+        var questionIds = quiz.Questions.Select(x => x.Id).ToArray();
+
+        var existingQuestionIds = await dbContext.QuizQuestions
+            .AsNoTracking()
+            .Where(x => x.QuizID == quiz.Id)
+            .Select(x => x.QuestionID)
+            .ToListAsync();
+
+        var newQuestions = quiz.Questions.ExceptBy(existingQuestionIds, question => question.Id).ToArray();
+        await dbContext.QuizQuestions.AddRangeAsync(newQuestions.Select(x => new QuizQuestion
+        {
+            QuizID = quiz.Id,
+            QuestionID = x.Id,
+            Order = x.Order
+        }));
+        
+        var questionsToDelete = existingQuestionIds.Except(questionIds).ToList();
+        await dbContext.QuizQuestions.Where(x => questionsToDelete.Contains(x.QuestionID)).ExecuteDeleteAsync();
+        
+        await dbContext.SaveChangesAsync();
+        
+        await transaction.CommitAsync();
+    }
+
+    public async Task DeleteQuiz(int quizId)
+    {
+        await using var dbContext = await factory.CreateDbContextAsync();
+        await using var transaction = await dbContext.Database.BeginTransactionAsync();
+
+        await dbContext.QuizQuestions
+            .Where(x => x.QuizID == quizId)
+            .ExecuteDeleteAsync();
+
+        await dbContext.Quizzes
+            .Where(x => x.QuizID == quizId)
+            .ExecuteDeleteAsync();
+
+        await transaction.CommitAsync();
+    }
+
+    public Task AssignGroupToQuiz(int quizId, int groupId)
+    {
+        // var group = 
         throw new NotImplementedException();
     }
 
-    public Task DeleteQuiz(int quizId)
+    public Task RemoveGroupToQuiz(int quizId, int groupId)
     {
         throw new NotImplementedException();
     }

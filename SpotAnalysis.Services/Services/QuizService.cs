@@ -288,14 +288,66 @@ public class QuizService(ILogger<QuizService> logger, IDbContextFactory<Analysis
             }).ToListAsync();
     }
 
-    public Task CreateSTQuestion(ConfigSTQuestionDto question)
+    public async Task CreateSTQuestion(Guid createdBy, ConfigSTQuestionDto question)
     {
-        throw new NotImplementedException();
+        await using var dbContext = await factory.CreateDbContextAsync();
+        await using var transaction = await dbContext.Database.BeginTransactionAsync();
+
+        var newQuestion = new Question
+        {
+            Description = question.Description,
+            Type = QuestionType.SpotTest,
+            CreatedBy = createdBy,
+            ReactionID = null
+        };
+
+        await dbContext.Questions.AddAsync(newQuestion);
+        await dbContext.SaveChangesAsync();
+
+        var chemicals = question.AvailableChemicals.Select((chemId, index) => new STAvailableChemical
+        {
+            QuestionID = newQuestion.QuestionID,
+            ChemicalID = chemId,
+            Order = index
+        });
+        await dbContext.STAvailableChemicals.AddRangeAsync(chemicals);
+
+        var methods = question.AvailableMethods.Select(methodId => new STAvailableMethod
+        {
+            QuestionID = newQuestion.QuestionID,
+            MethodID = methodId
+        });
+        await dbContext.STAvailableMethods.AddRangeAsync(methods);
+
+        await dbContext.SaveChangesAsync();
+        await transaction.CommitAsync();
     }
 
-    public Task CreateSTLQuestion(ConfigSTLQuestionDto question)
+    public async Task CreateSTLQuestion(Guid createdBy, ConfigSTLQuestionDto question)
     {
-        throw new NotImplementedException();
+        await using var dbContext = await factory.CreateDbContextAsync();
+        await using var transaction = await dbContext.Database.BeginTransactionAsync();
+
+        var newQuestion = new Question
+        {
+            Description = question.Description,
+            Type = QuestionType.SpotTestLight,
+            CreatedBy = createdBy,
+            ReactionID = question.ReactionId
+        };
+
+        await dbContext.Questions.AddAsync(newQuestion);
+        await dbContext.SaveChangesAsync();
+
+        var reactions = question.AvailableReactions.Select(reactionId => new STLAvailableReaction
+        {
+            QuestionID = newQuestion.QuestionID,
+            ReactionID = reactionId
+        });
+        await dbContext.STLAvailableReactions.AddRangeAsync(reactions);
+
+        await dbContext.SaveChangesAsync();
+        await transaction.CommitAsync();
     }
 
     public Task UpdateSTQuestion(ConfigSTQuestionDto question)

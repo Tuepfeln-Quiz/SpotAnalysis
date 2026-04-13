@@ -24,7 +24,6 @@ public class QuizService(IDbContextFactory<AnalysisContext> factory) : IQuizServ
     public async Task CreateQuiz(Guid createdBy, ConfigQuizDto quiz)
     {
         await using var dbContext = await factory.CreateDbContextAsync();
-
         await using var transaction = await dbContext.Database.BeginTransactionAsync();
         
         var newQuiz = new Quiz
@@ -49,14 +48,51 @@ public class QuizService(IDbContextFactory<AnalysisContext> factory) : IQuizServ
         await transaction.CommitAsync();
     }
 
-    public Task UpdateQuiz(ConfigQuizDto quiz)
+    public async Task UpdateQuiz(ConfigQuizDto quiz)
     {
-        throw new NotImplementedException();
+        await using var dbContext = await factory.CreateDbContextAsync();
+        await using var transaction = await dbContext.Database.BeginTransactionAsync();
+
+        await dbContext.Quizzes
+            .Where(x => x.QuizID == quiz.Id)
+            .ExecuteUpdateAsync(qu => qu
+                .SetProperty(p => p.Name, quiz.Name));
+
+        var questionIds = quiz.Questions.Select(x => x.Id).ToArray();
+
+        var existingQuestionIds = await dbContext.QuizQuestions
+            .Where(x => x.QuizID == quiz.Id)
+            .Select(x => x.QuestionID)
+            .ToListAsync();
+
+        var newQuestions = quiz.Questions.ExceptBy(existingQuestionIds, question => question.Id).ToArray();
+        await dbContext.QuizQuestions.AddRangeAsync(newQuestions.Select(x => new QuizQuestion
+        {
+            QuizID = quiz.Id,
+            QuestionID = x.Id,
+            Order = x.Order
+        }));
+        
+        var questionsToDelete = existingQuestionIds.Except(questionIds).ToList();
+        await dbContext.QuizQuestions.Where(x => questionsToDelete.Contains(x.QuestionID)).ExecuteDeleteAsync();
+        
+        await transaction.CommitAsync();
     }
 
-    public Task DeleteQuiz(int quizId)
+    public async Task DeleteQuiz(int quizId)
     {
-        throw new NotImplementedException();
+        await using var dbContext = await factory.CreateDbContextAsync();
+        await using var transaction = await dbContext.Database.BeginTransactionAsync();
+
+        await dbContext.QuizQuestions
+            .Where(x => x.QuizID == quizId)
+            .ExecuteDeleteAsync();
+
+        await dbContext.Quizzes
+            .Where(x => x.QuizID == quizId)
+            .ExecuteDeleteAsync();
+
+        await transaction.CommitAsync();
     }
 
     public async Task<List<QuizOverviewDto>> GetQuizzes(Guid studentId)

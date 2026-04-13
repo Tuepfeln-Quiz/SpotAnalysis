@@ -23,6 +23,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IQuizService, QuizService>();
         services.AddScoped<IUsernameService, UsernameService>();
         services.AddScoped<IXlsImportExportService, XlsImportExportService>();
+        services.AddScoped<IChemistryDataService, ChemistryDataService>();
 
         return services;
     }

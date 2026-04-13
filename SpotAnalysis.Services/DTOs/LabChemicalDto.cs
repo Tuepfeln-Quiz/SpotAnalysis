@@ -1,11 +1,10 @@
-namespace SpotAnalysis.Web.Models;
+namespace SpotAnalysis.Services.DTOs;
 
-public class ChemicalViewModel
+public class LabChemicalDto
 {
     public int ChemicalID { get; set; }
     public string Name { get; set; } = "";
     public string Formula { get; set; } = "";
-
     public string? ImagePath { get; set; }
     public int ChemicalTypeID { get; set; }
     public string ChemicalTypeName { get; set; } = "";

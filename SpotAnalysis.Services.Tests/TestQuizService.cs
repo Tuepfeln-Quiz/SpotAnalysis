@@ -95,10 +95,9 @@ public class TestQuizService : BaseDatabaseTest
 
         await dbContext.SaveChangesAsync();
         
-        Assert.DoesNotThrow(() =>
+        Assert.DoesNotThrowAsync(async () =>
         {
-            var task = _quizService.AssignGroupToQuiz(1, result.Entity.GroupID);
-            Task.WaitAll(task);
+            await _quizService.AssignGroupToQuiz(1, result.Entity.GroupID);
         });
 
         var group = await dbContext.Groups
@@ -131,10 +130,9 @@ public class TestQuizService : BaseDatabaseTest
             
             await dbContext.SaveChangesAsync();
             
-            Assert.DoesNotThrow(() =>
+            Assert.DoesNotThrowAsync(async () =>
             {
-                var task = _quizService.RemoveGroupFromQuiz(quiz.QuizID, createdQuiz.GroupID);
-                Task.WaitAll(task);
+                await _quizService.RemoveGroupFromQuiz(quiz.QuizID, createdQuiz.GroupID);
             });
         }
         

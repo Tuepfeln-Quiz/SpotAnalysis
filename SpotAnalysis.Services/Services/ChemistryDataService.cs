@@ -55,14 +55,14 @@ public class ChemistryDataService(IDbContextFactory<AnalysisContext> factory) : 
             .Where(q => q.QuizQuestions.Any(qq => qq.Question.Type == QuestionType.SpotTestLight))
             .Include(q => q.QuizQuestions)
                 .ThenInclude(qq => qq.Question)
-                    .ThenInclude(question => question.STLInputs)
-                        .ThenInclude(i => i.Chemical)
+                    .ThenInclude(question => question.STLInput)
+                        .ThenInclude(i => i!.Chemical1)
                             .ThenInclude(c => c.MethodOutputs)
                                 .ThenInclude(mo => mo.Method)
             .Include(q => q.QuizQuestions)
                 .ThenInclude(qq => qq.Question)
-                    .ThenInclude(question => question.STLInputs)
-                        .ThenInclude(i => i.Observation)
+                    .ThenInclude(question => question.STLInput)
+                        .ThenInclude(i => i!.Observation)
             .Include(q => q.QuizQuestions)
                 .ThenInclude(qq => qq.Question)
                     .ThenInclude(question => question.STLAvailableReactions)
@@ -90,7 +90,7 @@ public class ChemistryDataService(IDbContextFactory<AnalysisContext> factory) : 
                 .OrderBy(qq => qq.Order)
                 .Select(qq =>
                 {
-                    var input = qq.Question.STLInputs.First();
+                    var input = qq.Question.STLInput!;
                     var availableReactions = qq.Question.STLAvailableReactions
                         .Select(ar => MapReaction(ar.Reaction))
                         .ToList();
@@ -99,14 +99,14 @@ public class ChemistryDataService(IDbContextFactory<AnalysisContext> factory) : 
                     var correctReaction = qq.Question.STLAvailableReactions
                         .FirstOrDefault(ar =>
                             ar.Reaction.ObservationID == input.ObservationID &&
-                            (ar.Reaction.Chemical1ID == input.ChemicalID ||
-                             ar.Reaction.Chemical2ID == input.ChemicalID));
+                            (ar.Reaction.Chemical1ID == input.Chemical1ID ||
+                             ar.Reaction.Chemical2ID == input.Chemical2ID));
 
                     return new LightQuestionDto
                     {
                         QuestionID = qq.QuestionID,
                         Description = qq.Question.Description,
-                        Chemical = MapChemical(input.Chemical),
+                        Chemical = MapChemical(input.Chemical1),
                         ObservationDescription = input.Observation.Description,
                         AvailableReactions = availableReactions,
                         CorrectReactionID = correctReaction?.ReactionID ?? 0

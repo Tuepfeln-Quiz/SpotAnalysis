@@ -69,9 +69,7 @@ public class QuizService(ILogger<QuizService> logger, IDbContextFactory<Analysis
         {
             logger.LogError("A quiz can only be updated by its creator! Creator id: {creatorId}, Updator id: {updatedBy}", 
                 existingQuiz.CreatedBy, updatedBy);
-            
-            // throw new Exception
-            return;
+            throw new UnauthorizedAccessException("A quiz can only be updated by its creator");
         }
 
         existingQuiz.Name = quiz.Name;
@@ -100,17 +98,17 @@ public class QuizService(ILogger<QuizService> logger, IDbContextFactory<Analysis
         await transaction.CommitAsync();
     }
 
-    public async Task DeleteQuiz(int quizId)
+    public async Task DeleteQuiz(Guid teacherId, int quizId)
     {
         await using var dbContext = await factory.CreateDbContextAsync();
         await using var transaction = await dbContext.Database.BeginTransactionAsync();
 
         await dbContext.QuizQuestions
-            .Where(x => x.QuizID == quizId)
+            .Where(x => x.QuizID == quizId && x.Quiz.CreatedBy == teacherId)
             .ExecuteDeleteAsync();
 
         await dbContext.Quizzes
-            .Where(x => x.QuizID == quizId)
+            .Where(x => x.QuizID == quizId && x.CreatedBy == teacherId)
             .ExecuteDeleteAsync();
 
         await transaction.CommitAsync();

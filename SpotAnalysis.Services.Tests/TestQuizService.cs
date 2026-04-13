@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using NSubstitute;
 using SpotAnalysis.Data.Models.Identity;
 using SpotAnalysis.Services.DTOs;
@@ -11,7 +12,7 @@ public class TestQuizService : BaseDatabaseTest
 {
     private QuizService _quizService;
     
-    private readonly Guid CreatedBy = Guid.NewGuid();
+    private readonly Guid _createdBy = Guid.NewGuid();
     
     [OneTimeSetUp]
     public void InitTeacherService()
@@ -23,11 +24,60 @@ public class TestQuizService : BaseDatabaseTest
     [Test]
     public async Task GetAllQuizzes_ReturnAllQuizzes()
     {
+        await CleanUpDb();
+        
         var quizCount = await CreateMultipleQuizzes();
 
         var quizzes = await _quizService.GetAllQuizzes();
         
         Assert.That(quizzes, Has.Count.EqualTo(quizCount));
+    }
+    
+    [Test]
+    public async Task UpdateQuiz_ReturnUpdatedName()
+    {
+        await CleanUpDb();
+        
+        await CreateMultipleQuizzes();
+
+        var newQuizName = "My cool new name";
+
+        var quizToUpdate = new UpdateQuizDto
+        {
+            Id = 10,
+            Name = newQuizName,
+            Questions = [],
+            AssignedGroupsIds = []
+        };
+        
+        await _quizService.UpdateQuiz(_createdBy, quizToUpdate);
+
+        await using var dbContext = await ContextFactory.CreateDbContextAsync();
+
+        var quiz = await dbContext.Quizzes.SingleAsync(x => x.QuizID == 10);
+        
+        Assert.That(quiz.Name, Is.EqualTo(newQuizName));
+    }
+    
+    [Test]
+    public async Task DeleteQuiz_QuizNotExistingAnymore()
+    {
+        await CleanUpDb();
+        
+        await CreateMultipleQuizzes();
+
+        const int deleteQuizId = 10;
+        
+        await _quizService.DeleteQuiz(_createdBy, deleteQuizId);
+
+        await using var dbContext = await ContextFactory.CreateDbContextAsync();
+
+        var ex = Assert.Throws<InvalidOperationException>(() =>
+        {
+            _ = dbContext.Quizzes.Single(x => x.QuizID == 10);
+        });
+        
+        Assert.That(ex.Message, Is.EqualTo("Sequence contains no elements"));
     }
 
     private async Task<int> CreateMultipleQuizzes()
@@ -36,7 +86,7 @@ public class TestQuizService : BaseDatabaseTest
         {
             await dbContext.Users.AddAsync(new User
             {
-                UserID = CreatedBy,
+                UserID = _createdBy,
                 UserName = "Test",
                 PasswordHash = "HohohoNoHash"
             });
@@ -48,7 +98,7 @@ public class TestQuizService : BaseDatabaseTest
         
         for (int i = 0; i < 100; i++)
         {
-            tasks.Add(_quizService.CreateQuiz(CreatedBy, new CreateQuizDto
+            tasks.Add(_quizService.CreateQuiz(_createdBy, new CreateQuizDto
             {
                 Name = i.ToString(),
                 Questions = [],
@@ -59,5 +109,12 @@ public class TestQuizService : BaseDatabaseTest
         Task.WaitAll(tasks);
 
         return tasks.Count;
+    }
+
+    private async Task CleanUpDb()
+    {
+        await using var dbContext = await ContextFactory.CreateDbContextAsync();
+        await dbContext.Database.EnsureDeletedAsync();
+        await dbContext.Database.EnsureCreatedAsync();
     }
 }

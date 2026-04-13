@@ -54,11 +54,13 @@ public class AnalysisContext : DbContext {
     // Zur Laufzeit: DI-Konfiguration in SpotAnalysis.Web/Program.cs (AddDbContext + appsettings.json)
     // Für Migrations: --startup-project SpotAnalysis.Web (siehe EF-MIGRATIONS.md)
     public AnalysisContext(DbContextOptions<AnalysisContext> options)
-        : base(options)
-    {
+        : base(options) {
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder) {
+        modelBuilder.Entity<Reaction>()
+        .ToTable(t => t.HasCheckConstraint("CK_Reaction_ChemicalOrder", "\"Chemical1ID\" <= \"Chemical2ID\""));
+
         modelBuilder.Entity<User>()
         .HasMany(u => u.Groups)
         .WithMany(r => r.Users)

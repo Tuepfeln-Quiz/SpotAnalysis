@@ -1,6 +1,6 @@
-namespace SpotAnalysis.Web.Models;
+namespace SpotAnalysis.Services.DTOs;
 
-public class ReactionViewModel
+public class LabReactionDto
 {
     public int ReactionID { get; set; }
     public int Chemical1ID { get; set; }

@@ -179,27 +179,35 @@
     </div>
 </div>
 
+@inject IChemistryDataService ChemistryData
+
 @code {
-    private List<ChemicalViewModel> chemicals = SeedData.Chemicals;
-    private List<ReactionViewModel> reactions = SeedData.Reactions;
+    private List<LabChemicalDto> chemicals = new();
+    private List<LabReactionDto> reactions = new();
 
     private string searchTerm = "";
-    private ChemicalViewModel? draggedChemical;
+    private LabChemicalDto? draggedChemical;
     private int dragSource; // 0 = sidebar, 1 = slot1, 2 = slot2
-    private ChemicalViewModel? slot1;
-    private ChemicalViewModel? slot2;
+    private LabChemicalDto? slot1;
+    private LabChemicalDto? slot2;
     private int dragOverSlot;
 
     private MixLogViewModel? lastResult;
     private List<MixLogViewModel> mixLog = new();
     private int logCounter;
 
-    private IEnumerable<ChemicalViewModel> FilteredChemicals =>
+    private IEnumerable<LabChemicalDto> FilteredChemicals =>
         string.IsNullOrWhiteSpace(searchTerm)
             ? chemicals
             : chemicals.Where(c =>
                 c.Name.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
                 c.Formula.Contains(searchTerm, StringComparison.OrdinalIgnoreCase));
+
+    protected override async Task OnInitializedAsync()
+    {
+        chemicals = await ChemistryData.GetAllChemicalsAsync();
+        reactions = await ChemistryData.GetAllReactionsAsync();
+    }
 
     private void Drop(int slot)
     {
@@ -253,7 +261,7 @@
         dragOverSlot = 0;
     }
 
-    private ReactionViewModel? FindReaction(int chem1Id, int chem2Id)
+    private LabReactionDto? FindReaction(int chem1Id, int chem2Id)
     {
         return reactions.FirstOrDefault(r =>
             (r.Chemical1ID == chem1Id && r.Chemical2ID == chem2Id) ||

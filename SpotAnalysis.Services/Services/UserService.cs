@@ -6,10 +6,23 @@ namespace SpotAnalysis.Services.Services;
 
 public class UserService(IDbContextFactory<AnalysisContext> factory) : IUserService
 {
-    public async Task<User?> ChangePassword(string userName, string oldPassword, string newPassword)
+    public async Task<User?> ChangePassword(string userName, string newPassword)
     {
-        System.Console.WriteLine("ChangePassword method called with username: " + userName);
-        return null;
+        if (string.IsNullOrEmpty(userName) || string.IsNullOrEmpty(newPassword))
+        {
+            return null;
+        }
+        await using var context = await factory.CreateDbContextAsync();
+        
+        var user = context.Users.FirstOrDefault(u => u.UserName == userName);
+        if (user == null) return null;
+      
+        var newHash = new PasswordProvider.Password(newPassword, user.UserID).ParamString();
+        user.PasswordHash = newHash;
+        
+        await context.SaveChangesAsync();
+        
+        return user;
     }
 
     public async Task<User?> Login(string userName, string password)
@@ -39,7 +52,7 @@ public class UserService(IDbContextFactory<AnalysisContext> factory) : IUserServ
         return null;
     }
     
-    public async Task Register(string userName, string password, string? email, Guid? userId)
+    public async Task Register(string userName, string password, Guid? userId)
     {
         var newGuid = userId ?? Guid.NewGuid();
 

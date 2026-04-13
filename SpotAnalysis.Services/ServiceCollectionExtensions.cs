@@ -22,6 +22,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ITeacherService, TeacherService>();
         services.AddScoped<IQuizService, QuizService>();
         services.AddScoped<IUsernameService, UsernameService>();
+        services.AddScoped<IStatisticsService, StatisticsService>();
         services.AddScoped<IXlsImportExportService, XlsImportExportService>();
 
         return services;

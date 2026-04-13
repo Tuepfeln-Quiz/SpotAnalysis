@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using SpotAnalysis.Data;
 using SpotAnalysis.Data.Enums;
 using SpotAnalysis.Data.Models;
+using SpotAnalysis.Data.Models.Identity;
 using SpotAnalysis.Data.Models.Quizzes;
 using SpotAnalysis.Services.DTOs;
 
@@ -21,7 +22,8 @@ public class QuizService(ILogger<QuizService> logger, IDbContextFactory<Analysis
             Id = qu.QuizID,
             Name = qu.Name,
             STCount = qu.Questions.Count(x => x.Type == QuestionType.SpotTest),
-            STLCount = qu.Questions.Count(x => x.Type == QuestionType.SpotTestLight)
+            STLCount = qu.Questions.Count(x => x.Type == QuestionType.SpotTestLight),
+            GroupCount = qu.Groups.Count
         }).ToListAsync();
     }
 
@@ -116,15 +118,37 @@ public class QuizService(ILogger<QuizService> logger, IDbContextFactory<Analysis
         await transaction.CommitAsync();
     }
 
-    public Task AssignGroupToQuiz(int quizId, int groupId)
+    public async Task AssignGroupToQuiz(int quizId, int groupId)
     {
-        // var group = 
-        throw new NotImplementedException();
+        await using var dbContext = await factory.CreateDbContextAsync();
+
+        var quiz = await dbContext.Quizzes
+            .Include(q => q.Groups)
+            .SingleAsync(q => q.QuizID == quizId);
+
+        var group = await dbContext.Groups.SingleAsync(g => g.GroupID == groupId);
+
+        if (quiz.Groups.Any(g => g.GroupID == groupId))
+            return;
+
+        quiz.Groups.Add(group);
+        await dbContext.SaveChangesAsync();
     }
 
-    public Task RemoveGroupToQuiz(int quizId, int groupId)
+    public async Task RemoveGroupToQuiz(int quizId, int groupId)
     {
-        throw new NotImplementedException();
+        await using var dbContext = await factory.CreateDbContextAsync();
+
+        var quiz = await dbContext.Quizzes
+            .Include(q => q.Groups)
+            .SingleAsync(q => q.QuizID == quizId);
+
+        var group = quiz.Groups.FirstOrDefault(g => g.GroupID == groupId);
+        if (group is null)
+            return;
+
+        quiz.Groups.Remove(group);
+        await dbContext.SaveChangesAsync();
     }
 
     public async Task<List<QuizOverviewDto>> GetQuizzes(Guid studentId)

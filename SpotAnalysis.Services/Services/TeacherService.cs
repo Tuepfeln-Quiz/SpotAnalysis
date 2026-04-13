@@ -2,6 +2,7 @@
 using SpotAnalysis.Services.DTOs;
 using SpotAnalysis.Data;
 using SpotAnalysis.Data.Models.Identity;
+using SpotAnalysis.Data.Enums;
 
 namespace SpotAnalysis.Services.Services;
 
@@ -10,7 +11,7 @@ public class TeacherService(IDbContextFactory<AnalysisContext> factory) : ITeach
     private static IQueryable<User> GetTeacher(AnalysisContext ctx, Guid teacherId)
     {
         return ctx.Users
-            .Where(u => u.UserID == teacherId && u.Roles.Any(r => r.Title == "teacher"));
+            .Where(u => u.UserID == teacherId && u.Roles.Any(r => r == Role.Teacher));
     }
     // Tested
     public async Task<List<StudentDto>> GetStudents(Guid teacherId)

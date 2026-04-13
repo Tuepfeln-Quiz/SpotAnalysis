@@ -1,5 +1,9 @@
 ﻿namespace SpotAnalysis.Data.Models.Quizzes;
 
+/// <summary>
+/// Contains the methods that can be used in the specified SpotTestQuestion.
+/// </summary>
+
 [PrimaryKey(nameof(QuestionID), nameof(MethodID))]
 public class STAvailableMethod {
     public int QuestionID { get; set; }

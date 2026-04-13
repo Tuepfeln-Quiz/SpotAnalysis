@@ -1,5 +1,9 @@
 ﻿namespace SpotAnalysis.Data.Models.Quizzes;
 
+/// <summary>
+/// For every Chemical in the STAvailableChemicals table the user has to choose a formula. This table stores the user's choice and whether it is correct or not.
+/// </summary>
+
 public class STChemicalResult {
     [Key]
     public int ChemicalResultID { get; set; }

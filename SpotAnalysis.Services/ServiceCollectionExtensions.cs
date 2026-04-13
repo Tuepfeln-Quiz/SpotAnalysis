@@ -25,6 +25,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IXlsImportExportService, XlsImportExportService>();
         services.AddScoped<IUserService, UserService>();
         services.AddScoped<IAdminService, AdminService>();
+        services.AddScoped<IChemistryDataService, ChemistryDataService>();
 
         return services;
     }

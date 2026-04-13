@@ -250,12 +250,42 @@ public class QuizService(ILogger<QuizService> logger, IDbContextFactory<Analysis
 
     public async Task<List<QuestionOverviewDto>> GetQuestions()
     {
-        throw new NotImplementedException();
+        await using var dbContext = await factory.CreateDbContextAsync();
+
+        return await dbContext.Questions
+            .AsNoTracking()
+            .Select(q => new QuestionOverviewDto
+            {
+                Id = q.QuestionID,
+                Description = q.Description,
+                Type = q.Type,
+                CreatedByName = q.Creator.UserName,
+                ChemicalCount = q.STAvailableChemicals.Count,
+                MethodCount = q.STAvailableMethods.Count,
+                ReactionCount = q.STLAvailableReactions.Count,
+                QuizCount = q.QuizQuestions.Count
+            }).ToListAsync();
     }
 
     public async Task<List<QuestionOverviewDto>> GetQuestionsOfQuiz(int quizId)
     {
-        throw new NotImplementedException();
+        await using var dbContext = await factory.CreateDbContextAsync();
+
+        return await dbContext.QuizQuestions
+            .AsNoTracking()
+            .Where(qq => qq.QuizID == quizId)
+            .OrderBy(qq => qq.Order)
+            .Select(qq => new QuestionOverviewDto
+            {
+                Id = qq.Question.QuestionID,
+                Description = qq.Question.Description,
+                Type = qq.Question.Type,
+                CreatedByName = qq.Question.Creator.UserName,
+                ChemicalCount = qq.Question.STAvailableChemicals.Count,
+                MethodCount = qq.Question.STAvailableMethods.Count,
+                ReactionCount = qq.Question.STLAvailableReactions.Count,
+                QuizCount = qq.Question.QuizQuestions.Count
+            }).ToListAsync();
     }
 
     public Task CreateSTQuestion(ConfigSTQuestionDto question)

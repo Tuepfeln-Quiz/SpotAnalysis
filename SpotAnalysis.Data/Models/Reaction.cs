@@ -28,7 +28,10 @@ public class Reaction {
 
     [DeleteBehavior(DeleteBehavior.Restrict)]
     public Observation Observation { get; set; } = null!;
+
     public virtual ICollection<STLResult> STLResults { get; set; } = [];
 
     public virtual ICollection<STLAvailableReaction> STLAvailableReactions { get; set; } = [];
+
+    public virtual ICollection<Question> STLQuestions { get; set; } = [];
 }

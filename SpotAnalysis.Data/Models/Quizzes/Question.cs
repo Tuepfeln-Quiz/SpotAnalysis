@@ -5,7 +5,9 @@ public class Question {
     [Key]
     public int QuestionID { get; set; }
     public QuestionType Type { get; set; }
-    
+
+    public int ReactionID { get; set; }
+
     [Required]
     public string Description { get; set; } = null!;
     public Guid CreatedBy { get; set; }
@@ -15,7 +17,9 @@ public class Question {
     [DeleteBehavior(DeleteBehavior.Restrict)]
     public User Creator { get; set; } = null!;
 
-    public virtual ICollection<STLInput> STLInputs { get; set; } = [];
+    [ForeignKey(nameof(ReactionID))]
+    [DeleteBehavior(DeleteBehavior.Restrict)]
+    public virtual Reaction? STLInput { get; set; } = null!;
     public virtual ICollection<STAvailableChemical> STAvailableChemicals { get; set; } = [];
     public virtual ICollection<STAvailableMethod> STAvailableMethods { get; set; } = [];
     public virtual ICollection<STLAvailableReaction> STLAvailableReactions { get; set; } = [];

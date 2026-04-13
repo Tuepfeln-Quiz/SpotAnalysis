@@ -46,8 +46,7 @@ public class TestQuizService : BaseDatabaseTest
         {
             Id = 10,
             Name = newQuizName,
-            Questions = [],
-            AssignedGroupsIds = []
+            Questions = []
         };
         
         await _quizService.UpdateQuiz(_createdBy, quizToUpdate);
@@ -79,6 +78,75 @@ public class TestQuizService : BaseDatabaseTest
         
         Assert.That(ex.Message, Is.EqualTo("Sequence contains no elements"));
     }
+    
+    [Test]
+    public async Task AssignGroupToQuiz_AssignGroup()
+    {
+        await CleanUpDb();
+        
+        await CreateMultipleQuizzes();
+
+        await using var dbContext = await ContextFactory.CreateDbContextAsync();
+        
+        var result = await dbContext.Groups.AddAsync(new Group
+        {
+            Name = "Fetzige Group"
+        });
+
+        await dbContext.SaveChangesAsync();
+        
+        Assert.DoesNotThrow(() =>
+        {
+            var task = _quizService.AssignGroupToQuiz(1, result.Entity.GroupID);
+            Task.WaitAll(task);
+        });
+
+        var group = await dbContext.Groups
+            .Include(x => x.Quizzes)
+            .SingleAsync(x => x.GroupID == result.Entity.GroupID);
+        
+        Assert.That(group.Quizzes, Has.Count.EqualTo(1));
+    }
+    
+    [Test]
+    public async Task RemoveGroupFromQuiz_RemoveGroup()
+    {
+        await CleanUpDb();
+        
+        await CreateMultipleQuizzes();
+
+        Group createdQuiz; 
+
+        await using (var dbContext = await ContextFactory.CreateDbContextAsync())
+        {
+            var quiz = await dbContext.Quizzes.FirstAsync();
+        
+            var result = await dbContext.Groups.AddAsync(new Group
+            {
+                Name = "Fetzige Group",
+                Quizzes = [quiz]
+            });
+
+            createdQuiz = result.Entity;
+            
+            await dbContext.SaveChangesAsync();
+            
+            Assert.DoesNotThrow(() =>
+            {
+                var task = _quizService.RemoveGroupFromQuiz(quiz.QuizID, createdQuiz.GroupID);
+                Task.WaitAll(task);
+            });
+        }
+        
+        await using (var dbContext = await ContextFactory.CreateDbContextAsync())
+        {
+            var group = await dbContext.Groups
+                .Include(x => x.Quizzes)
+                .SingleAsync(x => x.GroupID == createdQuiz.GroupID);
+            
+            Assert.That(group.Quizzes, Has.Count.EqualTo(0));
+        }
+    }
 
     private async Task<int> CreateMultipleQuizzes()
     {
@@ -101,8 +169,7 @@ public class TestQuizService : BaseDatabaseTest
             tasks.Add(_quizService.CreateQuiz(_createdBy, new CreateQuizDto
             {
                 Name = i.ToString(),
-                Questions = [],
-                AssignedGroupsIds = []
+                Questions = []
             }));
         }
 

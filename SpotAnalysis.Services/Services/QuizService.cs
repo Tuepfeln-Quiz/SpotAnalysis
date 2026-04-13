@@ -114,15 +114,30 @@ public class QuizService(ILogger<QuizService> logger, IDbContextFactory<Analysis
         await transaction.CommitAsync();
     }
 
-    public Task AssignGroupToQuiz(int quizId, int groupId)
+    public async Task AssignGroupToQuiz(int quizId, int groupId)
     {
-        // var group = 
-        throw new NotImplementedException();
+        await using var dbContext = await factory.CreateDbContextAsync();
+
+        var group = await dbContext.Groups.SingleAsync(x => x.GroupID == groupId);
+
+        var quiz = await dbContext.Quizzes.Include(x => x.Groups).SingleAsync(x => x.QuizID == quizId);
+        
+        quiz.Groups.Add(group);
+
+        await dbContext.SaveChangesAsync();
     }
 
-    public Task RemoveGroupToQuiz(int quizId, int groupId)
+    public async Task RemoveGroupFromQuiz(int quizId, int groupId)
     {
-        throw new NotImplementedException();
+        await using var dbContext = await factory.CreateDbContextAsync();
+
+        var group = await dbContext.Groups.SingleAsync(x => x.GroupID == groupId);
+
+        var quiz = await dbContext.Quizzes.Include(x => x.Groups).SingleAsync(x => x.QuizID == quizId);
+        
+        quiz.Groups.Remove(group);
+
+        await dbContext.SaveChangesAsync();
     }
 
     public async Task<List<QuizOverviewDto>> GetQuizzes(Guid studentId)

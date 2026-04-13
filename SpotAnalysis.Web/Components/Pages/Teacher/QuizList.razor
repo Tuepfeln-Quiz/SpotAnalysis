@@ -87,6 +87,9 @@
     private List<QuizOverviewDto>? _quizzes;
     private QuizOverviewDto? _quizToDelete;
 
+    // TODO: Replace with actual teacher ID from auth when login is implemented
+    private Guid _teacherId = Guid.Parse("00000000-0000-0000-0000-000000000001");
+
     protected override async Task OnInitializedAsync()
     {
         _quizzes = await QuizService.GetAllQuizzes();
@@ -101,7 +104,7 @@
     private async Task DeleteQuiz()
     {
         if (_quizToDelete is null) return;
-        await QuizService.DeleteQuiz(_quizToDelete.Id);
+        await QuizService.DeleteQuiz(_teacherId, _quizToDelete.Id);
         _quizToDelete = null;
         _quizzes = await QuizService.GetAllQuizzes();
     }

@@ -1,4 +1,4 @@
-namespace SpotAnalysis.Web.Models;
+namespace SpotAnalysis.Web.Helpers;
 
 public static class ColorHelper
 {

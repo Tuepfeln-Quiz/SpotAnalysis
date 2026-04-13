@@ -11,7 +11,10 @@ public class Question {
     public int QuestionID { get; set; }
     public QuestionType Type { get; set; }
 
-    public int? ReactionID { get; set; } // for STL questions
+    /// <summary>
+    /// only for SpotTestLight questions
+    /// </summary>
+    public int? ReactionID { get; set; }
 
     [Required]
     public string Description { get; set; } = null!;
@@ -22,9 +25,12 @@ public class Question {
     [DeleteBehavior(DeleteBehavior.Restrict)]
     public User Creator { get; set; } = null!;
 
+    /// <summary>
+    /// only for SpotTestLight questions
+    /// </summary>
     [ForeignKey(nameof(ReactionID))]
     [DeleteBehavior(DeleteBehavior.Restrict)]
-    public virtual Reaction? STLInput { get; set; } = null!; // for STL questions
+    public virtual Reaction? STLInput { get; set; } = null!;
     public virtual ICollection<STAvailableChemical> STAvailableChemicals { get; set; } = [];
     public virtual ICollection<STAvailableMethod> STAvailableMethods { get; set; } = [];
     public virtual ICollection<STLAvailableReaction> STLAvailableReactions { get; set; } = [];

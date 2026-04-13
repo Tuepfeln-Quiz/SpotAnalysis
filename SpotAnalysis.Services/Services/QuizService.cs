@@ -1,6 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Org.BouncyCastle.Asn1.Pkcs;
 using SpotAnalysis.Data;
 using SpotAnalysis.Data.Enums;
+using SpotAnalysis.Data.Models;
 using SpotAnalysis.Data.Models.Quizzes;
 using SpotAnalysis.Services.DTOs;
 
@@ -103,9 +105,81 @@ public class QuizService(IDbContextFactory<AnalysisContext> factory) : IQuizServ
             }).SingleAsync();
     }
 
-    public async Task ValidateAndSaveQuestion(ValAndSaveQuestionDto questionResult)
+    public async Task<STLResult> ValidateAndSaveStlQuestion(ValidateStlQuestionDto answer)
     {
-        throw new NotImplementedException();
+        await using var context = await factory.CreateDbContextAsync();
+        
+        var quiz = await context.Users.Where(u => u.UserID == answer.UserId).SelectMany(u => u.Quizzes)
+            .Where(q => q.QuizID == answer.QuizId)
+            .Select(x => new StlQuestionData
+            {
+                StlAvailableReactions = x.Questions.Single(qq => qq.QuestionID == answer.QuestionId).STLAvailableReactions.ToList(),
+                Question = x.Questions.Single(qq => qq.QuestionID == answer.QuestionId),
+                Attempt = x.Attempts.Single(a => a.UserID == answer.UserId),
+                StlInput = x.Questions.Single(qq => qq.QuestionID == answer.QuestionId).STLInput
+            })
+            .SingleAsync();
+
+        var reaction = await context.Reactions.Where(r => r.ReactionID == answer.ReactionId)
+            .Include(reaction => reaction.Observation)
+            .SingleAsync();
+                
+        var newResult = new STLResult
+        {
+            AttemptID = quiz.Attempt.AttemptID,
+            QuestionID = quiz.Question.QuestionID,
+            ChosenReactionID = reaction.ReactionID,
+            IsCorrect = quiz.StlInput!.Observation == reaction.Observation
+        };
+        
+        await context.STLResults.AddAsync(newResult);
+
+        return newResult;
+    }
+
+    public async Task<STResult> ValidateAndSaveStQuestion(ValidateStQuestionDto answer)
+    {
+        await using var context = await factory.CreateDbContextAsync();
+
+        await context.Database.BeginTransactionAsync();
+        
+        var quiz = await context.Users.Where(u => u.UserID == answer.UserId).SelectMany(u => u.Quizzes)
+            .Where(q => q.QuizID == answer.QuizId)
+            .Select(x => new StQuestionData
+            {
+                Attempt = x.Attempts.Single(a => a.UserID == answer.UserId),
+                Question = x.Questions.Single(qq => qq.QuestionID == answer.QuestionId),
+                StAvailableChemicals = x.Questions.Single(qq => qq.QuestionID == answer.QuestionId).STAvailableChemicals.ToList()
+            })
+            .SingleAsync();
+        
+        var result = new STResult
+        {
+            QuestionID = quiz.Question.QuestionID,
+            AttemptID = quiz.Attempt.AttemptID,
+        };
+
+        context.STResults.Add(result);
+
+        await context.SaveChangesAsync();
+
+        var orderedAvailableChemicals = quiz.Question.STAvailableChemicals.OrderBy(sta => sta.Order).ToList();
+
+        var chemicalResults = answer.ChemicalFormulas
+            .Select((t, i) => new STChemicalResult
+            {
+                ResultID = result.ResultID, 
+                ChosenFormula = answer.ChemicalFormulas.ElementAt(i), 
+                IsCorrect = orderedAvailableChemicals.ElementAt(i).Chemical.Formula == answer.ChemicalFormulas.ElementAt(i),
+            }).ToList();
+
+        await context.STChemicalResults.AddRangeAsync(chemicalResults);
+
+        await context.SaveChangesAsync();
+
+        await context.Database.CommitTransactionAsync();
+
+        return result;
     }
 
     public async Task<List<QuestionOverviewDto>> GetQuestions()
@@ -141,5 +215,21 @@ public class QuizService(IDbContextFactory<AnalysisContext> factory) : IQuizServ
     public Task DeleteQuestion(int questionId)
     {
         throw new NotImplementedException();
+    }
+
+    private class StlQuestionData
+    {
+        public List<STLAvailableReaction> StlAvailableReactions { get; set; } = [];
+        public required Question Question { get; set; }
+        public required QuizAttempt Attempt  { get; set; }
+        public Reaction? StlInput { get; set; }
+    }
+
+    private class StQuestionData
+    {
+        public required QuizAttempt Attempt  { get; set; }
+        public required Question Question { get; set; }
+        public List<STAvailableChemical> StAvailableChemicals { get; set; } = [];
+        public List<STAvailableMethod> StAvailableMethods { get; set; } = [];
     }
 }

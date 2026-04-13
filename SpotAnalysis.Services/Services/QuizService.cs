@@ -350,19 +350,98 @@ public class QuizService(ILogger<QuizService> logger, IDbContextFactory<Analysis
         await transaction.CommitAsync();
     }
 
-    public Task UpdateSTQuestion(ConfigSTQuestionDto question)
+    public async Task UpdateSTQuestion(Guid updatedBy, ConfigSTQuestionDto question)
     {
-        throw new NotImplementedException();
+        if (question.Id is null)
+            throw new ArgumentException("Question Id is required for update.");
+
+        await using var dbContext = await factory.CreateDbContextAsync();
+        await using var transaction = await dbContext.Database.BeginTransactionAsync();
+
+        var existing = await dbContext.Questions.SingleOrDefaultAsync(q => q.QuestionID == question.Id);
+        if (existing is null)
+            throw new KeyNotFoundException($"Question with id {question.Id} not found.");
+
+        existing.Description = question.Description;
+
+        await dbContext.STAvailableChemicals
+            .Where(c => c.QuestionID == question.Id)
+            .ExecuteDeleteAsync();
+
+        var chemicals = question.AvailableChemicals.Select((chemId, index) => new STAvailableChemical
+        {
+            QuestionID = question.Id.Value,
+            ChemicalID = chemId,
+            Order = index
+        });
+        await dbContext.STAvailableChemicals.AddRangeAsync(chemicals);
+
+        await dbContext.STAvailableMethods
+            .Where(m => m.QuestionID == question.Id)
+            .ExecuteDeleteAsync();
+
+        var methods = question.AvailableMethods.Select(methodId => new STAvailableMethod
+        {
+            QuestionID = question.Id.Value,
+            MethodID = methodId
+        });
+        await dbContext.STAvailableMethods.AddRangeAsync(methods);
+
+        await dbContext.SaveChangesAsync();
+        await transaction.CommitAsync();
     }
 
-    public Task UpdateSTLQuestion(ConfigSTLQuestionDto question)
+    public async Task UpdateSTLQuestion(Guid updatedBy, ConfigSTLQuestionDto question)
     {
-        throw new NotImplementedException();
+        if (question.Id is null)
+            throw new ArgumentException("Question Id is required for update.");
+
+        await using var dbContext = await factory.CreateDbContextAsync();
+        await using var transaction = await dbContext.Database.BeginTransactionAsync();
+
+        var existing = await dbContext.Questions.SingleOrDefaultAsync(q => q.QuestionID == question.Id);
+        if (existing is null)
+            throw new KeyNotFoundException($"Question with id {question.Id} not found.");
+
+        existing.Description = question.Description;
+        existing.ReactionID = question.ReactionId;
+
+        await dbContext.STLAvailableReactions
+            .Where(r => r.QuestionID == question.Id)
+            .ExecuteDeleteAsync();
+
+        var reactions = question.AvailableReactions.Select(reactionId => new STLAvailableReaction
+        {
+            QuestionID = question.Id.Value,
+            ReactionID = reactionId
+        });
+        await dbContext.STLAvailableReactions.AddRangeAsync(reactions);
+
+        await dbContext.SaveChangesAsync();
+        await transaction.CommitAsync();
     }
 
-    public Task DeleteQuestion(int questionId)
+    public async Task DeleteQuestion(int questionId)
     {
-        throw new NotImplementedException();
+        await using var dbContext = await factory.CreateDbContextAsync();
+
+        var quizCount = await dbContext.QuizQuestions
+            .AsNoTracking()
+            .CountAsync(qq => qq.QuestionID == questionId);
+
+        if (quizCount > 0)
+            throw new InvalidOperationException(
+                $"Frage kann nicht gelöscht werden – sie wird in {quizCount} Quiz(zes) verwendet.");
+
+        await using var transaction = await dbContext.Database.BeginTransactionAsync();
+
+        await dbContext.STAvailableChemicals.Where(c => c.QuestionID == questionId).ExecuteDeleteAsync();
+        await dbContext.STAvailableMethods.Where(m => m.QuestionID == questionId).ExecuteDeleteAsync();
+        await dbContext.STLAvailableReactions.Where(r => r.QuestionID == questionId).ExecuteDeleteAsync();
+
+        await dbContext.Questions.Where(q => q.QuestionID == questionId).ExecuteDeleteAsync();
+
+        await transaction.CommitAsync();
     }
 
     private class StlQuestionData

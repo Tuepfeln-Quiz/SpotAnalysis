@@ -107,4 +107,52 @@ public class QuizServiceQuestionTests : BaseDatabaseTest
         Assert.That(created!.Type, Is.EqualTo(Data.Enums.QuestionType.SpotTestLight));
         Assert.That(created.ReactionCount, Is.EqualTo(3));
     }
+
+    [Test]
+    public async Task DeleteQuestion_WhenUsedInQuiz_ThrowsInvalidOperationException()
+    {
+        // Create a question
+        await _quizService.CreateSTQuestion(SeededTeacherId, new DTOs.ConfigSTQuestionDto
+        {
+            Description = "Question to protect",
+            AvailableChemicals = new List<int> { _chemical1Id },
+            AvailableMethods = new List<int> { _methodId }
+        });
+
+        var questions = await _quizService.GetQuestions();
+        var question = questions.First(q => q.Description == "Question to protect");
+
+        // Create a quiz that uses this question
+        await _quizService.CreateQuiz(SeededTeacherId, new DTOs.CreateQuizDto
+        {
+            Name = "Quiz with protected question",
+            Questions = new List<DTOs.QuestionDto>
+            {
+                new() { Id = question.Id, Order = 0 }
+            },
+            AssignedGroupsIds = new List<int>()
+        });
+
+        Assert.ThrowsAsync<InvalidOperationException>(
+            async () => await _quizService.DeleteQuestion(question.Id));
+    }
+
+    [Test]
+    public async Task DeleteQuestion_WhenNotUsed_DeletesSuccessfully()
+    {
+        await _quizService.CreateSTQuestion(SeededTeacherId, new DTOs.ConfigSTQuestionDto
+        {
+            Description = "Question to delete",
+            AvailableChemicals = new List<int> { _chemical1Id },
+            AvailableMethods = new List<int> { _methodId }
+        });
+
+        var questions = await _quizService.GetQuestions();
+        var question = questions.First(q => q.Description == "Question to delete");
+
+        await _quizService.DeleteQuestion(question.Id);
+
+        var afterDelete = await _quizService.GetQuestions();
+        Assert.That(afterDelete.Any(q => q.Id == question.Id), Is.False);
+    }
 }

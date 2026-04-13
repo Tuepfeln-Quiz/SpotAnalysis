@@ -21,7 +21,7 @@ public interface IQuizService
     public Task<List<QuestionOverviewDto>> GetQuestionsOfQuiz(int quizId);
     public Task CreateSTQuestion(Guid createdBy, ConfigSTQuestionDto question);
     public Task CreateSTLQuestion(Guid createdBy, ConfigSTLQuestionDto question);
-    public Task UpdateSTQuestion(ConfigSTQuestionDto question);
-    public Task UpdateSTLQuestion(ConfigSTLQuestionDto question);
+    public Task UpdateSTQuestion(Guid updatedBy, ConfigSTQuestionDto question);
+    public Task UpdateSTLQuestion(Guid updatedBy, ConfigSTLQuestionDto question);
     public Task DeleteQuestion(int questionId);
 }

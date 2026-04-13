@@ -18,20 +18,17 @@ public class AdminService(IDbContextFactory<AnalysisContext> contextFactory, ILo
         Role? adminRole;
         try
         {
-            adminRole = await dbContext.Roles.FirstOrDefaultAsync(r => r.Title == "xxx");
+            adminRole = await dbContext.Roles.FirstAsync(r => r.Title.ToLower() == "admmin");
+
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "An error occurred while retrieving the admin role from the database.");
+            logger.LogError(ex, "An error occurred while creating admin.");
             throw;
         }
-        
-        //dbContext.Users.Add(new User
-        //{
-        //    Roles = ,
-        //});
 
-        throw new NotImplementedException();
+        
+
     }
 
     public void CreateTeacher(ConfigUserDto user)

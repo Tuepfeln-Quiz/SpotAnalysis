@@ -9,6 +9,5 @@ public class Observation {
 
 
     public virtual ICollection<Reaction> Reactions { get; set; } = [];
-    public virtual ICollection<STLInput> STLInputs { get; set; } = [];
 
 }

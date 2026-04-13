@@ -28,8 +28,6 @@ public class Chemical {
     public virtual ICollection<Reaction> Chemical2Reactions { get; set; } = [];
 
     public virtual ICollection<STAvailableChemical> STAvailableChemicals { get; set; } = [];
-    public virtual ICollection<STLInput> STLInputs { get; set; } = [];
-
 
     public virtual ICollection<STResult> STResults { get; set; } = [];
     public virtual ICollection<STLResult> STLResults { get; set; } = [];

@@ -1,4 +1,5 @@
-﻿using SpotAnalysis.Services.DTOs;
+﻿using SpotAnalysis.Data.Models.Quizzes;
+using SpotAnalysis.Services.DTOs;
 
 namespace SpotAnalysis.Services.Services;
 
@@ -11,8 +12,8 @@ public interface IQuizService
     
     public Task<List<QuizOverviewDto>> GetQuizzes(Guid studentId);
     public Task<QuizDto> OpenQuiz(Guid studentId, int quizId);
-    public Task ValidateAndSaveQuestion(ValAndSaveQuestionDto questionResult);
-    
+    public Task<STLResult> ValidateAndSaveStlQuestion(ValidateStlQuestionDto answer);
+    public Task<STResult> ValidateAndSaveStQuestion(ValidateStQuestionDto answer);
     public Task<List<QuestionOverviewDto>> GetQuestions();
     public Task<List<QuestionOverviewDto>> GetQuestionsOfQuiz(int quizId);
     public Task CreateSTQuestion(ConfigSTQuestionDto question);

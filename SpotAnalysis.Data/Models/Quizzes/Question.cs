@@ -6,7 +6,7 @@ public class Question {
     public int QuestionID { get; set; }
     public QuestionType Type { get; set; }
 
-    public int ReactionID { get; set; }
+    public int? ReactionID { get; set; }
 
     [Required]
     public string Description { get; set; } = null!;

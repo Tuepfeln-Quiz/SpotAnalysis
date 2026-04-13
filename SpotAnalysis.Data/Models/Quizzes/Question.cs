@@ -9,6 +9,12 @@
 public class Question {
     [Key]
     public int QuestionID { get; set; }
+
+    /// <summary>
+    /// not visible to users
+    /// </summary>
+    public string Title { get; set; } = null!;
+
     public QuestionType Type { get; set; }
 
     /// <summary>

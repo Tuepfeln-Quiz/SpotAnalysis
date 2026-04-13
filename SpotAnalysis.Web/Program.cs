@@ -1,8 +1,6 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.EntityFrameworkCore;
 using Serilog;
-using SpotAnalysis.Data;
-using SpotAnalysis.Services.Services;
+using SpotAnalysis.Services;
 using SpotAnalysis.Web.Components;
 
 namespace SpotAnalysis.Web;
@@ -13,7 +11,7 @@ public class Program
     {
         var builder = WebApplication.CreateBuilder(args);
 
-            builder.Services.AddSpotAnalysis(builder.Configuration);
+        builder.Services.AddSpotAnalysis(builder.Configuration);
 
         // Add services to the container.
         builder.Services.AddRazorComponents()
@@ -34,10 +32,7 @@ public class Program
         builder.Services.AddHttpContextAccessor();
         builder.Services.AddCascadingAuthenticationState();
 
-            var app = builder.Build();
-        builder.Services.AddScoped<IUserService, UserService>();
-        builder.Services.AddScoped<IXlsImportExportService, XlsImportExportService>();
-        builder.Services.AddScoped<IAdminService, AdminService>();
+        var app = builder.Build();
 
         builder.Host.UseSerilog((context, services, loggerConfig) =>
         {
@@ -45,8 +40,6 @@ public class Program
                 .ReadFrom.Configuration(context.Configuration)
                 .ReadFrom.Services(services);
         });
-
-        var app = builder.Build();
 
         app.UseSerilogRequestLogging();
 

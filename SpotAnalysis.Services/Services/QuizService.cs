@@ -1,29 +1,126 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using SpotAnalysis.Data;
 using SpotAnalysis.Data.Enums;
+using SpotAnalysis.Data.Models;
 using SpotAnalysis.Data.Models.Quizzes;
 using SpotAnalysis.Services.DTOs;
 
 namespace SpotAnalysis.Services.Services;
 
-public class QuizService(IDbContextFactory<AnalysisContext> factory) : IQuizService
+public class QuizService(ILogger<QuizService> logger, IDbContextFactory<AnalysisContext> factory) : IQuizService
 {
-    public List<QuizDto> GetAllQuizzes()
+    public async Task<List<QuizOverviewDto>> GetAllQuizzes()
     {
+        await using var dbContext = await factory.CreateDbContextAsync();
+
+        return await dbContext.Quizzes
+            .AsNoTracking()
+            .Select(qu => new QuizOverviewDto
+        {
+            Id = qu.QuizID,
+            Name = qu.Name,
+            STCount = qu.Questions.Count(x => x.Type == QuestionType.SpotTest),
+            STLCount = qu.Questions.Count(x => x.Type == QuestionType.SpotTestLight)
+        }).ToListAsync();
+    }
+
+    public async Task CreateQuiz(Guid createdBy, CreateQuizDto quiz)
+    {
+        await using var dbContext = await factory.CreateDbContextAsync();
+        await using var transaction = await dbContext.Database.BeginTransactionAsync();
+        
+        var newQuiz = new Quiz
+        {
+            Name = quiz.Name,
+            CreatedBy = createdBy
+        };
+
+        await dbContext.Quizzes.AddAsync(newQuiz);
+        await dbContext.SaveChangesAsync();
+
+        var quizQuestions = quiz.Questions.Select(x => new QuizQuestion
+        {
+            QuizID = newQuiz.QuizID,
+            QuestionID = x.Id,
+            Order = x.Order
+        });
+
+        await dbContext.QuizQuestions.AddRangeAsync(quizQuestions);
+        await dbContext.SaveChangesAsync();
+
+        await transaction.CommitAsync();
+    }
+
+    public async Task UpdateQuiz(Guid updatedBy, UpdateQuizDto quiz)
+    {
+        await using var dbContext = await factory.CreateDbContextAsync();
+        await using var transaction = await dbContext.Database.BeginTransactionAsync();
+
+        var existingQuiz = await dbContext.Quizzes.SingleOrDefaultAsync(x => x.QuizID == quiz.Id);
+
+        if (existingQuiz is null)
+        {
+            logger.LogError("Quiz with quiz id {quizId} does not exist.", quiz.Id);
+            throw new KeyNotFoundException("The quiz requested quiz does not exist");
+        }
+        
+        if (existingQuiz.CreatedBy != updatedBy)
+        {
+            logger.LogError("A quiz can only be updated by its creator! Creator id: {creatorId}, Updator id: {updatedBy}", 
+                existingQuiz.CreatedBy, updatedBy);
+            throw new UnauthorizedAccessException("A quiz can only be updated by its creator");
+        }
+
+        existingQuiz.Name = quiz.Name;
+
+        var questionIds = quiz.Questions.Select(x => x.Id).ToArray();
+
+        var existingQuestionIds = await dbContext.QuizQuestions
+            .AsNoTracking()
+            .Where(x => x.QuizID == quiz.Id)
+            .Select(x => x.QuestionID)
+            .ToListAsync();
+
+        var newQuestions = quiz.Questions.ExceptBy(existingQuestionIds, question => question.Id).ToArray();
+        await dbContext.QuizQuestions.AddRangeAsync(newQuestions.Select(x => new QuizQuestion
+        {
+            QuizID = quiz.Id,
+            QuestionID = x.Id,
+            Order = x.Order
+        }));
+        
+        var questionsToDelete = existingQuestionIds.Except(questionIds).ToList();
+        await dbContext.QuizQuestions.Where(x => questionsToDelete.Contains(x.QuestionID)).ExecuteDeleteAsync();
+        
+        await dbContext.SaveChangesAsync();
+        
+        await transaction.CommitAsync();
+    }
+
+    public async Task DeleteQuiz(Guid teacherId, int quizId)
+    {
+        await using var dbContext = await factory.CreateDbContextAsync();
+        await using var transaction = await dbContext.Database.BeginTransactionAsync();
+
+        await dbContext.QuizQuestions
+            .Where(x => x.QuizID == quizId && x.Quiz.CreatedBy == teacherId)
+            .ExecuteDeleteAsync();
+
+        await dbContext.Quizzes
+            .Where(x => x.QuizID == quizId && x.CreatedBy == teacherId)
+            .ExecuteDeleteAsync();
+
+        await transaction.CommitAsync();
+    }
+
+    public Task AssignGroupToQuiz(int quizId, int groupId)
+    {
+        // var group = 
         throw new NotImplementedException();
     }
 
-    public void CreateQuiz(ConfigQuizDto quiz)
-    {
-        throw new NotImplementedException();
-    }
-
-    public void UpdateQuiz(ConfigQuizDto quiz)
-    {
-        throw new NotImplementedException();
-    }
-
-    public void DeleteQuiz(int quizId)
+    public Task RemoveGroupToQuiz(int quizId, int groupId)
     {
         throw new NotImplementedException();
     }
@@ -60,53 +157,143 @@ public class QuizService(IDbContextFactory<AnalysisContext> factory) : IQuizServ
                 Started = DateTime.Now
             });
         }
-        
+
         return await context.Quizzes.Where(q => q.QuizID == quizId)
             .Select(q => new QuizDto
             {
                 Name = q.Name,
-                STLQuestions = q.QuizQuestions.Where(qq => qq.Question.Type == QuestionType.SpotTestLight).Select(STLQuestionDto.FromQuestion).ToList(),
-                STQuestions = q.QuizQuestions.Where(qq => qq.Question.Type == QuestionType.SpotTest).Select(STQuestionDto.FromQuestion).ToList(),
+                STLQuestions = q.QuizQuestions.Where(qq => qq.Question.Type == QuestionType.SpotTestLight)
+                    .Select(STLQuestionDto.FromQuestion).ToList(),
+                STQuestions = q.QuizQuestions.Where(qq => qq.Question.Type == QuestionType.SpotTest)
+                    .Select(STQuestionDto.FromQuestion).ToList(),
             }).SingleAsync();
     }
 
-    public async Task ValidateAndSaveQuestion(ValAndSaveQuestionDto questionResult)
+    public async Task<STLResult> ValidateAndSaveStlQuestion(ValidateStlQuestionDto answer)
+    {
+        await using var context = await factory.CreateDbContextAsync();
+        
+        var quiz = await context.Users.Where(u => u.UserID == answer.UserId).SelectMany(u => u.Quizzes)
+            .Where(q => q.QuizID == answer.QuizId)
+            .Select(x => new StlQuestionData
+            {
+                StlAvailableReactions = x.Questions.Single(qq => qq.QuestionID == answer.QuestionId).STLAvailableReactions.ToList(),
+                Question = x.Questions.Single(qq => qq.QuestionID == answer.QuestionId),
+                Attempt = x.Attempts.Single(a => a.UserID == answer.UserId),
+                StlInput = x.Questions.Single(qq => qq.QuestionID == answer.QuestionId).STLInput
+            })
+            .SingleAsync();
+
+        var reaction = await context.Reactions.Where(r => r.ReactionID == answer.ReactionId)
+            .Include(reaction => reaction.Observation)
+            .SingleAsync();
+                
+        var newResult = new STLResult
+        {
+            AttemptID = quiz.Attempt.AttemptID,
+            QuestionID = quiz.Question.QuestionID,
+            ChosenReactionID = reaction.ReactionID,
+            IsCorrect = quiz.StlInput!.Observation == reaction.Observation
+        };
+        
+        await context.STLResults.AddAsync(newResult);
+
+        return newResult;
+    }
+
+    public async Task<STResult> ValidateAndSaveStQuestion(ValidateStQuestionDto answer)
+    {
+        await using var context = await factory.CreateDbContextAsync();
+
+        await context.Database.BeginTransactionAsync();
+        
+        var quiz = await context.Users.Where(u => u.UserID == answer.UserId).SelectMany(u => u.Quizzes)
+            .Where(q => q.QuizID == answer.QuizId)
+            .Select(x => new StQuestionData
+            {
+                Attempt = x.Attempts.Single(a => a.UserID == answer.UserId),
+                Question = x.Questions.Single(qq => qq.QuestionID == answer.QuestionId),
+                StAvailableChemicals = x.Questions.Single(qq => qq.QuestionID == answer.QuestionId).STAvailableChemicals.ToList()
+            })
+            .SingleAsync();
+        
+        var result = new STResult
+        {
+            QuestionID = quiz.Question.QuestionID,
+            AttemptID = quiz.Attempt.AttemptID,
+        };
+
+        context.STResults.Add(result);
+
+        await context.SaveChangesAsync();
+
+        var orderedAvailableChemicals = quiz.Question.STAvailableChemicals.OrderBy(sta => sta.Order).ToList();
+
+        var chemicalResults = answer.ChemicalFormulas
+            .Select((t, i) => new STChemicalResult
+            {
+                ResultID = result.ResultID, 
+                ChosenFormula = answer.ChemicalFormulas.ElementAt(i), 
+                IsCorrect = orderedAvailableChemicals.ElementAt(i).Chemical.Formula == answer.ChemicalFormulas.ElementAt(i),
+            }).ToList();
+
+        await context.STChemicalResults.AddRangeAsync(chemicalResults);
+
+        await context.SaveChangesAsync();
+
+        await context.Database.CommitTransactionAsync();
+
+        return result;
+    }
+
+    public async Task<List<QuestionOverviewDto>> GetQuestions()
     {
         throw new NotImplementedException();
     }
 
-    public List<QuestionOverviewDto> GetQuestions()
+    public async Task<List<QuestionOverviewDto>> GetQuestionsOfQuiz(int quizId)
     {
         throw new NotImplementedException();
     }
 
-    public List<QuestionOverviewDto> GetQuestionsOfQuiz(int quizId)
+    public Task CreateSTQuestion(ConfigSTQuestionDto question)
     {
         throw new NotImplementedException();
     }
 
-    public void CreateSTQuestion(ConfigSTQuestionDto question)
+    public Task CreateSTLQuestion(ConfigSTLQuestionDto question)
     {
         throw new NotImplementedException();
     }
 
-    public void CreateSTLQuestion(ConfigSTLQuestionDto question)
+    public Task UpdateSTQuestion(ConfigSTQuestionDto question)
     {
         throw new NotImplementedException();
     }
 
-    public void UpdateSTQuestion(ConfigSTQuestionDto question)
+    public Task UpdateSTLQuestion(ConfigSTLQuestionDto question)
     {
         throw new NotImplementedException();
     }
 
-    public void UpdateSTLQuestion(ConfigSTLQuestionDto question)
+    public Task DeleteQuestion(int questionId)
     {
         throw new NotImplementedException();
     }
 
-    public void DeleteQuestion(int questionId)
+    private class StlQuestionData
     {
-        throw new NotImplementedException();
+        public List<STLAvailableReaction> StlAvailableReactions { get; set; } = [];
+        public required Question Question { get; set; }
+        public required QuizAttempt Attempt  { get; set; }
+        public Reaction? StlInput { get; set; }
+    }
+
+    private class StQuestionData
+    {
+        public required QuizAttempt Attempt  { get; set; }
+        public required Question Question { get; set; }
+        public List<STAvailableChemical> StAvailableChemicals { get; set; } = [];
+        public List<STAvailableMethod> StAvailableMethods { get; set; } = [];
     }
 }

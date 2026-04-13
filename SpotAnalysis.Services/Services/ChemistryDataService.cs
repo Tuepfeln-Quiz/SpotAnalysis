@@ -121,7 +121,7 @@ public class ChemistryDataService(IDbContextFactory<AnalysisContext> factory) : 
         await using var context = await factory.CreateDbContextAsync();
 
         var quizzes = await context.Quizzes
-            .Where(q => q.QuizQuestions.Any(qq => qq.Question.Type == QuestionType.Tuepfeln))
+            .Where(q => q.QuizQuestions.Any(qq => qq.Question.Type == QuestionType.SpotTest))
             .Include(q => q.QuizQuestions)
                 .ThenInclude(qq => qq.Question)
                     .ThenInclude(question => question.STAvailableChemicals)
@@ -144,7 +144,7 @@ public class ChemistryDataService(IDbContextFactory<AnalysisContext> factory) : 
 
         var quiz = await context.Quizzes
             .Where(q => q.QuizID == quizId &&
-                        q.QuizQuestions.Any(qq => qq.Question.Type == QuestionType.Tuepfeln))
+                        q.QuizQuestions.Any(qq => qq.Question.Type == QuestionType.SpotTest))
             .Include(q => q.QuizQuestions)
                 .ThenInclude(qq => qq.Question)
                     .ThenInclude(question => question.STAvailableChemicals)
@@ -166,7 +166,7 @@ public class ChemistryDataService(IDbContextFactory<AnalysisContext> factory) : 
         QuizID = quiz.QuizID,
         Name = quiz.Name,
         Questions = quiz.QuizQuestions
-            .Where(qq => qq.Question.Type == QuestionType.Tuepfeln)
+            .Where(qq => qq.Question.Type == QuestionType.SpotTest)
             .OrderBy(qq => qq.Order)
             .Select(qq =>
             {

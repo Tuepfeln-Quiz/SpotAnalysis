@@ -32,14 +32,14 @@ public class Program
         builder.Services.AddHttpContextAccessor();
         builder.Services.AddCascadingAuthenticationState();
 
-        var app = builder.Build();
-
         builder.Host.UseSerilog((context, services, loggerConfig) =>
         {
             loggerConfig
                 .ReadFrom.Configuration(context.Configuration)
                 .ReadFrom.Services(services);
         });
+
+        var app = builder.Build();
 
         app.UseSerilogRequestLogging();
 

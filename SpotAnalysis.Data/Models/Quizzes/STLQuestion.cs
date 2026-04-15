@@ -22,5 +22,4 @@ public class STLQuestion {
     public virtual Chemical ShownEduct { get; set; } = null!;
 
     public virtual ICollection<STLAvailableReaction> AvailableReactions { get; set; } = [];
-    public virtual ICollection<STAvailableChemical> AvailableChemicals { get; set; } = [];
 }

@@ -53,7 +53,7 @@ public class UserService(IDbContextFactory<AnalysisContext> factory) : IUserServ
         return null;
     }
     
-    public async Task Register(string userName, string password, Guid? userId)
+    public async Task Register(string userName, string password, string? email = null, Guid? userId = null)
     {
         var newGuid = userId ?? Guid.NewGuid();
 

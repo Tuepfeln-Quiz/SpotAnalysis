@@ -20,4 +20,6 @@ public class STLQuestion {
 
     [DeleteBehavior(DeleteBehavior.Restrict)]
     public virtual Chemical ShownEduct { get; set; } = null!;
+
+    public virtual ICollection<STLAvailableReaction> AvailableReactions { get; set; } = [];
 }

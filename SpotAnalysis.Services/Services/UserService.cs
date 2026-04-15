@@ -1,22 +1,20 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using SpotAnalysis.Data;
 using SpotAnalysis.Data.Enums;
 using SpotAnalysis.Data.Models.Identity;
 
 namespace SpotAnalysis.Services.Services;
 
-public class UserService(IDbContextFactory<AnalysisContext> factory) : IUserService
+public class UserService(ILogger<UserService> logger, IDbContextFactory<AnalysisContext> factory) : IUserService
 {
     public async Task<User?> ChangePassword(string userName, string oldPassword, string newPassword)
     {
-        Console.WriteLine("ChangePassword method called with username: " + userName);
         return null;
     }
 
     public async Task<User?> Login(string userName, string password)
     {
-        Console.WriteLine("Login method called with username: " + userName);
-
         if (string.IsNullOrEmpty(userName) || string.IsNullOrEmpty(password))
         {
             return null;

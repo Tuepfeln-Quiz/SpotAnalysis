@@ -192,6 +192,45 @@ public class TestQuizService : BaseDatabaseTest
             Assert.That(group.Quizzes, Has.Count.EqualTo(0));
         }
     }
+    
+    [Test]
+    public async Task GetQuestionsFromQuiz_GetQuestions()
+    {
+        await CleanUpDb();
+        
+        await CreateMultipleQuizzes();
+
+        Group createdQuiz; 
+
+        await using (var dbContext = await ContextFactory.CreateDbContextAsync())
+        {
+            var quiz = await dbContext.Quizzes.FirstAsync();
+        
+            var result = await dbContext.Groups.AddAsync(new Group
+            {
+                Name = "Fetzige Group",
+                Quizzes = [quiz]
+            });
+
+            createdQuiz = result.Entity;
+            
+            await dbContext.SaveChangesAsync();
+            
+            Assert.DoesNotThrowAsync(async () =>
+            {
+                await _quizService.RemoveGroupFromQuiz(quiz.QuizID, createdQuiz.GroupID);
+            });
+        }
+        
+        await using (var dbContext = await ContextFactory.CreateDbContextAsync())
+        {
+            var group = await dbContext.Groups
+                .Include(x => x.Quizzes)
+                .SingleAsync(x => x.GroupID == createdQuiz.GroupID);
+            
+            Assert.That(group.Quizzes, Has.Count.EqualTo(0));
+        }
+    }
 
     private async Task<int> CreateMultipleQuizzes()
     {

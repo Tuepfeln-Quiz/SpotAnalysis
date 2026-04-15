@@ -1,0 +1,104 @@
+﻿@page "/"
+@using Microsoft.AspNetCore.Components.Routing
+
+<div class="size-full flex flex-col bg-gradient-to-br from-gray-50 to-gray-100">
+    <!-- Header -->
+    <header class="bg-white shadow-sm px-6 py-4 flex items-center justify-center relative">
+        <!-- Center - Title -->
+        <h1 class="text-2xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-teal-600 bg-clip-text text-transparent">
+            SpotAnalysis
+        </h1>
+
+        <!-- Right - Profile Icon -->
+        <div class="w-10 h-10 rounded-full bg-gray-100 border border-gray-200 flex items-center justify-center absolute right-6" aria-label="Profile">
+            <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.121 17.804A9 9 0 1118.88 17.804M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-1 flex items-center justify-center p-8">
+        <div class="max-w-4xl w-full">
+            <!-- Welcome Section -->
+            <div class="text-center mb-12">
+                <h2 class="text-4xl font-bold text-gray-800 mb-4">Willkommen bei SpotAnalysis</h2>
+                <p class="text-lg text-gray-600 max-w-2xl mx-auto">
+                    Ihre umfassende Chemie-Lernplattform. Wählen Sie unten ein Modul aus, um mit chemischen Reaktionen zu experimentieren.
+                </p>
+            </div>
+
+            <!-- Main Buttons Grid -->
+            <div class="grid grid-cols-2 gap-6">
+                <!-- Sandbox Button -->
+                <NavLink href="/sandbox" class="group bg-white hover:bg-blue-50 shadow-lg rounded-2xl p-8 transition-all hover:shadow-xl hover:scale-105 border-2 border-transparent hover:border-blue-500" style="text-decoration: none;">
+                    <div class="flex items-start gap-4">
+                        <div class="p-3 bg-blue-100 rounded-xl group-hover:bg-blue-500 transition-colors">
+                            <!-- beaker icon -->
+                            <svg class="w-8 h-8 text-blue-600 group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 2v8l3 6v6h2v-6l3-6V2H8z" />
+                            </svg>
+                        </div>
+                        <div class="text-left flex-1">
+                            <h3 class="text-2xl font-bold text-gray-800 mb-2">Sandbox</h3>
+                            <p class="text-gray-600 text-sm">Experimentieren Sie frei mit chemischen Elementen. Mischen Sie beliebige Kombinationen und beobachten Sie die Ergebnisse.</p>
+                        </div>
+                    </div>
+                </NavLink>
+
+                <!-- Reverse Button -->
+                <NavLink href="/reverse" class="group bg-white hover:bg-purple-50 shadow-lg rounded-2xl p-8 transition-all hover:shadow-xl hover:scale-105 border-2 border-transparent hover:border-purple-500" style="text-decoration: none;">
+                    <div class="flex items-start gap-4">
+                        <div class="p-3 bg-purple-100 rounded-xl group-hover:bg-purple-500 transition-colors">
+                            <!-- rotate icon -->
+                            <svg class="w-8 h-8 text-purple-600 group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12a9 9 0 1118 0M3 12h4" />
+                            </svg>
+                        </div>
+                        <div class="text-left flex-1">
+                            <h3 class="text-2xl font-bold text-gray-800 mb-2">Reverse</h3>
+                            <p class="text-gray-600 text-sm">Elemente sind vorausgewählt. Raten Sie, was das Ergebnis sein wird, bevor Sie mischen.</p>
+                        </div>
+                    </div>
+                </NavLink>
+
+                <!-- Light Button -->
+                <NavLink href="/light" class="group bg-white hover:bg-yellow-50 shadow-lg rounded-2xl p-8 transition-all hover:shadow-xl hover:scale-105 border-2 border-transparent hover:border-yellow-500" style="text-decoration: none;">
+                    <div class="flex items-start gap-4">
+                        <div class="p-3 bg-yellow-100 rounded-xl group-hover:bg-yellow-500 transition-colors">
+                            <!-- lightbulb icon -->
+                            <svg class="w-8 h-8 text-yellow-600 group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 18h6M12 2a7 7 0 00-4 12v2h8v-2a7 7 0 00-4-12z" />
+                            </svg>
+                        </div>
+                        <div class="text-left flex-1">
+                            <h3 class="text-2xl font-bold text-gray-800 mb-2">Light</h3>
+                            <p class="text-gray-600 text-sm">Erstes Element und Ergebnis werden angezeigt. Finden Sie das fehlende zweite Element, um die Reaktion zu vervollständigen.</p>
+                        </div>
+                    </div>
+                </NavLink>
+
+                <!-- Tüpfeln Button -->
+                <NavLink href="/tupfeln" class="group bg-white hover:bg-teal-50 shadow-lg rounded-2xl p-8 transition-all hover:shadow-xl hover:scale-105 border-2 border-transparent hover:border-teal-500" style="text-decoration: none;">
+                    <div class="flex items-start gap-4">
+                        <div class="p-3 bg-teal-100 rounded-xl group-hover:bg-teal-500 transition-colors">
+                            <!-- flask icon -->
+                            <svg class="w-8 h-8 text-teal-600 group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 2h12l-4 8v6l-4 4v-10L6 2z" />
+                            </svg>
+                        </div>
+                        <div class="text-left flex-1">
+                            <h3 class="text-2xl font-bold text-gray-800 mb-2">Tüpfeln</h3>
+                            <p class="text-gray-600 text-sm">Nehmen Sie an Chemie-Quiz teil. Finden Sie die richtigen Elementkombinationen, um Zielergebnisse zu erreichen.</p>
+                        </div>
+                    </div>
+                </NavLink>
+            </div>
+
+            <!-- Footer Info -->
+            <div class="mt-12 text-center">
+                <p class="text-sm text-gray-500">Jedes Modul bietet einzigartige Herausforderungen, um chemische Reaktionen zu meistern</p>
+            </div>
+        </div>
+    </main>
+</div>

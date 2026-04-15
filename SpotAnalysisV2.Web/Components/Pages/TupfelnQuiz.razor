@@ -1,0 +1,486 @@
+@page "/tupfeln/quiz/{QuizId:int}"
+@rendermode InteractiveServer
+@inject NavigationManager Navigation
+
+<div class="size-full flex flex-col bg-gray-50" @onpointermove="HandleGlobalPointerMove" @onpointerup="HandleGlobalPointerUp" @onpointercancel="HandleGlobalPointerUp">
+    <header class="bg-white shadow-sm px-6 py-4 flex items-center justify-between">
+        <NavLink href="/tupfeln" class="p-2 hover:bg-gray-100 rounded-lg transition-colors" style="display:flex;align-items:center;" aria-label="Zurück">
+            <svg class="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M15 19l-7-7 7-7" />
+            </svg>
+        </NavLink>
+
+        <div class="absolute left-1/2 -translate-x-1/2 flex gap-3 z-10">
+            <NavLink href="/sandbox" class="bg-gray-100 text-gray-700 px-6 py-2 rounded-lg font-medium hover:bg-gray-200 transition-colors" style="text-decoration:none;">Sandbox</NavLink>
+            <NavLink href="/reverse" class="bg-gray-100 text-gray-700 px-6 py-2 rounded-lg font-medium hover:bg-gray-200 transition-colors" style="text-decoration:none;">Reverse</NavLink>
+            <NavLink href="/light" class="bg-gray-100 text-gray-700 px-6 py-2 rounded-lg font-medium hover:bg-gray-200 transition-colors" style="text-decoration:none;">Light</NavLink>
+            <div class="bg-teal-500 text-white px-6 py-2 rounded-lg font-medium">Tüpfeln</div>
+        </div>
+
+        <img src="https://images.unsplash.com/photo-1655249493799-9cee4fe983bb?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxwcm9maWxlJTIwcG9ydHJhaXR8ZW58MXx8fHwxNzczNjY1OTA5fDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral"
+             alt="Profil" class="w-10 h-10 rounded-full object-cover ml-auto" />
+    </header>
+
+    @if (quiz != null)
+    {
+        <div class="flex-1 overflow-y-auto p-6">
+            <div class="bg-gradient-to-r from-teal-600 to-teal-700 rounded-xl p-5 mb-6 text-white">
+                <h1 class="text-xl mb-1">TÜPFELN — @quiz.Title</h1>
+                <p class="text-teal-100 text-sm">@quiz.Beschreibung</p>
+            </div>
+
+            <div class="flex gap-4 mb-6 items-start">
+                <div class="grid gap-4 flex-1" style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));">
+                    @for (var i = 0; i < quiz.Unbekannte.Count; i++)
+                    {
+                        var sub = quiz.Unbekannte[i];
+                        var idx = i;
+                        <div class="bg-white rounded-xl shadow-md border-2 @(isOverCard == idx ? "border-teal-500 ring-4 ring-teal-200" : "border-gray-200")">
+                            <div class="p-3" @ondrop="@(() => HandleToolDrop(idx))" @ondrop:preventDefault @ondragover="@(() => isOverCard = idx)" @ondragover:preventDefault @ondragleave="@(() => isOverCard = null)" @onclick="@(() => HandleCardClick(idx))">
+                                <div class="flex items-center justify-between mb-2">
+                                    <span class="text-sm font-medium text-gray-700">Unbekannt @(idx + 1)</span>
+                                    @if (mixA == idx || mixB == idx)
+                                    {
+                                        <span class="text-[10px] px-2 py-0.5 rounded-full bg-teal-100 text-teal-700">Misch.</span>
+                                    }
+                                </div>
+
+                                <div class="w-full h-12 rounded-lg border-2 flex items-center justify-center mb-2" style="background-color:@sub.FarbeBg; border-color:@sub.FarbeBorder;">
+                                    <span class="text-[11px] text-gray-600">@sub.Farbe</span>
+                                </div>
+
+                                <div class="space-y-1.5 mb-3">
+                                    @foreach (var tool in toolDefs)
+                                    {
+                                        if (IsToolRevealed(idx, tool.Id))
+                                        {
+                                            <div class="flex items-center gap-2 px-2.5 py-1.5 rounded-lg border border-gray-200 bg-white shadow-sm">
+                                                <span class="text-sm">@tool.Icon</span>
+                                                @if (tool.Id == ToolType.Ph)
+                                                {
+                                                    <div class="w-5 h-5 rounded-full border" style="background-color:@sub.PhFarbe"></div>
+                                                    <span class="text-xs">pH</span>
+                                                }
+                                                else if (tool.Id == ToolType.Flamme)
+                                                {
+                                                    <div class="w-5 h-5 rounded-full border" style="background-color:@sub.FlammenHex"></div>
+                                                    <span class="text-xs">@sub.Flammenfarbe</span>
+                                                }
+                                                else if (tool.Id == ToolType.NaOH)
+                                                {
+                                                    <div class="w-5 h-5 rounded-full border" style="background-color:@sub.MitNaOHFarbe"></div>
+                                                    <span class="text-xs">@sub.MitNaOH</span>
+                                                }
+                                                else if (tool.Id == ToolType.HCl)
+                                                {
+                                                    <div class="w-5 h-5 rounded-full border" style="background-color:@sub.MitHClFarbe"></div>
+                                                    <span class="text-xs">@sub.MitHCl</span>
+                                                }
+                                            </div>
+                                        }
+                                    }
+                                    @if (!HasAnyToolRevealed(idx))
+                                    {
+                                        <div class="flex items-center justify-center gap-1.5 text-gray-300 py-3 border border-dashed border-gray-200 rounded-lg">
+                                            <span class="text-xs">Werkzeug wählen und Karte klicken</span>
+                                        </div>
+                                    }
+                                </div>
+
+                                <input type="text" value="@guesses[idx]" @oninput="@((ChangeEventArgs e) => guesses[idx] = e.Value?.ToString() ?? "")"
+                                       disabled="@submitted" placeholder="Vermutung..."
+                                       class="w-full px-2.5 py-1.5 border-2 rounded-lg text-sm focus:outline-none @(submitted ? (IsGuessCorrect(idx) ? "border-green-400 bg-green-50" : "border-red-400 bg-red-50") : "border-gray-200 focus:border-teal-400")" />
+
+                                @if (submitted)
+                                {
+                                    <div class="mt-1 text-xs @(IsGuessCorrect(idx) ? "text-green-600" : "text-red-600")">
+                                        @if (IsGuessCorrect(idx))
+                                        {
+                                            <span>✓ Richtig!</span>
+                                        }
+                                        else
+                                        {
+                                            <span>→ <b>@sub.Formel</b></span>
+                                        }
+                                    </div>
+                                }
+
+                                @if (!submitted)
+                                {
+                                    <button @onclick:stopPropagation="true" @onclick="@(() => HandleMixClick(idx))"
+                                            class="w-full mt-1.5 py-1 rounded text-[11px] font-medium @(mixA == idx || mixB == idx ? "bg-teal-100 text-teal-700" : "bg-gray-100 text-gray-500 hover:bg-teal-50 hover:text-teal-700")">
+                                        @(mixA == idx || mixB == idx ? "Im Mischbereich" : "Zum Mischen")
+                                    </button>
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+
+                <div class="fixed z-30 select-none" style="left:@($"{toolboxX}px"); top:@($"{toolboxY}px");">
+                    <div class="relative w-36 h-36">
+                        @for (var i = 0; i < toolDefs.Count; i++)
+                        {
+                            var tool = toolDefs[i];
+                            <button draggable="true"
+                                    @ondragstart="@(() => draggedTool = tool.Id)"
+                                    @onclick="@(() => SelectTool(tool.Id))"
+                                    title="@tool.Label"
+                                    class="absolute left-1/2 top-1/2 h-14 w-14 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 text-2xl shadow-md transition-all duration-300 @(toolMenuOpen ? "opacity-100 scale-100" : "opacity-0 scale-50 pointer-events-none") @(selectedTool == tool.Id ? "border-teal-500 bg-teal-50" : "border-gray-200 bg-white hover:border-teal-300")"
+                                    style="@GetToolMenuItemStyle(i)">
+                                @tool.Icon
+                            </button>
+                        }
+
+                        <button @onclick="ToggleToolMenu"
+                                @onpointerdown="StartToolboxDrag"
+                                class="absolute left-1/2 top-1/2 h-16 w-16 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 text-3xl shadow-lg transition-all duration-300 cursor-move @(toolMenuOpen ? "bg-teal-500 text-white border-teal-600" : "bg-white border-gray-200 hover:border-teal-300")"
+                                title="Werkzeug-Menü (ziehen zum verschieben)">
+                            @(selectedTool != null ? GetToolIcon(selectedTool.Value) : "🧰")
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-md border-2 border-teal-200 p-5 mb-6">
+                <h3 class="font-medium text-gray-800 mb-4">Mischbereich</h3>
+                <div class="flex items-center gap-4 mb-4">
+                    @for (var slot = 0; slot < 2; slot++)
+                    {
+                        var id = slot == 0 ? mixA : mixB;
+                        <div class="flex-1 border-2 rounded-lg p-4 min-h-[70px] flex items-center justify-center @(id == null ? "border-dashed border-gray-300" : "border-teal-400 bg-teal-50")">
+                            @if (id is int s)
+                            {
+                                <span class="text-sm font-medium text-teal-800">Unbekannt @(s + 1)</span>
+                            }
+                            else
+                            {
+                                <span class="text-sm text-gray-400">@(slot == 0 ? "Substanz 1" : "Substanz 2")</span>
+                            }
+                        </div>
+                    }
+                    <span class="text-xl text-gray-400">→</span>
+                    <div class="flex-1 border-2 rounded-lg p-4 min-h-[70px] flex items-center justify-center @(mixDone ? "border-teal-400" : "border-dashed border-gray-300")" style="@(mixDone && mixResult != null ? $"background-color:{mixResult.FarbeHex}25" : null)">
+                        @if (mixDone && mixResult != null)
+                        {
+                            <div class="text-center">
+                                <div class="w-10 h-10 rounded-full mx-auto mb-1 border-2" style="background-color:@mixResult.FarbeHex; border-color:@mixResult.FarbeHex"></div>
+                                <p class="text-xs font-medium text-gray-700">@mixResult.Farbe</p>
+                            </div>
+                        }
+                        else if (mixDone)
+                        {
+                            <span class="text-xs text-gray-500">Keine Reaktion</span>
+                        }
+                        else
+                        {
+                            <span class="text-sm text-gray-400">Ergebnis</span>
+                        }
+                    </div>
+                </div>
+
+                <div class="flex gap-3">
+                    <button @onclick="HandleMix" disabled="@(mixA == null || mixB == null)"
+                            class="flex-1 py-3 rounded-lg font-medium @(mixA != null && mixB != null ? "bg-teal-500 text-white hover:bg-teal-600" : "bg-gray-200 text-gray-400 cursor-not-allowed")">Mischen</button>
+                    <button @onclick="ResetMix" class="px-6 py-3 bg-gray-200 text-gray-600 rounded-lg font-medium hover:bg-gray-300">Zurücksetzen</button>
+                </div>
+
+                @if (mixDone && mixResult != null)
+                {
+                    <p class="mt-3 text-sm text-gray-600 bg-gray-50 rounded-lg p-3 border border-gray-200 italic">@mixResult.Text</p>
+                }
+            </div>
+
+            @if (!submitted)
+            {
+                <button @onclick="SubmitAnswers" disabled="@(!guesses.Any(g => !string.IsNullOrWhiteSpace(g)))"
+                        class="w-full py-4 rounded-xl font-medium text-lg @(guesses.Any(g => !string.IsNullOrWhiteSpace(g)) ? "bg-teal-500 text-white hover:bg-teal-600" : "bg-gray-200 text-gray-400 cursor-not-allowed")">Antworten überprüfen</button>
+            }
+            else
+            {
+                var correct = CountCorrect();
+                <div class="bg-white rounded-xl shadow-md p-6 text-center">
+                    <p class="text-lg mb-2">@correct von @quiz.Unbekannte.Count richtig</p>
+                    <div class="w-full bg-gray-200 rounded-full h-3 mb-4 max-w-sm mx-auto">
+                        <div class="bg-teal-500 h-3 rounded-full" style="width:@($"{correct * 100.0 / quiz.Unbekannte.Count}%")"></div>
+                    </div>
+                    <button @onclick="ResetAll" class="bg-teal-500 text-white px-8 py-3 rounded-lg font-medium hover:bg-teal-600">Nochmal versuchen</button>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public int QuizId { get; set; }
+
+    private enum ToolType { Ph, Flamme, NaOH, HCl }
+
+    private sealed class ToolDef
+    {
+        public ToolType Id { get; set; }
+        public string Icon { get; set; } = "";
+        public string Label { get; set; } = "";
+    }
+
+    private sealed class Substanz
+    {
+        public string Id { get; set; } = "";
+        public string Formel { get; set; } = "";
+        public string Name { get; set; } = "";
+        public string Farbe { get; set; } = "";
+        public string FarbeBg { get; set; } = "";
+        public string FarbeBorder { get; set; } = "";
+        public string PhFarbe { get; set; } = "";
+        public string Flammenfarbe { get; set; } = "";
+        public string FlammenHex { get; set; } = "";
+        public string MitNaOH { get; set; } = "";
+        public string MitNaOHFarbe { get; set; } = "";
+        public string MitHCl { get; set; } = "";
+        public string MitHClFarbe { get; set; } = "";
+    }
+
+    private sealed class MischErgebnis
+    {
+        public string[] Ids { get; set; } = Array.Empty<string>();
+        public string Farbe { get; set; } = "";
+        public string FarbeHex { get; set; } = "";
+        public string Text { get; set; } = "";
+    }
+
+    private sealed class QuizDaten
+    {
+        public string Title { get; set; } = "";
+        public string Beschreibung { get; set; } = "";
+        public List<Substanz> Unbekannte { get; set; } = new();
+        public List<MischErgebnis> MischErgebnisse { get; set; } = new();
+    }
+
+    private readonly List<ToolDef> toolDefs =
+    [
+        new() { Id = ToolType.Ph, Icon = "📋", Label = "pH-Papier" },
+        new() { Id = ToolType.Flamme, Icon = "🔥", Label = "Flammenprobe" },
+        new() { Id = ToolType.NaOH, Icon = "🧪", Label = "+ NaOH" },
+        new() { Id = ToolType.HCl, Icon = "⚗️", Label = "+ HCl" }
+    ];
+
+    private readonly Dictionary<string, Substanz> S = new();
+    private readonly Dictionary<int, QuizDaten> allQuizData = new();
+
+    private QuizDaten? quiz;
+    private readonly HashSet<string> revealed = new();
+    private string[] guesses = [];
+    private bool submitted;
+    private ToolType? selectedTool;
+    private ToolType? draggedTool;
+    private bool toolMenuOpen;
+    private bool isDraggingToolbox;
+    private bool suppressMenuToggle;
+    private double dragOffsetX;
+    private double dragOffsetY;
+    private double toolboxX = 1120;
+    private double toolboxY = 210;
+    private int? isOverCard;
+    private int? mixA;
+    private int? mixB;
+    private bool mixDone;
+    private MischErgebnis? mixResult;
+
+    protected override void OnInitialized()
+    {
+        SeedData();
+        LoadQuizAndInitializeState();
+    }
+
+    protected override void OnParametersSet()
+    {
+        LoadQuizAndInitializeState();
+    }
+
+    private void LoadQuizAndInitializeState()
+    {
+        quiz = allQuizData.TryGetValue(QuizId, out var q) ? q : allQuizData[1];
+        guesses = Enumerable.Repeat("", quiz.Unbekannte.Count).ToArray();
+        submitted = false;
+        revealed.Clear();
+        selectedTool = null;
+        toolMenuOpen = false;
+        ResetMix();
+    }
+
+    private void SeedData()
+    {
+        if (S.Count > 0) return;
+
+        S["HCl"] = new() { Id = "hcl", Formel = "HCl", Name = "Salzsäure", Farbe = "Farblos", FarbeBg = "#f3f4f6", FarbeBorder = "#d1d5db", PhFarbe = "#dc2626", Flammenfarbe = "Keine", FlammenHex = "#888", MitNaOH = "Farblos, warm", MitNaOHFarbe = "#e5e7eb", MitHCl = "—", MitHClFarbe = "#e5e7eb" };
+        S["NaOH"] = new() { Id = "naoh", Formel = "NaOH", Name = "Natronlauge", Farbe = "Farblos", FarbeBg = "#f3f4f6", FarbeBorder = "#d1d5db", PhFarbe = "#7c3aed", Flammenfarbe = "Gelb", FlammenHex = "#eab308", MitNaOH = "—", MitNaOHFarbe = "#e5e7eb", MitHCl = "Farblos, warm", MitHClFarbe = "#e5e7eb" };
+        S["NaCl"] = new() { Id = "nacl", Formel = "NaCl", Name = "Natriumchlorid", Farbe = "Farblos", FarbeBg = "#f3f4f6", FarbeBorder = "#d1d5db", PhFarbe = "#4ade80", Flammenfarbe = "Gelb", FlammenHex = "#eab308", MitNaOH = "Keine Reaktion", MitNaOHFarbe = "#e5e7eb", MitHCl = "Keine Reaktion", MitHClFarbe = "#e5e7eb" };
+        S["CuSO4"] = new() { Id = "cuso4", Formel = "CuSO₄", Name = "Kupfersulfat", Farbe = "Blau", FarbeBg = "#bfdbfe", FarbeBorder = "#60a5fa", PhFarbe = "#fb923c", Flammenfarbe = "Grün", FlammenHex = "#22c55e", MitNaOH = "Hellblauer Niederschlag", MitNaOHFarbe = "#93c5fd", MitHCl = "Keine Reaktion", MitHClFarbe = "#bfdbfe" };
+        S["FeCl3"] = new() { Id = "fecl3", Formel = "FeCl₃", Name = "Eisen(III)-chlorid", Farbe = "Braun-Gelb", FarbeBg = "#fde68a", FarbeBorder = "#d97706", PhFarbe = "#ef4444", Flammenfarbe = "Gelb", FlammenHex = "#eab308", MitNaOH = "Brauner Niederschlag", MitNaOHFarbe = "#92400e", MitHCl = "Keine Reaktion", MitHClFarbe = "#fde68a" };
+        S["AgNO3"] = new() { Id = "agno3", Formel = "AgNO₃", Name = "Silbernitrat", Farbe = "Farblos", FarbeBg = "#f3f4f6", FarbeBorder = "#9ca3af", PhFarbe = "#facc15", Flammenfarbe = "Keine", FlammenHex = "#888", MitNaOH = "Brauner Niederschlag", MitNaOHFarbe = "#92400e", MitHCl = "Weißer Niederschlag", MitHClFarbe = "#f3f4f6" };
+
+        allQuizData[1] = new()
+        {
+            Title = "Nachweis von Chlorid-Ionen",
+            Beschreibung = "Drei unbekannte Substanzen — finden Sie heraus was sie sind.",
+            Unbekannte = [S["HCl"], S["NaOH"], S["AgNO3"]],
+            MischErgebnisse =
+            [
+                new() { Ids = ["hcl", "naoh"], Farbe = "Farblos, warm", FarbeHex = "#e5e7eb", Text = "Lösung wird warm, bleibt farblos" },
+                new() { Ids = ["hcl", "agno3"], Farbe = "Weißer Niederschlag", FarbeHex = "#f3f4f6", Text = "Sofort weißer, käsiger Niederschlag" },
+                new() { Ids = ["naoh", "agno3"], Farbe = "Brauner Niederschlag", FarbeHex = "#92400e", Text = "Brauner Niederschlag bildet sich" }
+            ]
+        };
+
+        allQuizData[2] = new() { Title = "Quiz 2", Beschreibung = "Organische Verbindungen", Unbekannte = [S["NaOH"], S["NaCl"], S["HCl"]], MischErgebnisse = [] };
+        allQuizData[3] = new() { Title = "Quiz 3", Beschreibung = "Chemische Reaktionen", Unbekannte = [S["CuSO4"], S["FeCl3"], S["NaCl"]], MischErgebnisse = [] };
+        allQuizData[4] = new() { Title = "Quiz 4", Beschreibung = "Laborsicherheit", Unbekannte = [S["HCl"], S["NaOH"], S["NaCl"]], MischErgebnisse = [] };
+        allQuizData[5] = new() { Title = "Quiz 5", Beschreibung = "Molekulare Struktur", Unbekannte = [S["CuSO4"], S["AgNO3"], S["NaCl"]], MischErgebnisse = [] };
+        allQuizData[6] = new() { Title = "Quiz 6", Beschreibung = "Fortgeschrittene Chemie", Unbekannte = [S["FeCl3"], S["NaOH"], S["HCl"]], MischErgebnisse = [] };
+    }
+
+    private bool IsToolRevealed(int idx, ToolType tool) => revealed.Contains($"{idx}-{tool}");
+    private bool HasAnyToolRevealed(int idx) => toolDefs.Any(t => IsToolRevealed(idx, t.Id));
+
+    private void HandleCardClick(int idx)
+    {
+        if (selectedTool is ToolType t)
+        {
+            revealed.Add($"{idx}-{t}");
+        }
+    }
+
+    private void HandleToolDrop(int idx)
+    {
+        if (draggedTool is ToolType t)
+        {
+            revealed.Add($"{idx}-{t}");
+            draggedTool = null;
+            isOverCard = null;
+        }
+    }
+
+    private void ToggleToolMenu()
+    {
+        if (suppressMenuToggle)
+        {
+            suppressMenuToggle = false;
+            return;
+        }
+
+        toolMenuOpen = !toolMenuOpen;
+    }
+
+    private void StartToolboxDrag(PointerEventArgs e)
+    {
+        isDraggingToolbox = true;
+        dragOffsetX = e.ClientX - toolboxX;
+        dragOffsetY = e.ClientY - toolboxY;
+        suppressMenuToggle = false;
+    }
+
+    private void HandleGlobalPointerMove(PointerEventArgs e)
+    {
+        if (!isDraggingToolbox) return;
+
+        var newX = Math.Max(8, e.ClientX - dragOffsetX);
+        var newY = Math.Max(80, e.ClientY - dragOffsetY);
+
+        if (Math.Abs(newX - toolboxX) > 2 || Math.Abs(newY - toolboxY) > 2)
+        {
+            suppressMenuToggle = true;
+        }
+
+        toolboxX = newX;
+        toolboxY = newY;
+    }
+
+    private void HandleGlobalPointerUp()
+    {
+        isDraggingToolbox = false;
+    }
+
+    private void SelectTool(ToolType tool)
+    {
+        selectedTool = tool;
+        toolMenuOpen = false;
+    }
+
+    private string GetToolIcon(ToolType tool)
+    {
+        return toolDefs.FirstOrDefault(t => t.Id == tool)?.Icon ?? "🧰";
+    }
+
+    private string GetToolMenuItemStyle(int index)
+    {
+        if (!toolMenuOpen)
+        {
+            return "transform: translate(-50%, -50%);";
+        }
+
+        return index switch
+        {
+            0 => "transform: translate(-50%, -165%);",
+            1 => "transform: translate(-165%, -120%);",
+            2 => "transform: translate(-190%, -20%);",
+            _ => "transform: translate(-155%, 85%);"
+        };
+    }
+
+    private void HandleMixClick(int idx)
+    {
+        if (submitted) return;
+        if (mixA == null) { mixA = idx; mixB = null; mixDone = false; return; }
+        if (mixA == idx) { mixA = null; return; }
+        mixB = idx;
+        mixDone = false;
+    }
+
+    private void HandleMix()
+    {
+        if (quiz == null || mixA == null || mixB == null) return;
+        var a = quiz.Unbekannte[mixA.Value].Id;
+        var b = quiz.Unbekannte[mixB.Value].Id;
+        mixResult = quiz.MischErgebnisse.FirstOrDefault(m =>
+            (m.Ids[0] == a && m.Ids[1] == b) || (m.Ids[0] == b && m.Ids[1] == a));
+        mixDone = true;
+    }
+
+    private void ResetMix()
+    {
+        mixA = mixB = null;
+        mixDone = false;
+        mixResult = null;
+    }
+
+    private void SubmitAnswers() => submitted = true;
+
+    private int CountCorrect()
+    {
+        if (quiz == null) return 0;
+        var c = 0;
+        for (var i = 0; i < quiz.Unbekannte.Count; i++) if (IsGuessCorrect(i)) c++;
+        return c;
+    }
+
+    private bool IsGuessCorrect(int idx)
+    {
+        if (quiz == null || idx < 0 || idx >= quiz.Unbekannte.Count || idx >= guesses.Length) return false;
+        var g = Normalize(guesses[idx]);
+        var sub = quiz.Unbekannte[idx];
+        return g == Normalize(sub.Formel) || g == Normalize(sub.Name);
+    }
+
+    private static string Normalize(string s) => (s ?? "").ToLowerInvariant().Replace(" ", "").Replace("₂", "2").Replace("₃", "3").Replace("₄", "4");
+
+    private void ResetAll()
+    {
+        if (quiz == null) return;
+        guesses = Enumerable.Repeat("", quiz.Unbekannte.Count).ToArray();
+        submitted = false;
+        revealed.Clear();
+        selectedTool = null;
+        toolMenuOpen = false;
+        ResetMix();
+    }
+}

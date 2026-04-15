@@ -15,12 +15,13 @@ public class STLQuestion {
     [DeleteBehavior(DeleteBehavior.Restrict)]
     public virtual Question Question { get; set; } = null!;
 
+    [ForeignKey(nameof(ReactionID))]
     [DeleteBehavior(DeleteBehavior.Restrict)]
     public virtual Reaction Reaction { get; set; } = null!;
 
+    [ForeignKey(nameof(ShownEductID))]
     [DeleteBehavior(DeleteBehavior.Restrict)]
     public virtual Chemical ShownEduct { get; set; } = null!;
 
     public virtual ICollection<STLAvailableReaction> AvailableReactions { get; set; } = [];
-    public virtual ICollection<STAvailableChemical> AvailableChemicals { get; set; } = [];
 }

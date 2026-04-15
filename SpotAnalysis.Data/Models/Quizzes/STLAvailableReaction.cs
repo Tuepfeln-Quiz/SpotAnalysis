@@ -10,9 +10,11 @@ public class STLAvailableReaction {
     public int ReactionID { get; set; }
 
 
+    [ForeignKey(nameof(QuestionID))]
     [DeleteBehavior(DeleteBehavior.Restrict)]
-    public STQuestion STQuestion { get; set; } = null!;
+    public STLQuestion STLQuestion { get; set; } = null!;
 
+    [ForeignKey(nameof(ReactionID))]
     [DeleteBehavior(DeleteBehavior.Restrict)]
     public Reaction Reaction { get; set; } = null!;
 }

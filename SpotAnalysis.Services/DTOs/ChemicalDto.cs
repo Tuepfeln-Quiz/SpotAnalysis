@@ -10,20 +10,4 @@ public class ChemicalDto
     public required string Formula { get; init; }
     public required string Color { get; init; }
     public required List<MethodInfoDto> MethodInfo { get; init; }
-
-    public static ChemicalDto FromInput(Chemical input)
-    {
-        return new ChemicalDto
-        {
-            Id = input.ChemicalID,
-            Color = input.Color,
-            Name = input.Name,
-            Formula = input.Formula,
-            MethodInfo = input.MethodOutputs.Select(mo => new MethodInfoDto
-            {
-                Name = mo.Method.Name,
-                Color = mo.Color,
-            }).ToList(),
-        };
-    }
 }

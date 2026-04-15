@@ -1,0 +1,50 @@
+@page "/teacher"
+@rendermode InteractiveServer
+
+<PageTitle>Lehrerbereich – Tüpfeln Digital</PageTitle>
+
+<PageHeader PageTitle="Lehrerbereich" />
+
+<div class="container py-4 flex-grow-1">
+    <div class="row g-4 justify-content-center">
+        <div class="col-sm-6 col-lg-4">
+            <div class="card card-interactive h-100" @onclick='() => Navigation.NavigateTo("/teacher/quizzes")'>
+                <div class="card-body text-center p-4">
+                    <div class="card-icon mb-3" style="background-color: #ede9fe;">
+                        <i class="bi bi-clipboard-check" style="color: #6b21a8; font-size: 2rem;"></i>
+                    </div>
+                    <h5 class="card-title fw-bold">Quizzes</h5>
+                    <p class="card-text text-muted">Quizzes erstellen und verwalten</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-lg-4">
+            <div class="card card-interactive h-100" @onclick='() => Navigation.NavigateTo("/teacher/questions")'>
+                <div class="card-body text-center p-4">
+                    <div class="card-icon mb-3" style="background-color: #dbeafe;">
+                        <i class="bi bi-question-circle" style="color: #2563eb; font-size: 2rem;"></i>
+                    </div>
+                    <h5 class="card-title fw-bold">Fragen-Pool</h5>
+                    <p class="card-text text-muted">Fragen erstellen und bearbeiten</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-lg-4">
+            <div class="card card-interactive h-100 disabled-card">
+                <div class="card-body text-center p-4">
+                    <div class="card-icon mb-3" style="background-color: #fef3c7;">
+                        <i class="bi bi-people" style="color: #d97706; font-size: 2rem;"></i>
+                    </div>
+                    <h5 class="card-title fw-bold">Gruppen</h5>
+                    <p class="card-text text-muted">Gruppen & Schüler verwalten</p>
+                    <small class="text-warning">Wird separat implementiert</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Inject]
+    private NavigationManager Navigation { get; set; } = default!;
+}

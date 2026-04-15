@@ -1,0 +1,111 @@
+@page "/teacher/quizzes"
+@rendermode InteractiveServer
+@using SpotAnalysis.Services.DTOs
+@using SpotAnalysis.Services.Services
+
+<PageTitle>Quizzes – Tüpfeln Digital</PageTitle>
+
+<PageHeader PageTitle="Quizzes" />
+
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h4 class="fw-bold mb-0">Quizzes</h4>
+        <button class="btn btn-primary-purple" @onclick="CreateQuiz">
+            <i class="bi bi-plus-lg me-1"></i> Neues Quiz
+        </button>
+    </div>
+
+    @if (_quizzes is null)
+    {
+        <p class="text-muted">Laden...</p>
+    }
+    else if (_quizzes.Count == 0)
+    {
+        <div class="text-center text-muted py-5">
+            <i class="bi bi-clipboard-x" style="font-size: 2.5rem;"></i>
+            <p class="mt-2">Noch keine Quizzes erstellt.</p>
+        </div>
+    }
+    else
+    {
+        <div class="d-flex flex-column gap-3">
+            @foreach (var quiz in _quizzes)
+            {
+                <div class="quiz-row">
+                    <div class="flex-grow-1">
+                        <div class="fw-bold">@quiz.Name</div>
+                        <small class="text-muted">
+                            @quiz.STCount SpotTest · @quiz.STLCount Light · @quiz.GroupCount Gruppen
+                        </small>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-sm btn-edit" @onclick="() => EditQuiz(quiz.Id)">
+                            Bearbeiten
+                        </button>
+                        <button class="btn btn-sm btn-delete" @onclick="() => ConfirmDelete(quiz)">
+                            Löschen
+                        </button>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+
+    @if (_quizToDelete is not null)
+    {
+        <div class="modal-backdrop show"></div>
+        <div class="modal d-block" tabindex="-1">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content" style="border-radius: var(--card-radius);">
+                    <div class="modal-header border-0">
+                        <h5 class="modal-title fw-bold">Quiz löschen?</h5>
+                    </div>
+                    <div class="modal-body">
+                        <p>Möchtest du das Quiz <strong>@_quizToDelete.Name</strong> wirklich löschen?</p>
+                        @if (_quizToDelete.GroupCount > 0)
+                        {
+                            <p class="text-warning">
+                                <i class="bi bi-exclamation-triangle me-1"></i>
+                                Dieses Quiz ist @_quizToDelete.GroupCount Gruppe(n) zugewiesen.
+                            </p>
+                        }
+                    </div>
+                    <div class="modal-footer border-0">
+                        <button class="btn btn-secondary" @onclick="CancelDelete">Abbrechen</button>
+                        <button class="btn btn-danger" @onclick="DeleteQuiz">Löschen</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    [Inject] private IQuizService QuizService { get; set; } = default!;
+    [Inject] private NavigationManager Navigation { get; set; } = default!;
+
+    private List<QuizOverviewDto>? _quizzes;
+    private QuizOverviewDto? _quizToDelete;
+
+    // TODO: Replace with actual teacher ID from auth when login is implemented
+    private Guid _teacherId = Guid.Parse("00000000-0000-0000-0000-000000000001");
+
+    protected override async Task OnInitializedAsync()
+    {
+        _quizzes = await QuizService.GetAllQuizzes();
+    }
+
+    private void CreateQuiz() => Navigation.NavigateTo("/teacher/quizzes/create");
+    private void EditQuiz(int id) => Navigation.NavigateTo($"/teacher/quizzes/{id}/edit");
+
+    private void ConfirmDelete(QuizOverviewDto quiz) => _quizToDelete = quiz;
+    private void CancelDelete() => _quizToDelete = null;
+
+    private async Task DeleteQuiz()
+    {
+        if (_quizToDelete is null) return;
+        await QuizService.DeleteQuiz(_teacherId, _quizToDelete.Id);
+        _quizToDelete = null;
+        _quizzes = await QuizService.GetAllQuizzes();
+    }
+}

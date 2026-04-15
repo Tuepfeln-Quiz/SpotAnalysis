@@ -1,0 +1,125 @@
+.card-form {
+    background: white;
+    border-radius: 16px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.form-label-custom {
+    font-weight: 600;
+    font-size: 0.85rem;
+    display: block;
+    margin-bottom: 0.4rem;
+}
+
+.input-custom {
+    border-radius: 10px;
+    border: 1px solid #d1d5db;
+}
+
+.selection-box {
+    border: 1px solid #d1d5db;
+    border-radius: 10px;
+    padding: 0.75rem;
+}
+
+.btn-pill {
+    background: #f3f4f6;
+    color: #374151;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    border: none;
+}
+
+.btn-pill.active {
+    background: #6b21a8;
+    color: white;
+}
+
+.question-list {
+    max-height: 250px;
+    overflow-y: auto;
+}
+
+.question-item {
+    display: flex;
+    align-items: center;
+    padding: 0.5rem;
+    border-radius: 8px;
+    cursor: pointer;
+    margin-bottom: 0.25rem;
+    font-size: 0.85rem;
+}
+
+.question-item:hover {
+    background: #f9fafb;
+}
+
+.question-item.selected {
+    background: #f0fdf4;
+}
+
+.badge-type {
+    font-size: 0.7rem;
+    padding: 0.15rem 0.5rem;
+    border-radius: 12px;
+}
+
+.badge-st {
+    background: #ede9fe;
+    color: #6b21a8;
+}
+
+.badge-stl {
+    background: #dbeafe;
+    color: #2563eb;
+}
+
+.order-item {
+    display: flex;
+    align-items: center;
+    padding: 0.5rem;
+    background: #f9fafb;
+    border-radius: 8px;
+    margin-bottom: 0.25rem;
+    font-size: 0.85rem;
+    cursor: grab;
+}
+
+.drag-handle {
+    color: #8a8686;
+    margin-right: 0.75rem;
+}
+
+.group-pill {
+    background: #6b21a8;
+    color: white;
+    padding: 0.3rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+}
+
+.remove-pill {
+    cursor: pointer;
+    opacity: 0.8;
+}
+
+.remove-pill:hover {
+    opacity: 1;
+}
+
+.btn-primary-purple {
+    background: linear-gradient(135deg, #6b21a8, #4c1d95);
+    color: white;
+    border: none;
+    border-radius: 10px;
+}
+
+.btn-primary-purple:hover {
+    background: linear-gradient(135deg, #7c3aed, #5b21b6);
+    color: white;
+}

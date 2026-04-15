@@ -240,11 +240,11 @@
         // Load reference data
         var chemicals = await ChemistryData.GetAllChemicalsAsync();
         _eductsAvailable = chemicals
-            .Where(c => c.ChemicalTypeID == 0)
+            .Where(c => c.Type == ChemicalType.Educt)
             .Select(c => new ChemicalItem(c.ChemicalID, c.Name, c.Formula, "#9ca3af"))
             .ToList();
         _additivesAvailable = chemicals
-            .Where(c => c.ChemicalTypeID == 1)
+            .Where(c => c.Type == ChemicalType.Additive)
             .Select(c => new ChemicalItem(c.ChemicalID, c.Name, c.Formula, "#60a5fa"))
             .ToList();
 

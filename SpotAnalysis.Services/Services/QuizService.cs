@@ -92,7 +92,9 @@ public class QuizService(ILogger<QuizService> logger, IDbContextFactory<Analysis
         }));
         
         var questionsToDelete = existingQuestionIds.Except(questionIds).ToList();
-        await dbContext.QuizQuestions.Where(x => questionsToDelete.Contains(x.QuestionID)).ExecuteDeleteAsync();
+        await dbContext.QuizQuestions
+            .Where(x => x.QuizID == quiz.Id && questionsToDelete.Contains(x.QuestionID))
+            .ExecuteDeleteAsync();
         
         await dbContext.SaveChangesAsync();
         
@@ -196,11 +198,11 @@ public class QuizService(ILogger<QuizService> logger, IDbContextFactory<Analysis
                         Order = question.Order,
                         Educt = new ChemicalDto
                         {
-                            Id = question.Question.STLQuestion.Reaction.Chemical1ID,
-                            Color = question.Question.STLQuestion.Reaction.Chemical1.Color,
-                            Name = question.Question.STLQuestion.Reaction.Chemical1.Name,
-                            Formula = question.Question.STLQuestion.Reaction.Formula,
-                            MethodInfo = question.Question.STLQuestion.Reaction.Chemical1.MethodOutputs.Select(mo => new MethodInfoDto
+                            Id = question.Question.STLQuestion!.ShownEductID,
+                            Color = question.Question.STLQuestion.ShownEduct.Color,
+                            Name = question.Question.STLQuestion.ShownEduct.Name,
+                            Formula = question.Question.STLQuestion.ShownEduct.Formula,
+                            MethodInfo = question.Question.STLQuestion.ShownEduct.MethodOutputs.Select(mo => new MethodInfoDto
                             {
                                 Name = mo.Method.Name,
                                 Color = mo.Color,
@@ -214,7 +216,7 @@ public class QuizService(ILogger<QuizService> logger, IDbContextFactory<Analysis
                         Id = question.QuestionID,
                         Description = question.Question.Description,
                         Order = question.Order,
-                        Chemicals = question.Question.STQuestion.AvailableChemicals.Select(sta => new ChemicalQuestionDto
+                        Chemicals = question.Question.STQuestion!.AvailableChemicals.Select(sta => new ChemicalQuestionDto
                         {
                             Id = sta.ChemicalID,
                             Color = sta.Chemical.Color,
@@ -259,6 +261,7 @@ public class QuizService(ILogger<QuizService> logger, IDbContextFactory<Analysis
         };
         
         await context.STLResults.AddAsync(newResult);
+        await context.SaveChangesAsync();
 
         return newResult;
     }
@@ -438,6 +441,9 @@ public class QuizService(ILogger<QuizService> logger, IDbContextFactory<Analysis
         await dbContext.Questions.AddAsync(newQuestion);
         await dbContext.SaveChangesAsync();
 
+        await dbContext.STQuestions.AddAsync(new STQuestion { QuestionID = newQuestion.QuestionID });
+        await dbContext.SaveChangesAsync();
+
         var chemicals = question.AvailableChemicals.Select((chemId, index) => new STAvailableChemical
         {
             QuestionID = newQuestion.QuestionID,
@@ -503,9 +509,12 @@ public class QuizService(ILogger<QuizService> logger, IDbContextFactory<Analysis
         await using var dbContext = await factory.CreateDbContextAsync();
         await using var transaction = await dbContext.Database.BeginTransactionAsync();
 
-        var existing = await dbContext.Questions.SingleOrDefaultAsync(q => q.QuestionID == question.Id);
-        if (existing is null)
-            throw new KeyNotFoundException($"Question with id {question.Id} not found.");
+        var existing = await dbContext.Questions
+            .Include(q => q.STQuestion)
+            .SingleOrDefaultAsync(q => q.QuestionID == question.Id && q.Type == QuestionType.SpotTest);
+
+        if (existing?.STQuestion is null)
+            throw new KeyNotFoundException($"SpotTest question with id {question.Id} not found.");
 
         existing.Description = question.Description;
 
@@ -553,6 +562,7 @@ public class QuizService(ILogger<QuizService> logger, IDbContextFactory<Analysis
 
         existing.Description = question.Description;
         existing.STLQuestion.ReactionID = question.ReactionId;
+        existing.STLQuestion.ShownEductID = question.ShowEductId;
 
         await dbContext.STLAvailableReactions
             .Where(r => r.QuestionID == question.Id)
@@ -576,24 +586,33 @@ public class QuizService(ILogger<QuizService> logger, IDbContextFactory<Analysis
 
         var question = await dbContext.Questions.SingleAsync(x => x.QuestionID == questionId);
 
+        if (await dbContext.QuizQuestions.AnyAsync(x => x.QuestionID == questionId))
+            throw new InvalidOperationException(
+                $"Question {questionId} is used in one or more quizzes and cannot be deleted.");
+
         switch (question.Type)
         {
             case QuestionType.SpotTest:
+                var resultIds = await dbContext.STResults
+                    .Where(x => x.QuestionID == questionId)
+                    .Select(x => x.ResultID)
+                    .ToListAsync();
+                await dbContext.STChemicalResults.Where(x => resultIds.Contains(x.ResultID)).ExecuteDeleteAsync();
+                await dbContext.STResults.Where(x => x.QuestionID == questionId).ExecuteDeleteAsync();
                 await dbContext.STAvailableChemicals.Where(x => x.QuestionID == questionId).ExecuteDeleteAsync();
                 await dbContext.STAvailableMethods.Where(x => x.QuestionID == questionId).ExecuteDeleteAsync();
-                await dbContext.STResults.Where(x => x.QuestionID == questionId).ExecuteDeleteAsync();
-                var chemicalResult = await dbContext.STResults.SingleAsync(x => x.QuestionID == questionId);
-                await dbContext.STChemicalResults.Where(x => x.ResultID == chemicalResult.ResultID).ExecuteDeleteAsync();
-                dbContext.STResults.Remove(chemicalResult);
-                await dbContext.SaveChangesAsync();
+                await dbContext.STQuestions.Where(x => x.QuestionID == questionId).ExecuteDeleteAsync();
                 break;
             case QuestionType.SpotTestLight:
-                await dbContext.STLAvailableReactions.Where(x => x.QuestionID == questionId).ExecuteDeleteAsync();
                 await dbContext.STLResults.Where(x => x.QuestionID == questionId).ExecuteDeleteAsync();
+                await dbContext.STLAvailableReactions.Where(x => x.QuestionID == questionId).ExecuteDeleteAsync();
+                await dbContext.STLQuestions.Where(x => x.QuestionID == questionId).ExecuteDeleteAsync();
                 break;
         }
 
         await dbContext.Questions.Where(x => x.QuestionID == questionId).ExecuteDeleteAsync();
+
+        await transaction.CommitAsync();
     }
 
     private class StlQuestionData

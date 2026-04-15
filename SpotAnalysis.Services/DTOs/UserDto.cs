@@ -1,10 +1,4 @@
-﻿using Org.BouncyCastle.Asn1.X509;
-using SpotAnalysis.Data.Enums;
-using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace SpotAnalysis.Services.DTOs;
+﻿namespace SpotAnalysis.Services.DTOs;
 
 public class UserDto
 {

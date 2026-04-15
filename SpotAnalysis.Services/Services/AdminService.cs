@@ -37,8 +37,13 @@ public class AdminService(IDbContextFactory<AnalysisContext> contextFactory, ILo
             await using var dbContext = await contextFactory.CreateDbContextAsync();
 
             var user = await dbContext.Users.SingleAsync(x => x.UserID == userId);
-            user.Roles.Remove(role);
 
+            if(user.Roles.Count == 1 && user.Roles.Contains(role))
+            {
+                throw new InvalidOperationException($"Cannot remove the only role from user with id {userId}.");
+            }
+
+            user.Roles.Remove(role);
             await dbContext.SaveChangesAsync();
         }
         catch (Exception ex)

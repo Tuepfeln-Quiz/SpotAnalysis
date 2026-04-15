@@ -1,7 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
-using SpotAnalysis.Data;
-using SpotAnalysis.Data.Enums;
+﻿using SpotAnalysis.Data.Enums;
 using SpotAnalysis.Services.DTOs;
 
 namespace SpotAnalysis.Services.Services;

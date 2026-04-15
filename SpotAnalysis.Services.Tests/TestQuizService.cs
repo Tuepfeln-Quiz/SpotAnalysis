@@ -54,7 +54,7 @@ public class TestQuizService : BaseDatabaseTest
         {
             Id = 10,
             Name = newQuizName,
-            Questions = [],
+            Questions = []
         };
         
         await _quizService.UpdateQuiz(_createdBy, quizToUpdate);
@@ -214,7 +214,7 @@ public class TestQuizService : BaseDatabaseTest
             tasks.Add(_quizService.CreateQuiz(_createdBy, new CreateQuizDto
             {
                 Name = i.ToString(),
-                Questions = [],
+                Questions = []
             }));
         }
 
@@ -324,6 +324,7 @@ public class TestQuizService : BaseDatabaseTest
             AvailableReactions = [
             1
             ],
+            ShowEductId = 1,
             ReactionId = 1
         });
         

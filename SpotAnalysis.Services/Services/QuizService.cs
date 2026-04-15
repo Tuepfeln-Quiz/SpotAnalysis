@@ -143,9 +143,10 @@ public class QuizService(ILogger<QuizService> logger, IDbContextFactory<Analysis
     public async Task<List<QuizOverviewDto>> GetQuizzes(Guid studentId)
     {
         await using var context = await factory.CreateDbContextAsync();
-        return context.Users.Where(u => u.UserID == studentId)
-            .SelectMany(u => u.Groups)
-            .SelectMany(g => g.Quizzes)
+        return context.Quizzes
+            .Where(q => q.CreatedBy == studentId || 
+                        q.Groups.Any(g => 
+                            g.Users.Any(u => u.UserID == studentId)))
             .Select(q => new QuizOverviewDto
             {
                 Id = q.QuizID,
@@ -173,14 +174,52 @@ public class QuizService(ILogger<QuizService> logger, IDbContextFactory<Analysis
             });
         }
 
+        await context.SaveChangesAsync();
+
         return await context.Quizzes.Where(q => q.QuizID == quizId)
             .Select(q => new QuizDto
             {
                 Name = q.Name,
                 STLQuestions = q.QuizQuestions.Where(qq => qq.Question.Type == QuestionType.SpotTestLight)
-                    .Select(STLQuestionDto.FromQuestion).ToList(),
+                    .Select(question => new STLQuestionDto
+                    {
+                        Id = question.QuestionID,
+                        Description = question.Question.Description,
+                        Order = question.Order,
+                        Educt = new ChemicalDto
+                        {
+                            Id = question.Question.STLInput.Chemical1ID,
+                            Color = question.Question.STLInput.Chemical1.Color,
+                            Name = question.Question.STLInput.Chemical1.Name,
+                            Formula = question.Question.STLInput.Formula,
+                            MethodInfo = question.Question.STLInput.Chemical1.MethodOutputs.Select(mo => new MethodInfoDto
+                            {
+                                Name = mo.Method.Name,
+                                Color = mo.Color,
+                            }).ToList(),
+                        },
+                        Observation = question.Question.STLInput.Observation.Description
+                    }).ToList(),
                 STQuestions = q.QuizQuestions.Where(qq => qq.Question.Type == QuestionType.SpotTest)
-                    .Select(STQuestionDto.FromQuestion).ToList(),
+                    .Select(question => new STQuestionDto
+                    {
+                        Id = question.QuestionID,
+                        Description = question.Question.Description,
+                        Order = question.Order,
+                        Chemicals = question.Question.STAvailableChemicals.Select(sta => new ChemicalQuestionDto
+                        {
+                            Id = sta.ChemicalID,
+                            Color = sta.Chemical.Color,
+                            Name = sta.Chemical.Name,
+                            Formula = sta.Chemical.Formula,
+                            IsAdditive = sta.Chemical.Type == ChemicalType.Additive,
+                        }).ToList(),
+                        Methods = question.Question.STAvailableMethods.Select(am => new MethodQuestionDto
+                        {
+                            Name = am.Method.Name,
+                            Id = am.MethodID,
+                        }).ToList(),
+                    }).ToList(),
             }).SingleAsync();
     }
 
@@ -259,6 +298,13 @@ public class QuizService(ILogger<QuizService> logger, IDbContextFactory<Analysis
         await context.Database.CommitTransactionAsync();
 
         return result;
+    }
+
+    public async Task<QuizAttempt?> GetQuizAttempt(Guid studentId, int quizId)
+    {
+        await using var context = await factory.CreateDbContextAsync();
+
+        return await context.QuizAttempts.Where(qa => qa.QuizID == quizId && qa.UserID == studentId).FirstOrDefaultAsync();
     }
 
     public async Task<List<QuestionOverviewDto>> GetQuestions()

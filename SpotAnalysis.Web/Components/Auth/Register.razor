@@ -89,7 +89,7 @@
     [CascadingParameter]
     public HttpContext? HttpContext { get; set; }
 
-    public LoginDTO LoginVM { get; set; } = new() { UserName = string.Empty, Password = string.Empty };
+    public LoginDto LoginVM { get; set; } = new() { UserName = string.Empty, Password = string.Empty };
 
     public string ConfirmPassword { get; set; } = string.Empty;
     private string? ErrorMessage { get; set; }

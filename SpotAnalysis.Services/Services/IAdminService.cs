@@ -1,15 +1,18 @@
-﻿using SpotAnalysis.Services.DTOs;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using SpotAnalysis.Data;
+using SpotAnalysis.Data.Enums;
+using SpotAnalysis.Services.DTOs;
 
 namespace SpotAnalysis.Services.Services;
 
 public interface IAdminService
 {
-    //public List<TeacherAdminDto> GetTeachers();
-    //public List<TeacherAdminDto> GetAdmins();
-    //public Task CreateAdmin(ConfigUserDto user);
-    //public void UpdateAdmin(ConfigUserDto user);
-    //public void DeleteAdmin(int adminId);
-    //public void CreateTeacher(ConfigUserDto user);
-    //public void UpdateTeacher(ConfigUserDto user);
-    //public void DeleteTeacher(int teacherId);
+    Task AddRoleToUser(Guid userId, Role role);
+    Task RemoveRoleFromUser(Guid userId, Role role);
+    Task DeleteUser(Guid userId);
+    Task<List<UserDto>> GetUsersByRole(Role role);
+    Task<List<UserDto>> GetUsersWithoutRole();
+    Task AddUserToGroup(Guid userId, int groupId);
+    Task RemoveUserFromGroup(Guid userId, int groupId);
 }

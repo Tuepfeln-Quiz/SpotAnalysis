@@ -1,0 +1,766 @@
+@page "/reverse"
+@using Microsoft.AspNetCore.Components.Routing
+@rendermode InteractiveServer
+
+<style>
+    .hide-scrollbar {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+    }
+
+    .hide-scrollbar::-webkit-scrollbar {
+        display: none;
+    }
+</style>
+
+<div class="size-full flex flex-col bg-gray-50">
+    <!-- Header -->
+    <header class="bg-white shadow-sm px-6 py-4 flex items-center justify-between">
+        <!-- Left - Home Button -->
+        <NavLink href="/" class="p-2 hover:bg-gray-100 rounded-lg transition-colors" style="display: flex; align-items: center;">
+            <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                <polyline points="9 22 9 12 15 12 15 22"></polyline>
+            </svg>
+        </NavLink>
+
+        <!-- Center - Navigation Buttons -->
+        <div class="absolute left-1/2 -translate-x-1/2 flex gap-3 z-10">
+            <NavLink href="/sandbox" class="bg-gray-100 text-gray-700 px-6 py-2 rounded-lg font-medium hover:bg-gray-200 transition-colors" style="text-decoration: none;">Sandbox</NavLink>
+            <div class="bg-purple-500 text-white px-6 py-2 rounded-lg font-medium">Reverse</div>
+            <NavLink href="/light" class="bg-gray-100 text-gray-700 px-6 py-2 rounded-lg font-medium hover:bg-gray-200 transition-colors" style="text-decoration: none;">Light</NavLink>
+            <NavLink href="/tupfeln" class="bg-gray-100 text-gray-700 px-6 py-2 rounded-lg font-medium hover:bg-gray-200 transition-colors" style="text-decoration: none;">Tüpfeln</NavLink>
+        </div>
+
+        <!-- Right - Profile Image -->
+        <img src="https://images.unsplash.com/photo-1655249493799-9cee4fe983bb?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxwcm9mZXNzaW9uYWFsMjZwcmlsZSUyMHBvcnRyYWl0fGVufDF8fHwxNzczNjY1OTA5fDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral"
+             alt="Profile"
+             class="w-10 h-10 rounded-full object-cover ml-auto" />
+    </header>
+
+    <!-- Main Content -->
+    <div class="flex-1 flex overflow-hidden">
+        <div class="flex-1 p-4 flex flex-col gap-4 overflow-y-auto hide-scrollbar">
+            @if (currentChallenge != null)
+            {
+                <!-- Challenge Card -->
+                <div class="bg-white rounded-xl shadow-md p-4">
+                    <div class="flex items-center gap-3 mb-3">
+                        <div class="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center">
+                            <svg class="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 2v8l3 6v6h2v-6l3-6V2H8z" />
+                            </svg>
+                        </div>
+                        <div>
+                            <h2 class="text-base font-semibold text-gray-800">Welches ist das 2. Element?</h2>
+                            <p class="text-xs text-gray-500">Finden Sie das fehlende Element anhand der 3 Hinweise</p>
+                        </div>
+                    </div>
+
+                    <!-- Element 1 (shown) + Element 2 (hidden) -->
+                    <div class="grid grid-cols-2 gap-3 mb-4">
+                        <div class="flex flex-col">
+                            <h3 class="text-xs font-medium text-gray-600 mb-1">Edukt 1</h3>
+                            <div class="@currentChallenge.Edukt1.Color border-2 rounded-lg p-3 min-h-[120px] flex flex-col justify-center flex-1">
+                                <p class="font-bold text-base">@currentChallenge.Edukt1.Name</p>
+                                <p class="text-xs text-gray-700 mb-2">@currentChallenge.Edukt1.Type</p>
+                                <div class="grid grid-cols-3 gap-1.5">
+                                    <div class="flex-1 flex flex-col gap-0.5 bg-white/75 px-2.5 py-1.5 rounded-md border border-gray-300">
+                                        <div class="flex items-center gap-1">
+                                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" style="color: @GetPhColorHex(currentChallenge.Edukt1.PhLevel)">
+                                                <circle cx="12" cy="12" r="8" />
+                                            </svg>
+                                            <span class="text-[11px] font-medium text-gray-700 leading-tight">pH: @GetPhDisplayText(currentChallenge.Edukt1.PhLevel)</span>
+                                        </div>
+                                        @if (ShouldShowPhStrip(currentChallenge.Edukt1.PhLevel))
+                                        {
+                                            <div class="@GetPhColor(currentChallenge.Edukt1.PhLevel) h-2.5 rounded border border-gray-400"></div>
+                                        }
+                                    </div>
+                                    <div class="flex-1 flex flex-col gap-0.5 bg-white/75 px-2.5 py-1.5 rounded-md border border-gray-300">
+                                        <div class="flex items-center gap-1">
+                                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" style="color: @GetFlameColorHex(currentChallenge.Edukt1.FlameColor)">
+                                                <path d="M12 2C12 2 6 8 6 13c0 3.3 2.7 6 6 6s6-2.7 6-6c0-5-6-11-6-11zm0 16c-1.6 0-3-1.4-3-3 0-1.8 1.5-3.5 3-5.1 1.5 1.6 3 3.3 3 5.1 0 1.6-1.4 3-3 3z"/>
+                                            </svg>
+                                            <span class="text-[11px] font-medium text-gray-700 leading-tight">Flamme: @GetFlameDisplayText(currentChallenge.Edukt1.FlameColor)</span>
+                                        </div>
+                                        @if (ShouldShowFlameStrip(currentChallenge.Edukt1.FlameColor))
+                                        {
+                                            <div class="@GetFlameColor(currentChallenge.Edukt1.FlameColor) h-2.5 rounded border border-gray-400"></div>
+                                        }
+                                    </div>
+                                    <div class="flex-1 flex flex-col gap-0.5 bg-white/75 px-2.5 py-1.5 rounded-md border border-gray-300">
+                                        <div class="flex items-center gap-1">
+                                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" style="color: @GetElementColorHex(currentChallenge.Edukt1.ElementColor)">
+                                                <circle cx="12" cy="12" r="8" />
+                                            </svg>
+                                            <span class="text-[11px] font-medium text-gray-700 leading-tight">Farbe: @GetElementColorDisplayText(currentChallenge.Edukt1.ElementColor)</span>
+                                        </div>
+                                        @if (ShouldShowElementColorStrip(currentChallenge.Edukt1.ElementColor))
+                                        {
+                                            <div class="@GetElementColor(currentChallenge.Edukt1.ElementColor) h-2.5 rounded border border-gray-400"></div>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex flex-col">
+                            <h3 class="text-xs font-medium text-gray-600 mb-1">Edukt 2</h3>
+                            <div class="@currentChallenge.Edukt2.Color border-2 rounded-lg p-3 min-h-[120px] flex flex-col justify-center flex-1">
+                                <p class="font-bold text-base mb-1">@currentChallenge.Edukt2.Name</p>
+                                <p class="text-xs text-gray-700 mb-2">@currentChallenge.Edukt2.Type</p>
+                                <div class="grid grid-cols-3 gap-1.5">
+                                    <div class="flex-1 flex flex-col gap-0.5 bg-white/75 px-2.5 py-1.5 rounded-md border border-gray-300">
+                                        <div class="flex items-center gap-1">
+                                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" style="color: @GetPhColorHex(currentChallenge.Edukt2.PhLevel)">
+                                                <circle cx="12" cy="12" r="8" />
+                                            </svg>
+                                            <span class="text-[11px] font-medium text-gray-700 leading-tight">pH: @GetPhDisplayText(currentChallenge.Edukt2.PhLevel)</span>
+                                        </div>
+                                        @if (ShouldShowPhStrip(currentChallenge.Edukt2.PhLevel))
+                                        {
+                                            <div class="@GetPhColor(currentChallenge.Edukt2.PhLevel) h-2.5 rounded border border-gray-400"></div>
+                                        }
+                                    </div>
+                                    <div class="flex-1 flex flex-col gap-0.5 bg-white/75 px-2.5 py-1.5 rounded-md border border-gray-300">
+                                        <div class="flex items-center gap-1">
+                                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" style="color: @GetFlameColorHex(currentChallenge.Edukt2.FlameColor)">
+                                                <path d="M12 2C12 2 6 8 6 13c0 3.3 2.7 6 6 6s6-2.7 6-6c0-5-6-11-6-11zm0 16c-1.6 0-3-1.4-3-3 0-1.8 1.5-3.5 3-5.1 1.5 1.6 3 3.3 3 5.1 0 1.6-1.4 3-3 3z"/>
+                                            </svg>
+                                            <span class="text-[11px] font-medium text-gray-700 leading-tight">Flamme: @GetFlameDisplayText(currentChallenge.Edukt2.FlameColor)</span>
+                                        </div>
+                                        @if (ShouldShowFlameStrip(currentChallenge.Edukt2.FlameColor))
+                                        {
+                                            <div class="@GetFlameColor(currentChallenge.Edukt2.FlameColor) h-2.5 rounded border border-gray-400"></div>
+                                        }
+                                    </div>
+                                    <div class="flex-1 flex flex-col gap-0.5 bg-white/75 px-2.5 py-1.5 rounded-md border border-gray-300">
+                                        <div class="flex items-center gap-1">
+                                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" style="color: @GetElementColorHex(currentChallenge.Edukt2.ElementColor)">
+                                                <circle cx="12" cy="12" r="8" />
+                                            </svg>
+                                            <span class="text-[11px] font-medium text-gray-700 leading-tight">Farbe: @GetElementColorDisplayText(currentChallenge.Edukt2.ElementColor)</span>
+                                        </div>
+                                        @if (ShouldShowElementColorStrip(currentChallenge.Edukt2.ElementColor))
+                                        {
+                                            <div class="@GetElementColor(currentChallenge.Edukt2.ElementColor) h-2.5 rounded border border-gray-400"></div>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 3 Input Fields -->
+                    <div class="grid grid-cols-3 gap-3">
+                        <div>
+                            <label class="block text-xs font-medium text-gray-700 mb-1">Produkt</label>
+                            <input type="text"
+                                   value="@inputProdukt"
+                                   @oninput="@((ChangeEventArgs e) => inputProdukt = e.Value?.ToString() ?? "")"
+                                   disabled="@submitted"
+                                   placeholder="z.B. H₂O"
+                                   class="w-full px-3 py-2 border-2 border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent disabled:bg-gray-100 disabled:text-gray-500" />
+                            @if (submitted)
+                            {
+                                <p class="@(NormalizeString(inputProdukt) == NormalizeString(currentChallenge.Produkt.Name) ? "text-green-600" : "text-red-600") text-xs mt-1">
+                                    @if (NormalizeString(inputProdukt) == NormalizeString(currentChallenge.Produkt.Name))
+                                    {
+                                        <span>✓ Richtig</span>
+                                    }
+                                    else
+                                    {
+                                        <span>✗ @currentChallenge.Produkt.Name</span>
+                                    }
+                                </p>
+                            }
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-gray-700 mb-1">Formel</label>
+                            <input type="text"
+                                   value="@inputFormel"
+                                   @oninput="@((ChangeEventArgs e) => inputFormel = e.Value?.ToString() ?? "")"
+                                   disabled="@submitted"
+                                   placeholder="z.B. 2H₂ + O₂ → 2H₂O"
+                                   class="w-full px-3 py-2 border-2 border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent disabled:bg-gray-100 disabled:text-gray-500" />
+                            @if (submitted)
+                            {
+                                <p class="@(NormalizeString(inputFormel) == NormalizeString(currentChallenge.Formel) ? "text-green-600" : "text-red-600") text-xs mt-1">
+                                    @if (NormalizeString(inputFormel) == NormalizeString(currentChallenge.Formel))
+                                    {
+                                        <span>✓ Richtig</span>
+                                    }
+                                    else
+                                    {
+                                        <span>✗ @currentChallenge.Formel</span>
+                                    }
+                                </p>
+                            }
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-gray-700 mb-1">Beobachtung</label>
+                            <input type="text"
+                                   value="@inputBeobachtung"
+                                   @oninput="@((ChangeEventArgs e) => inputBeobachtung = e.Value?.ToString() ?? "")"
+                                   disabled="@submitted"
+                                   placeholder="z.B. Knallgasreaktion"
+                                   class="w-full px-3 py-2 border-2 border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent disabled:bg-gray-100 disabled:text-gray-500" />
+                            @if (submitted)
+                            {
+                                <p class="text-xs mt-1 text-gray-500">@currentChallenge.Beobachtung</p>
+                            }
+                        </div>
+                    </div>
+
+                    <!-- Hint -->
+                    @if (showHint && !submitted)
+                    {
+                        <div class="mt-3 p-2 bg-yellow-50 border border-yellow-200 rounded-lg text-xs text-yellow-800">
+                            <span class="font-medium">Hinweis:</span> Das gesuchte Element ist vom Typ „@currentChallenge.Edukt2.Type" und hat die Flammenfarbe „@currentChallenge.Edukt2.FlameColor".
+                        </div>
+                    }
+
+                    <!-- Action Buttons -->
+                    <div class="flex gap-3 mt-3">
+                        @if (!submitted)
+                        {
+                            <button @onclick="HandleCheck"
+                                    disabled="@(!CanCheck())"
+                                    class="@(!CanCheck() ? "bg-gray-200 text-gray-400 cursor-not-allowed" : "bg-purple-500 text-white hover:bg-purple-600") flex-1 py-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 2v8l3 6v6h2v-6l3-6V2H8z" />
+                                </svg>
+                                Antwort Prüfen
+                            </button>
+                            <button @onclick="@(() => showHint = true)"
+                                    disabled="@showHint"
+                                    class="@(showHint ? "bg-gray-200 text-gray-400 cursor-not-allowed" : "bg-yellow-100 text-yellow-700 hover:bg-yellow-200") px-5 py-3 rounded-lg font-medium transition-colors flex items-center gap-2">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                Hinweis
+                            </button>
+                            <button @onclick="GenerateNewChallenge"
+                                    class="px-5 py-3 rounded-lg font-medium bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors flex items-center gap-2">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                </svg>
+                                Überspringen
+                            </button>
+                        }
+                        else if (lastResult.HasValue && lastResult.Value.IsCorrect)
+                        {
+                            <button @onclick="GenerateNewChallenge"
+                                    class="flex-1 py-3 rounded-lg font-medium bg-green-500 text-white hover:bg-green-600 transition-colors flex items-center justify-center gap-2">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                </svg>
+                                Nächste Herausforderung
+                            </button>
+                        }
+                        else
+                        {
+                            <button @onclick="HandleRetry"
+                                    class="flex-1 py-3 rounded-lg font-medium bg-purple-500 text-white hover:bg-purple-600 transition-colors flex items-center justify-center gap-2">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                </svg>
+                                Nochmal versuchen
+                            </button>
+                            <button @onclick="GenerateNewChallenge"
+                                    class="px-5 py-3 rounded-lg font-medium bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors flex items-center gap-2">
+                                Überspringen
+                            </button>
+                        }
+                    </div>
+                    @if (attempts > 0)
+                    {
+                        <p class="text-xs text-gray-400 mt-2 text-center">Versuche: @attempts</p>
+                    }
+                </div>
+            }
+
+            <!-- Guess History -->
+            <div class="flex-1">
+                <div class="flex items-center justify-between mb-2">
+                    <h2 class="text-base font-semibold flex items-center gap-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 2v8l3 6v6h2v-6l3-6V2H8z" />
+                        </svg>
+                        Vermutungshistorie
+                    </h2>
+
+                    <button @onclick="ToggleGuessHistory"
+                            class="p-2 rounded-lg border border-gray-200 bg-white text-gray-600 hover:bg-gray-50"
+                            title="Historie anzeigen/ausblenden"
+                            aria-label="Historie anzeigen oder ausblenden">
+                        @if (isGuessHistoryVisible)
+                        {
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
+                            </svg>
+                        }
+                        else
+                        {
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                            </svg>
+                        }
+                    </button>
+                </div>
+
+                @if (currentGuessLog == null && guessLogs.Count == 0)
+                {
+                    <div class="bg-white rounded-lg shadow-md p-8 text-center text-gray-400">
+                        <svg class="w-16 h-16 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 2v8l3 6v6h2v-6l3-6V2H8z" />
+                        </svg>
+                        <p>Noch keine Vermutungen. Füllen Sie die 3 Felder aus und prüfen Sie!</p>
+                    </div>
+                }
+                else
+                {
+                    <div class="space-y-3">
+                        @foreach (var log in (isGuessHistoryVisible
+                            ? GetVisibleGuessLogs()
+                            : (currentGuessLog is null ? Enumerable.Empty<GuessLog>() : [currentGuessLog])))
+                        {
+                            <div class="@(log.IsCorrect ? "border-green-400" : "border-red-400") bg-white rounded-lg shadow-md p-4 border-2">
+                                <div class="flex items-start justify-between gap-4">
+                                    <div class="flex-1">
+                                        <div class="flex items-center justify-between gap-2 mb-3">
+                                            <div class="flex items-center gap-2">
+                                                <div class="@log.Challenge.Edukt1.Color border-2 rounded px-3 py-1">
+                                                    <p class="text-sm font-bold">@log.Challenge.Edukt1.Name</p>
+                                                </div>
+                                                <span class="font-bold text-gray-600">+</span>
+                                                <div class="@log.Challenge.Edukt2.Color border-2 rounded px-3 py-1">
+                                                    <p class="text-sm font-bold">@log.Challenge.Edukt2.Name</p>
+                                                </div>
+                                                <span class="font-bold text-gray-600">→</span>
+                                                <div class="@log.Challenge.Produkt.Color border-2 rounded px-3 py-1">
+                                                    <p class="text-sm font-bold">@log.Challenge.Produkt.Name</p>
+                                                </div>
+                                            </div>
+
+                                            @if (IsCurrentGuess(log))
+                                            {
+                                                <span class="text-[11px] px-2 py-1 rounded-full bg-purple-100 text-purple-700 font-medium">Aktuell</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="text-[11px] px-2 py-1 rounded-full bg-gray-100 text-gray-600 font-medium">Historie</span>
+                                            }
+                                        </div>
+
+                                        <div class="grid grid-cols-3 gap-2 text-xs">
+                                            <div class="bg-gray-50 p-2 rounded">
+                                                <p class="text-gray-500 font-medium">Produkt</p>
+                                                <p class="font-medium">@log.UserProdukt</p>
+                                            </div>
+                                            <div class="bg-gray-50 p-2 rounded">
+                                                <p class="text-gray-500 font-medium">Formel</p>
+                                                <p class="font-medium">@log.UserFormel</p>
+                                            </div>
+                                            <div class="bg-gray-50 p-2 rounded">
+                                                <p class="text-gray-500 font-medium">Beobachtung</p>
+                                                <p class="font-medium">@log.UserBeobachtung</p>
+                                            </div>
+                                        </div>
+                                        <p class="text-xs text-gray-400 mt-2">@log.Timestamp.ToString("HH:mm:ss")</p>
+                                    </div>
+
+                                    <div class="flex items-center justify-center">
+                                        <div class="group relative w-32 h-32 bg-white/50 rounded-lg border-2 border-gray-200 flex items-center justify-center flex-shrink-0 cursor-pointer hover:shadow-lg transition-all duration-200"
+                                             style="@(!string.IsNullOrEmpty(log.Challenge.Produkt.ImageUrl) ? "background-color: #fafafa;" : "")">
+                                            @if (!string.IsNullOrEmpty(log.Challenge.Produkt.ImageUrl))
+                                            {
+                                                <img src="@log.Challenge.Produkt.ImageUrl" alt="@log.Challenge.Produkt.Name" class="h-full object-contain p-2" />
+                                                <div class="fixed inset-0 z-[9999] hidden items-center justify-center pointer-events-none group-hover:flex">
+                                                    <div class="w-[600px] h-[600px] bg-white rounded-lg shadow-2xl border-2 border-gray-300 p-3 flex items-center justify-center">
+                                                        <img src="@log.Challenge.Produkt.ImageUrl" alt="@log.Challenge.Produkt.Name" class="h-full object-contain" />
+                                                    </div>
+                                                </div>
+                                            }
+                                            else
+                                            {
+                                                <svg class="w-10 h-10 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                                </svg>
+                                                <div class="fixed inset-0 z-[9999] hidden items-center justify-center pointer-events-none group-hover:flex">
+                                                    <div class="w-[600px] h-[600px] bg-white rounded-lg shadow-2xl border-2 border-gray-300 p-3 flex items-center justify-center">
+                                                        <svg class="w-56 h-56 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                                        </svg>
+                                                    </div>
+                                                </div>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+
+                        @if (!isGuessHistoryVisible && guessLogs.Count > 0)
+                        {
+                            <div class="text-center text-xs text-gray-500">
+                                @guessLogs.Count ältere Einträge ausgeblendet
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+</div>
+
+@code {
+    private class Edukt
+    {
+        public string Id { get; set; }
+        public string Name { get; set; }
+        public string Type { get; set; }
+        public string Color { get; set; }
+        public string PhLevel { get; set; }
+        public string FlameColor { get; set; }
+        public string ElementColor { get; set; }
+        public string Description { get; set; }
+        public string ImageUrl { get; set; }
+    }
+
+    private class Produkt
+    {
+        public string Name { get; set; }
+        public string Color { get; set; }
+        public string ImageUrl { get; set; }
+    }
+
+    private class Challenge
+    {
+        public Edukt Edukt1 { get; set; }
+        public Edukt Edukt2 { get; set; }
+        public Produkt Produkt { get; set; }
+        public string Formel { get; set; }
+        public string Beobachtung { get; set; }
+    }
+
+    private class GuessLog
+    {
+        public string Id { get; set; }
+        public Challenge Challenge { get; set; }
+        public string UserProdukt { get; set; }
+        public string UserFormel { get; set; }
+        public string UserBeobachtung { get; set; }
+        public bool IsCorrect { get; set; }
+        public DateTime Timestamp { get; set; }
+    }
+
+    private List<Edukt> edukte = new()
+    {
+        new Edukt { Id = "1", Name = "H₂", Type = "Wasserstoff", Color = "bg-blue-100 border-blue-300", PhLevel = "7", FlameColor = "Blassblau", ElementColor = "Farblos", Description = "Farbloses Gas", ImageUrl = "" },
+        new Edukt { Id = "2", Name = "O₂", Type = "Sauerstoff", Color = "bg-red-100 border-red-300", PhLevel = "7", FlameColor = "Keine", ElementColor = "Farblos", Description = "Farbloses Gas", ImageUrl = "" },
+        new Edukt { Id = "3", Name = "NaCl", Type = "Salz", Color = "bg-gray-100 border-gray-300", PhLevel = "7", FlameColor = "Gelb", ElementColor = "Weiß", Description = "Weiße Kristalle", ImageUrl = "" },
+        new Edukt { Id = "4", Name = "N₂", Type = "Stickstoff", Color = "bg-purple-100 border-purple-300", PhLevel = "7", FlameColor = "Keine", ElementColor = "Farblos", Description = "Inertes Gas", ImageUrl = "" },
+        new Edukt { Id = "5", Name = "C", Type = "Kohlenstoff", Color = "bg-slate-200 border-slate-400", PhLevel = "-", FlameColor = "Rot-Orange", ElementColor = "Schwarz", Description = "Schwarzer Feststoff", ImageUrl = "" },
+        new Edukt { Id = "6", Name = "S", Type = "Schwefel", Color = "bg-yellow-100 border-yellow-300", PhLevel = "-", FlameColor = "Blau", ElementColor = "Gelb", Description = "Gelber Feststoff", ImageUrl = "" },
+        new Edukt { Id = "7", Name = "Fe", Type = "Eisen", Color = "bg-gray-200 border-gray-400", PhLevel = "-", FlameColor = "Orangefunken", ElementColor = "Grau", Description = "Metallisch grau", ImageUrl = "" },
+        new Edukt { Id = "8", Name = "Cu", Type = "Kupfer", Color = "bg-orange-200 border-orange-400", PhLevel = "-", FlameColor = "Grün", ElementColor = "Rotbraun", Description = "Rötliches Metall", ImageUrl = "" },
+        new Edukt { Id = "9", Name = "Cl₂", Type = "Chlor", Color = "bg-green-200 border-green-400", PhLevel = "-", FlameColor = "Keine", ElementColor = "Gelbgrün", Description = "Gelbgrünes Gas", ImageUrl = "" },
+        new Edukt { Id = "10", Name = "CO₂", Type = "Kohlendioxid", Color = "bg-gray-100 border-gray-300", PhLevel = "5.6", FlameColor = "Keine", ElementColor = "Farblos", Description = "Farbloses Gas", ImageUrl = "" },
+        new Edukt { Id = "11", Name = "H₂O", Type = "Wasser", Color = "bg-cyan-100 border-cyan-300", PhLevel = "7", FlameColor = "Keine", ElementColor = "Farblos", Description = "Klare Flüssigkeit", ImageUrl = "" },
+        new Edukt { Id = "12", Name = "NH₃", Type = "Ammoniak", Color = "bg-blue-200 border-blue-400", PhLevel = "11", FlameColor = "Keine", ElementColor = "Farblos", Description = "Stechend riechendes Gas", ImageUrl = "" },
+    };
+
+    private List<Challenge> challenges = new();
+    private Challenge currentChallenge;
+    private string inputProdukt = "";
+    private string inputFormel = "";
+    private string inputBeobachtung = "";
+    private GuessLog? currentGuessLog;
+    private List<GuessLog> guessLogs = new();
+    private bool showHint = false;
+    private bool submitted = false;
+    private bool isGuessHistoryVisible = false;
+    private (bool IsCorrect, Edukt CorrectElement)? lastResult = null;
+    private int attempts = 0;
+    private Random random = new();
+
+    protected override void OnInitialized()
+    {
+        InitializeChallenges();
+        GenerateNewChallenge();
+        isGuessHistoryVisible = false;
+    }
+
+    private void InitializeChallenges()
+    {
+        challenges = new()
+        {
+            new Challenge { Edukt1 = edukte[0], Edukt2 = edukte[1], Produkt = new Produkt { Name = "H₂O", Color = "bg-cyan-100 border-cyan-300" }, Formel = "2H₂ + O₂ → 2H₂O", Beobachtung = "Knallgasreaktion, Wasser entsteht" },
+            new Challenge { Edukt1 = edukte[4], Edukt2 = edukte[1],Produkt = new Produkt { Name = "CO₂", Color = "bg-gray-100 border-gray-300" }, Formel = "C + O₂ → CO₂", Beobachtung = "Verbrennung, farbloses Gas entsteht" },
+            new Challenge { Edukt1 = edukte[6], Edukt2 = edukte[5],Produkt = new Produkt { Name = "FeS", Color = "bg-slate-300 border-slate-500" }, Formel = "Fe + S → FeS", Beobachtung = "Regeneration von Eisen und Schwefel" },
+            new Challenge { Edukt1 = edukte[7], Edukt2 = edukte[1],Produkt = new Produkt { Name = "CuO", Color = "bg-orange-100 border-orange-300" }, Formel = "2Cu + O₂ → 2CuO", Beobachtung = "Rötliche Farbe ändert sich zu schwarzem Pulver" },
+            new Challenge { Edukt1 = edukte[8], Edukt2 = edukte[10],Produkt = new Produkt { Name = "Cl₂O", Color = "bg-green-100 border-green-300" }, Formel = "2Cl₂ + H₂O → 2HCl + O₂", Beobachtung = "Gelbe Farbe, stechender Geruch" },
+            new Challenge { Edukt1 = edukte[9], Edukt2 = edukte[3],Produkt = new Produkt { Name = "N₂O", Color = "bg-purple-100 border-purple-300" }, Formel = "2N₂ + O₂ → 2N₂O", Beobachtung = "Farbloses Gas mit leicht süßlichem Geruch" },
+            new Challenge { Edukt1 = edukte[11], Edukt2 = edukte[4],Produkt = new Produkt { Name = "Fe₂O₃", Color = "bg-red-200 border-red-400" }, Formel = "4Fe + 3O₂ → 2Fe₂O₃", Beobachtung = "Metallisch glänzend zu rotbraun" },
+        };
+    }
+
+    private void GenerateNewChallenge()
+    {
+        currentChallenge = challenges[random.Next(challenges.Count)];
+        inputProdukt = "";
+        inputFormel = "";
+        inputBeobachtung = "";
+        showHint = false;
+        submitted = false;
+        lastResult = null;
+        attempts = 0;
+        StateHasChanged();
+    }
+
+    private bool CanCheck()
+    {
+        return !string.IsNullOrWhiteSpace(inputProdukt)
+            && !string.IsNullOrWhiteSpace(inputFormel)
+            && !string.IsNullOrWhiteSpace(inputBeobachtung);
+    }
+
+    private void HandleCheck()
+    {
+        if (!CanCheck() || currentChallenge == null) return;
+
+        bool produktMatch = NormalizeString(inputProdukt) == NormalizeString(currentChallenge.Produkt.Name);
+        bool formelMatch = NormalizeString(inputFormel) == NormalizeString(currentChallenge.Formel);
+        bool isCorrect = produktMatch && formelMatch;
+
+        attempts++;
+        submitted = true;
+        lastResult = (isCorrect, currentChallenge.Edukt2);
+
+        if (isCorrect)
+        {
+            var newLog = new GuessLog
+            {
+                Id = DateTime.Now.Ticks.ToString(),
+                Challenge = currentChallenge,
+                UserProdukt = inputProdukt,
+                UserFormel = inputFormel,
+                UserBeobachtung = inputBeobachtung,
+                IsCorrect = isCorrect,
+                Timestamp = DateTime.Now
+            };
+
+            if (currentGuessLog != null)
+            {
+                guessLogs.Insert(0, currentGuessLog);
+            }
+
+            currentGuessLog = newLog;
+        }
+
+        StateHasChanged();
+    }
+
+    private void HandleRetry()
+    {
+        submitted = false;
+        lastResult = null;
+        StateHasChanged();
+    }
+
+    private void HandleDeleteLog(string logId)
+    {
+        if (currentGuessLog?.Id == logId)
+        {
+            currentGuessLog = guessLogs.Count > 0 ? guessLogs[0] : null;
+            if (guessLogs.Count > 0)
+            {
+                guessLogs.RemoveAt(0);
+            }
+        }
+        else
+        {
+            guessLogs.RemoveAll(l => l.Id == logId);
+        }
+
+        StateHasChanged();
+    }
+
+    private void ToggleGuessHistory()
+    {
+        isGuessHistoryVisible = !isGuessHistoryVisible;
+    }
+
+    private string NormalizeString(string s)
+    {
+        if (string.IsNullOrEmpty(s)) return "";
+        return s.ToLower()
+            .Replace(" ", "")
+            .Replace("₂", "2")
+            .Replace("₃", "3")
+            .Replace("₄", "4");
+    }
+
+    private string GetPhColor(string phLevel)
+    {
+        return phLevel switch
+        {
+            "-" => "bg-white",
+            "1" => "bg-red-600",
+            "2" => "bg-red-500",
+            "3" => "bg-red-400",
+            "4" => "bg-red-300",
+            "5" => "bg-orange-300",
+            "6" => "bg-yellow-300",
+            "7" => "bg-green-300",
+            "8" => "bg-green-400",
+            "9" => "bg-green-500",
+            "10" => "bg-green-600",
+            "11" => "bg-blue-300",
+            "12" => "bg-blue-400",
+            _ => "bg-white",
+        };
+    }
+
+    private string GetFlameColor(string flameColor)
+    {
+        return flameColor switch
+        {
+            "Keine" => "bg-white",
+            "Blassblau" => "bg-blue-200",
+            "Gelb" => "bg-yellow-300",
+            "Orangefunken" => "bg-orange-400",
+            "Grün" => "bg-green-400",
+            "Rot-Orange" => "bg-orange-500",
+            "Blau" => "bg-blue-400",
+            _ => "bg-gray-300",
+        };
+    }
+
+    private string GetElementColor(string elementColor)
+    {
+        return elementColor switch
+        {
+            "Farblos" => "bg-white",
+            "Weiß" => "bg-gray-100",
+            "Schwarz" => "bg-black",
+            "Gelb" => "bg-yellow-300",
+            "Grau" => "bg-gray-400",
+            "Rotbraun" => "bg-orange-700",
+            "Gelbgrün" => "bg-lime-300",
+            _ => "bg-white",
+        };
+    }
+
+    private string GetPhColorHex(string phLevel)
+    {
+        return phLevel switch
+        {
+            "-" => "#000000",
+            "1" => "#dc2626",
+            "2" => "#ef4444",
+            "3" => "#f87171",
+            "4" => "#fca5a5",
+            "5" => "#fed7aa",
+            "6" => "#fef08a",
+            "7" => "#bbf7d0",
+            "8" => "#86efac",
+            "9" => "#4ade80",
+            "10" => "#16a34a",
+            "11" => "#bfdbfe",
+            "12" => "#93c5fd",
+            _ => "#e5e7eb",
+        };
+    }
+
+    private string GetFlameColorHex(string flameColor)
+    {
+        return flameColor switch
+        {
+            "Keine" => "#000000",
+            "Blassblau" => "#bfdbfe",
+            "Gelb" => "#fcd34d",
+            "Orangefunken" => "#fb923c",
+            "Grün" => "#4ade80",
+            "Rot-Orange" => "#f97316",
+            "Blau" => "#60a5fa",
+            _ => "#d1d5db",
+        };
+    }
+
+    private string GetElementColorHex(string elementColor)
+    {
+        return elementColor switch
+        {
+            "Farblos" => "#000000",
+            "Weiß" => "#f3f4f6",
+            "Schwarz" => "#111827",
+            "Gelb" => "#fde047",
+            "Grau" => "#9ca3af",
+            "Rotbraun" => "#c2410c",
+            "Gelbgrün" => "#bef264",
+            _ => "#000000",
+        };
+    }
+
+    private bool ShouldShowPhStrip(string phLevel)
+    {
+        return !string.IsNullOrWhiteSpace(phLevel);
+    }
+
+    private string GetPhDisplayText(string phLevel)
+    {
+        return phLevel switch
+        {
+            "1" or "2" or "3" or "4" => "Rot",
+            "5" => "Orange",
+            "6" => "Gelb",
+            "7" or "8" or "9" or "10" => "Grün",
+            "11" or "12" => "Blau",
+            _ => "Keine"
+        };
+    }
+
+    private bool ShouldShowFlameStrip(string flameColor)
+    {
+        return !string.IsNullOrWhiteSpace(flameColor);
+    }
+
+    private string GetFlameDisplayText(string flameColor)
+    {
+        return string.Equals(flameColor, "None", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(flameColor, "Keine", StringComparison.OrdinalIgnoreCase)
+            ? "Keine"
+            : flameColor;
+    }
+
+    private bool ShouldShowElementColorStrip(string elementColor)
+    {
+        return !string.IsNullOrWhiteSpace(elementColor);
+    }
+
+    private string GetElementColorDisplayText(string elementColor)
+    {
+        return string.IsNullOrWhiteSpace(elementColor)
+            || string.Equals(elementColor, "Farblos", StringComparison.OrdinalIgnoreCase)
+            ? "Keine"
+            : elementColor;
+    }
+
+    private bool IsCurrentGuess(GuessLog log) => currentGuessLog?.Id == log.Id;
+
+    private IEnumerable<GuessLog> GetVisibleGuessLogs()
+    {
+        if (currentGuessLog != null)
+        {
+            yield return currentGuessLog;
+        }
+
+        foreach (var log in guessLogs)
+        {
+            yield return log;
+        }
+    }
+}

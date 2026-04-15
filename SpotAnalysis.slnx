@@ -11,4 +11,5 @@
   <Project Path="SpotAnalysis.Services/SpotAnalysis.Services.csproj" />
   <Project Path="SpotAnalysis.Web.Tests/SpotAnalysis.Web.Tests.csproj" />
   <Project Path="SpotAnalysis.Web/SpotAnalysis.Web.csproj" Id="a30fe9d9-579b-4b76-980d-b5aea0cd3a54" />
+  <Project Path="SpotAnalysisV2.Web/SpotAnalysisV2.Web.csproj" />
 </Solution>

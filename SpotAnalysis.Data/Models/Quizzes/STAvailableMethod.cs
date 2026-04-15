@@ -11,7 +11,7 @@ public class STAvailableMethod {
 
 
     [DeleteBehavior(DeleteBehavior.Restrict)]
-    public Question Question { get; set; } = null!;
+    public STQuestion STQuestion { get; set; } = null!;
 
     [DeleteBehavior(DeleteBehavior.Restrict)]
     public Method Method { get; set; } = null!;

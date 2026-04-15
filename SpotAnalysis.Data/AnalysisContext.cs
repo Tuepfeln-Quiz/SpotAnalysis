@@ -54,25 +54,33 @@ public class AnalysisContext : DbContext {
     // Zur Laufzeit: DI-Konfiguration in SpotAnalysis.Web/Program.cs (AddDbContext + appsettings.json)
     // Für Migrations: --startup-project SpotAnalysis.Web (siehe EF-MIGRATIONS.md)
     public AnalysisContext(DbContextOptions<AnalysisContext> options)
-        : base(options)
-    {
+        : base(options) {
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder) {
+        modelBuilder.Entity<Reaction>()
+        .ToTable(t => t.HasCheckConstraint("CK_Reaction_ChemicalOrder", "\"Chemical1ID\" <= \"Chemical2ID\""));
+
         modelBuilder.Entity<User>()
-        .HasMany(u => u.Groups)
-        .WithMany(r => r.Users)
-        .UsingEntity(
-            u => u.HasOne(typeof(Group)).WithMany().HasForeignKey("GroupID").OnDelete(DeleteBehavior.Restrict),
-            g => g.HasOne(typeof(User)).WithMany().HasForeignKey("UserID").OnDelete(DeleteBehavior.Restrict)
+            .HasMany(u => u.Groups)
+            .WithMany(r => r.Users)
+            .UsingEntity(
+                // deleting a group is only possible, when it is not referenced by any user
+                groupForeignKey => groupForeignKey
+                    .HasOne(typeof(Group)).WithMany().HasForeignKey("GroupID").OnDelete(DeleteBehavior.Restrict),
+                // deleting the user also deletes all references to the user in the join table, but not the groups themselves
+                userForeignKey => userForeignKey
+                    .HasOne(typeof(User)).WithMany().HasForeignKey("UserID").OnDelete(DeleteBehavior.Cascade)
             );
 
         modelBuilder.Entity<Quiz>()
         .HasMany(q => q.Groups)
         .WithMany(g => g.Quizzes)
         .UsingEntity(
+            // deleting a quiz is only possible, when it is not referenced by any group
             q => q.HasOne(typeof(Group)).WithMany().HasForeignKey("GroupID").OnDelete(DeleteBehavior.Restrict),
+            // deleting a group is only possible, when it is not referenced by any quiz
             g => g.HasOne(typeof(Quiz)).WithMany().HasForeignKey("QuizID").OnDelete(DeleteBehavior.Restrict)
-            );
+         );
     }
 }

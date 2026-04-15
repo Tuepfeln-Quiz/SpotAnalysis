@@ -9,21 +9,22 @@ public class UserService(IDbContextFactory<AnalysisContext> factory) : IUserServ
 {
     public async Task<User?> ChangePassword(string userName, string oldPassword, string newPassword)
     {
-        System.Console.WriteLine("ChangePassword method called with username: " + userName);
+        Console.WriteLine("ChangePassword method called with username: " + userName);
         return null;
     }
 
     public async Task<User?> Login(string userName, string password)
     {
-        System.Console.WriteLine("Login method called with username: " + userName);
+        Console.WriteLine("Login method called with username: " + userName);
 
         if (string.IsNullOrEmpty(userName) || string.IsNullOrEmpty(password))
         {
             return null;
         }
 
-        using var context = factory.CreateDbContext();
-        var user = context.Users.FirstOrDefault(u => u.UserName == userName);
+        await using var context = await factory.CreateDbContextAsync();
+        var user = context.Users.FirstOrDefault(u => u.UserName.Equals(userName, StringComparison.OrdinalIgnoreCase));
+        
         if (user == null) return null;
         
         if (string.IsNullOrEmpty(user.PasswordHash))
@@ -33,11 +34,8 @@ public class UserService(IDbContextFactory<AnalysisContext> factory) : IUserServ
 
         var hashedPassword = new PasswordProvider.Password(password, user.UserID);
         var storedHash = PasswordProvider.Password.FromParamString(user.PasswordHash);
-        if (hashedPassword.Compare(storedHash))
-        {
-            return user;
-        }
-        return null;
+        
+        return hashedPassword.Compare(storedHash) ? user : null;
     }
     
     public async Task Register(string userName, string password, string? email, Guid? userId)

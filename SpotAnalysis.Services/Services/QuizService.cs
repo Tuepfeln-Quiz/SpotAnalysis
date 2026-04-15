@@ -435,6 +435,7 @@ public class QuizService(ILogger<QuizService> logger, IDbContextFactory<Analysis
             Description = question.Description,
             Type = QuestionType.SpotTest,
             CreatedBy = teacherId,
+            Title = question.Title,
         };
 
         await dbContext.Questions.AddAsync(newQuestion);
@@ -472,6 +473,7 @@ public class QuizService(ILogger<QuizService> logger, IDbContextFactory<Analysis
             Description = question.Description,
             Type = QuestionType.SpotTestLight,
             CreatedBy = teacherId,
+            Title = question.Title
         };
 
         await dbContext.Questions.AddAsync(newQuestion);
@@ -584,6 +586,10 @@ public class QuizService(ILogger<QuizService> logger, IDbContextFactory<Analysis
 
         var question = await dbContext.Questions.SingleAsync(x => x.QuestionID == questionId);
 
+        if (await dbContext.QuizQuestions.AnyAsync(x => x.QuestionID == questionId))
+            throw new InvalidOperationException(
+                $"Question {questionId} is used in one or more quizzes and cannot be deleted.");
+
         switch (question.Type)
         {
             case QuestionType.SpotTest:
@@ -604,7 +610,6 @@ public class QuizService(ILogger<QuizService> logger, IDbContextFactory<Analysis
                 break;
         }
 
-        await dbContext.QuizQuestions.Where(x => x.QuestionID == questionId).ExecuteDeleteAsync();
         await dbContext.Questions.Where(x => x.QuestionID == questionId).ExecuteDeleteAsync();
 
         await transaction.CommitAsync();

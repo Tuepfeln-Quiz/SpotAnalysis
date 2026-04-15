@@ -7,4 +7,5 @@ public class ConfigSTLQuestionDto
     public required int ReactionId { get; set; }
     public required int ShowEductId { get; set; }
     public required List<int> AvailableReactions { get; set; }
+    public required string Title  { get; set; }
 }

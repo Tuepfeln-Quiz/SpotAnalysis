@@ -474,6 +474,9 @@ public class QuizService(ILogger<QuizService> logger, IDbContextFactory<Analysis
             ShownEductID = question.ShowEductId,
         };
         
+        await dbContext.STLQuestions.AddAsync(stlQuestion);
+        await dbContext.SaveChangesAsync();
+        
         var reactions = question.AvailableReactions.Select(reactionId => new STLAvailableReaction
         {
             QuestionID = newQuestion.QuestionID,
@@ -535,12 +538,15 @@ public class QuizService(ILogger<QuizService> logger, IDbContextFactory<Analysis
         await using var dbContext = await factory.CreateDbContextAsync();
         await using var transaction = await dbContext.Database.BeginTransactionAsync();
 
-        var existing = await dbContext.Questions.SingleOrDefaultAsync(q => q.QuestionID == question.Id);
-        if (existing is null)
+        var existing = await dbContext.Questions
+            .Include(q => q.STLQuestion)
+            .SingleOrDefaultAsync(q => q.QuestionID == question.Id && q.Type == QuestionType.SpotTestLight);
+        
+        if (existing?.STLQuestion is null)
             throw new KeyNotFoundException($"Question with id {question.Id} not found.");
 
         existing.Description = question.Description;
-        existing.ReactionID = question.ReactionId;
+        existing.STLQuestion.ReactionID = question.ReactionId;
 
         await dbContext.STLAvailableReactions
             .Where(r => r.QuestionID == question.Id)

@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System.Security.Authentication;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using SpotAnalysis.Data;
 using SpotAnalysis.Data.Enums;
@@ -13,27 +14,41 @@ public class UserService(ILogger<UserService> logger, IDbContextFactory<Analysis
         return null;
     }
 
-    public async Task<User?> Login(string userName, string password)
+    public async Task<User> Login(string userName, string password)
     {
         if (string.IsNullOrEmpty(userName) || string.IsNullOrEmpty(password))
         {
-            return null;
+            logger.LogWarning("Username or password was null or empty, Username: {userName}, Password: {password}", userName, password);
+            throw new ArgumentException("Username or password was null or empty");
         }
 
         await using var context = await factory.CreateDbContextAsync();
-        var user = context.Users.FirstOrDefault(u => u.UserName.Equals(userName, StringComparison.OrdinalIgnoreCase));
+        var user = await context.Users.SingleOrDefaultAsync(u => u.UserName.ToLower() == userName.ToLower());
         
-        if (user == null) return null;
+        if (user == null)
+        {
+            logger.LogWarning("No user was found with user name: {userName}", userName);
+            throw new ArgumentException("No user was found with given user name");
+        }
         
         if (string.IsNullOrEmpty(user.PasswordHash))
         {
-            return null;
+            logger.LogWarning("The password was null or empty");
+            throw new ArgumentException("The given password was empty");
         }
 
         var hashedPassword = new PasswordProvider.Password(password, user.UserID);
         var storedHash = PasswordProvider.Password.FromParamString(user.PasswordHash);
-        
-        return hashedPassword.Compare(storedHash) ? user : null;
+
+        var isPasswordCorrect = hashedPassword.Compare(storedHash);
+
+        if (!isPasswordCorrect)
+        {
+            logger.LogError("The given password was wrong");
+            throw new AuthenticationException("The given password was wrong");
+        }
+
+        return user;
     }
     
     public async Task Register(string userName, string password, string? email, Guid? userId)

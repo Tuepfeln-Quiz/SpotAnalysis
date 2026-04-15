@@ -8,5 +8,5 @@ public class StudentDto
     /// There will be the groups displayed where the corresponding teacher is also part of.
     /// Teachers will not see the groups where they are not part of.
     /// </summary>
-    public List<GroupDto> AssignedGroups { get; init; }
+    public required List<GroupDto> AssignedGroups { get; init; } = [];
 }

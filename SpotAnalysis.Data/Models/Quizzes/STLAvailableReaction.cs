@@ -11,7 +11,7 @@ public class STLAvailableReaction {
 
 
     [DeleteBehavior(DeleteBehavior.Restrict)]
-    public STQuestion STQuestion { get; set; } = null!;
+    public STLQuestion STLQuestion { get; set; } = null!;
 
     [DeleteBehavior(DeleteBehavior.Restrict)]
     public Reaction Reaction { get; set; } = null!;

@@ -26,7 +26,7 @@
                                 @if (slot1 != null)
                                 {
                                     <div class="compound-card chemical-@(slot1.ChemicalTypeName.ToLowerInvariant()) h-100"
-                                         style="border-color: @ColorHelper.GetBorderColor(slot1.MethodOutputs.GetValueOrDefault("Eigenfarbe"))"
+                                         style="border-color: @ColorHelper.GetBorderColor(slot1.Color)"
                                          draggable="true"
                                          @ondragstart="() => { draggedChemical = slot1; dragSource = 1; }">
                                         <SubstanceCard Chemical="slot1" />
@@ -52,7 +52,7 @@
                                 @if (slot2 != null)
                                 {
                                     <div class="compound-card chemical-@(slot2.ChemicalTypeName.ToLowerInvariant()) h-100"
-                                         style="border-color: @ColorHelper.GetBorderColor(slot2.MethodOutputs.GetValueOrDefault("Eigenfarbe"))"
+                                         style="border-color: @ColorHelper.GetBorderColor(slot2.Color)"
                                          draggable="true"
                                          @ondragstart="() => { draggedChemical = slot2; dragSource = 2; }">
                                         <SubstanceCard Chemical="slot2" />
@@ -157,14 +157,14 @@
                            placeholder="Stoffe suchen..."
                            @bind="searchTerm"
                            @bind:event="oninput" />
-                    @foreach (var group in FilteredChemicals.GroupBy(c => c.ChemicalTypeID).OrderBy(g => g.Key))
+                    @foreach (var group in FilteredChemicals.GroupBy(c => c.Type).OrderBy(g => g.Key))
                     {
-                        <h6 class="text-muted fw-semibold mt-3 mb-2">@(group.Key == 1 ? "Edukte" : "Zusatzstoffe")</h6>
+                        <h6 class="text-muted fw-semibold mt-3 mb-2">@(group.Key == ChemicalType.Educt ? "Edukte" : "Zusatzstoffe")</h6>
                         <div class="d-flex flex-column gap-2 mb-2">
                             @foreach (var chem in group)
                             {
                                 <div class="compound-card chemical-@(chem.ChemicalTypeName.ToLowerInvariant())"
-                                     style="border-color: @ColorHelper.GetBorderColor(chem.MethodOutputs.GetValueOrDefault("Eigenfarbe"))"
+                                     style="border-color: @ColorHelper.GetBorderColor(chem.Color)"
                                      draggable="true"
                                      @ondragstart="() => { draggedChemical = chem; dragSource = 0; }">
                                     <SubstanceCard Chemical="chem" />
@@ -178,27 +178,35 @@
     </div>
 </div>
 
+@inject IChemistryDataService ChemistryData
+
 @code {
-    private List<ChemicalViewModel> chemicals = SeedData.Chemicals;
-    private List<ReactionViewModel> reactions = SeedData.Reactions;
+    private List<LabChemicalDto> chemicals = new();
+    private List<LabReactionDto> reactions = new();
 
     private string searchTerm = "";
-    private ChemicalViewModel? draggedChemical;
+    private LabChemicalDto? draggedChemical;
     private int dragSource; // 0 = sidebar, 1 = slot1, 2 = slot2
-    private ChemicalViewModel? slot1;
-    private ChemicalViewModel? slot2;
+    private LabChemicalDto? slot1;
+    private LabChemicalDto? slot2;
     private int dragOverSlot;
 
     private MixLogViewModel? lastResult;
     private List<MixLogViewModel> mixLog = new();
     private int logCounter;
 
-    private IEnumerable<ChemicalViewModel> FilteredChemicals =>
+    private IEnumerable<LabChemicalDto> FilteredChemicals =>
         string.IsNullOrWhiteSpace(searchTerm)
             ? chemicals
             : chemicals.Where(c =>
                 c.Name.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
                 c.Formula.Contains(searchTerm, StringComparison.OrdinalIgnoreCase));
+
+    protected override async Task OnInitializedAsync()
+    {
+        chemicals = await ChemistryData.GetAllChemicalsAsync();
+        reactions = await ChemistryData.GetAllReactionsAsync();
+    }
 
     private void Drop(int slot)
     {
@@ -252,7 +260,7 @@
         dragOverSlot = 0;
     }
 
-    private ReactionViewModel? FindReaction(int chem1Id, int chem2Id)
+    private LabReactionDto? FindReaction(int chem1Id, int chem2Id)
     {
         return reactions.FirstOrDefault(r =>
             (r.Chemical1ID == chem1Id && r.Chemical2ID == chem2Id) ||

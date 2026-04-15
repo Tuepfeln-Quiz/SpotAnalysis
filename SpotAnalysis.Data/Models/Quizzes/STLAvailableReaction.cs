@@ -1,5 +1,8 @@
 ﻿namespace SpotAnalysis.Data.Models.Quizzes;
 
+/// <summary>
+/// Contains the reactions that can be used in the specified SpotTestQuestion.
+/// </summary>
 
 [PrimaryKey(nameof(QuestionID), nameof(ReactionID))]
 public class STLAvailableReaction {
@@ -8,7 +11,7 @@ public class STLAvailableReaction {
 
 
     [DeleteBehavior(DeleteBehavior.Restrict)]
-    public Question Question { get; set; } = null!;
+    public STLQuestion STLQuestion { get; set; } = null!;
 
     [DeleteBehavior(DeleteBehavior.Restrict)]
     public Reaction Reaction { get; set; } = null!;

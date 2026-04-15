@@ -9,16 +9,4 @@ public class STLQuestionDto
     public required int Order { get; init; }
     public required ChemicalDto Educt { get; init; }
     public required string Observation { get; init; }
-
-    public static STLQuestionDto FromQuestion(QuizQuestion question)
-    {
-        return new STLQuestionDto
-        {
-            Id = question.QuestionID,
-            Description = question.Question.Description,
-            Order = question.Order,
-            Educt = ChemicalDto.FromInput(question.Question.STLInputs.ElementAt(0)),
-            Observation = question.Question.STLInputs.ElementAt(0).Observation.Description
-        };
-    }
 }

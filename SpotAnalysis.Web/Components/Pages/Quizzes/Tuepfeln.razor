@@ -1,5 +1,6 @@
 @page "/tuepfeln"
 @inject NavigationManager Navigation
+@inject IChemistryDataService ChemistryData
 
 <PageTitle>Tüpfeln – Tüpfeln Digital</PageTitle>
 
@@ -33,7 +34,12 @@
 </div>
 
 @code {
-    private List<TuepfelnQuizViewModel> quizzes = SeedData.TuepfelnQuizzes;
+    private List<SpotTestQuizDto> quizzes = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        quizzes = await ChemistryData.GetSpotTestQuizzesAsync();
+    }
 
     private void NavigateToQuiz(int quizId)
     {

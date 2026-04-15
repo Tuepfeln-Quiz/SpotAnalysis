@@ -1,18 +1,18 @@
-namespace SpotAnalysis.Web.Models;
+namespace SpotAnalysis.Services.DTOs;
 
-public class QuizViewModel
+public class ProofQuizDto
 {
     public int QuizID { get; set; }
     public string Name { get; set; } = "";
     public string QuizTypeName { get; set; } = "";
-    public List<QuestionViewModel> Questions { get; set; } = new();
+    public List<ProofQuestionDto> Questions { get; set; } = new();
 }
 
-public class QuestionViewModel
+public class ProofQuestionDto
 {
     public int QuestionID { get; set; }
     public string Description { get; set; } = "";
-    public List<ChemicalViewModel> AvailableChemicals { get; set; } = new();
+    public List<LabChemicalDto> AvailableChemicals { get; set; } = new();
     public List<string> AvailableMethods { get; set; } = new();
     public int CorrectChemical1ID { get; set; }
     public int CorrectChemical2ID { get; set; }

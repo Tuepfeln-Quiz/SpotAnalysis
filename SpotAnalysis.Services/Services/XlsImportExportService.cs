@@ -175,6 +175,15 @@ public class XlsImportExportService : IXlsImportExportService
         }
     }
 
+    private static Chemical? FindChemical(Dictionary<string, Chemical> chemicals, string? name)
+    {
+        if (string.IsNullOrWhiteSpace(name)) return null;
+        // Try by name first, then by formula (Excel "Zusatzstoff" column uses formula)
+        if (chemicals.TryGetValue(name, out var chem)) return chem;
+        return chemicals.Values.FirstOrDefault(c =>
+            string.Equals(c.Formula, name, StringComparison.OrdinalIgnoreCase));
+    }
+
     private async Task UpsertCombinationsAsync(
         List<Combination> combinations, Dictionary<string, Chemical> chemicals)
     {
@@ -209,20 +218,22 @@ public class XlsImportExportService : IXlsImportExportService
             if (string.IsNullOrWhiteSpace(combo.FirstEductName)) continue;
             if (string.IsNullOrWhiteSpace(combo.Product)) continue;
 
-            if (!chemicals.TryGetValue(combo.FirstEductName, out var chem1)) continue;
+            var chem1 = FindChemical(chemicals, combo.FirstEductName);
+            if (chem1 == null) continue;
 
-            Chemical? chem2 = null;
-            if (!string.IsNullOrWhiteSpace(combo.SecondEductName))
-                chemicals.TryGetValue(combo.SecondEductName, out chem2);
-            if (chem2 == null && !string.IsNullOrWhiteSpace(combo.AdditiveName))
-                chemicals.TryGetValue(combo.AdditiveName, out chem2);
+            var chem2 = FindChemical(chemicals, combo.SecondEductName)
+                     ?? FindChemical(chemicals, combo.AdditiveName);
             if (chem2 == null) continue;
 
             Observation? observation = null;
             if (!string.IsNullOrWhiteSpace(combo.Observation))
                 existingObservations.TryGetValue(combo.Observation, out observation);
 
-            var key = (chem1.ChemicalID, chem2.ChemicalID);
+            // Normalisierung: Reaction speichert Chemicals immer mit kleinerer ID zuerst (siehe Reaction-Konstruktor + CK_Reaction_ChemicalOrder).
+            // Der Lookup-Key muss derselben Normalisierung folgen, sonst wird die Excel-Reihenfolge zur Duplikat-Falle.
+            var key = chem1.ChemicalID <= chem2.ChemicalID
+                ? (chem1.ChemicalID, chem2.ChemicalID)
+                : (chem2.ChemicalID, chem1.ChemicalID);
 
             if (existingReactions.TryGetValue(key, out var reaction))
             {
@@ -233,10 +244,8 @@ public class XlsImportExportService : IXlsImportExportService
             }
             else
             {
-                reaction = new Reaction
+                reaction = new Reaction(chem1, chem2)
                 {
-                    Chemical1ID = chem1.ChemicalID,
-                    Chemical2ID = chem2.ChemicalID,
                     RelevantProduct = combo.Product,
                     Formula = combo.Formula ?? "",
                     ObservationID = observation?.ObservationID ?? 0
@@ -320,7 +329,7 @@ public class XlsImportExportService : IXlsImportExportService
             {
                 FirstEductName = chem1.Name,
                 SecondEductName = chem2.Type == ChemicalType.Educt ? chem2.Name : null,
-                AdditiveName = chem2.Type == ChemicalType.Additive ? chem2.Name : null,
+                AdditiveName = chem2.Type == ChemicalType.Additive ? chem2.Formula : null,
                 Product = r.RelevantProduct,
                 Formula = r.Formula,
                 Observation = r.Observation?.Description

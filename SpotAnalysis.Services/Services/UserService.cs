@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using SpotAnalysis.Data;
+using SpotAnalysis.Data.Enums;
 using SpotAnalysis.Data.Models.Identity;
 
 namespace SpotAnalysis.Services.Services;
@@ -65,7 +66,7 @@ public class UserService(IDbContextFactory<AnalysisContext> factory) : IUserServ
             PasswordHash = passwordString,
             UserID = newGuid
         };
-        newUser.Roles.Add(await context.Roles.SingleAsync(r => r.Title == "student"));
+        newUser.Roles.Add(Role.Student);
         context.Users.Add(newUser);
         
         await context.SaveChangesAsync();

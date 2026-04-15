@@ -4,6 +4,7 @@
 @using Microsoft.AspNetCore.Authentication.Cookies
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Components.Authorization
+@using SpotAnalysis.Data.Enums
 @using SpotAnalysis.Data.Models.Identity
 @using SpotAnalysis.Services
 @using SpotAnalysis.Services.Services
@@ -90,8 +91,9 @@
             var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.Name, userAccount.UserName ?? string.Empty),
-                new Claim(ClaimTypes.Role, userAccount.Roles?.FirstOrDefault()?.Title ?? string.Empty)
             };
+
+            claims.AddRange(userAccount.Roles?.Select(role => new Claim(ClaimTypes.Role, ((Role)role).ToString() ?? string.Empty)) ?? Enumerable.Empty<Claim>());
 
             var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
             var principal = new ClaimsPrincipal(identity);

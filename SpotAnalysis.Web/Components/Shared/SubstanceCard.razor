@@ -4,7 +4,7 @@
 </div>
 
 @{
-    var eigenfarbe = Chemical.MethodOutputs.GetValueOrDefault("Eigenfarbe");
+    var eigenfarbe = string.IsNullOrWhiteSpace(Chemical.Color) || Chemical.Color == "keine" ? null : Chemical.Color;
     var flame = Chemical.MethodOutputs.GetValueOrDefault("Flammenfärbung");
     var phPaper = Chemical.MethodOutputs.GetValueOrDefault("pH-Papier");
 }
@@ -29,6 +29,6 @@
 @TrailingContent
 
 @code {
-    [Parameter] public ChemicalViewModel Chemical { get; set; } = default!;
+    [Parameter] public LabChemicalDto Chemical { get; set; } = default!;
     [Parameter] public RenderFragment? TrailingContent { get; set; }
 }

@@ -26,15 +26,26 @@ public class TestXlsImportExportService : BaseDatabaseTest
         var context = ContextFactory.CreateDbContext();
         var service = new XlsImportExportService(context);
 
+        using var reader = ExcelImporter.Open(ImportFile);
+        var expectedEductNames = reader.ReadSheet<Educt>()
+            .Select(e => e.Substance)
+            .Where(n => !string.IsNullOrWhiteSpace(n))
+            .ToList();
+        var expectedAdditiveNames = reader.ReadSheet<Additive>()
+            .Select(a => a.Name)
+            .Where(n => !string.IsNullOrWhiteSpace(n))
+            .ToList();
+
         await service.ImportFromFileAsync(ImportFile);
 
         var chemicals = await context.Chemicals.ToListAsync();
-        Assert.That(chemicals, Has.Count.GreaterThanOrEqualTo(9));
+        var importedEductNames = chemicals.Where(c => c.Type == ChemicalType.Educt).Select(c => c.Name);
+        var importedAdditiveNames = chemicals.Where(c => c.Type == ChemicalType.Additive).Select(c => c.Name);
 
-        var educts = chemicals.Where(c => c.Type == ChemicalType.Educt).ToList();
-        var additives = chemicals.Where(c => c.Type == ChemicalType.Additive).ToList();
-        Assert.That(educts, Has.Count.EqualTo(7));
-        Assert.That(additives, Has.Count.EqualTo(2));
+        Assert.That(importedEductNames, Is.SupersetOf(expectedEductNames),
+            "Alle Excel-Edukte muessen als Educt-Chemicals importiert sein");
+        Assert.That(importedAdditiveNames, Is.SupersetOf(expectedAdditiveNames),
+            "Alle Excel-Additive muessen als Additive-Chemicals importiert sein");
     }
 
     [Test, Order(2)]
@@ -118,10 +129,17 @@ public class TestXlsImportExportService : BaseDatabaseTest
     [Test, Order(5)]
     public async Task Export_EductsMatchDatabase()
     {
+        var context = ContextFactory.CreateDbContext();
+        var dbEductNames = await context.Chemicals
+            .Where(c => c.Type == ChemicalType.Educt)
+            .Select(c => c.Name)
+            .ToListAsync();
+
         using var reader = ExcelImporter.Open(ExportFile);
         var educts = reader.ReadSheet<Educt>();
 
-        Assert.That(educts, Has.Count.EqualTo(7));
+        Assert.That(educts.Select(e => e.Substance), Is.EquivalentTo(dbEductNames),
+            "Export muss exakt die Educt-Chemicals der DB enthalten");
 
         var feCl3 = educts.First(e => e.Substance == "Eisen(III)chlorid");
         Assert.That(feCl3.InherentColor, Is.EqualTo("orange"));

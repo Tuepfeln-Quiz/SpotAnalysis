@@ -8,7 +8,7 @@ public class QuestionOverviewDto
     public required string Description { get; set; }
     public required QuestionType Type { get; set; }
     public string? CreatedByName { get; set; }
-    public int QuizCount { get; set; }
+    // public int QuizCount { get; set; } // TODO maybe optimize
     
     /// <summary>
     /// ST Specific

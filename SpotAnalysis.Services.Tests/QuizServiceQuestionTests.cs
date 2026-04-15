@@ -50,9 +50,9 @@ public class QuizServiceQuestionTests : BaseDatabaseTest
         await dbContext.Observations.AddRangeAsync(obs1, obs2, obs3);
         await dbContext.SaveChangesAsync();
 
-        var reaction1 = new Reaction { Chemical1ID = chem1.ChemicalID, Chemical2ID = chem2.ChemicalID, ObservationID = obs1.ObservationID, RelevantProduct = "P1", Formula = "F1" };
-        var reaction2 = new Reaction { Chemical1ID = chem1.ChemicalID, Chemical2ID = chem2.ChemicalID, ObservationID = obs2.ObservationID, RelevantProduct = "P2", Formula = "F2" };
-        var reaction3 = new Reaction { Chemical1ID = chem1.ChemicalID, Chemical2ID = chem2.ChemicalID, ObservationID = obs3.ObservationID, RelevantProduct = "P3", Formula = "F3" };
+        var reaction1 = new Reaction (chem1, chem2) { ObservationID = obs1.ObservationID, RelevantProduct = "P1", Formula = "F1" };
+        var reaction2 = new Reaction (chem1, chem2) { ObservationID = obs2.ObservationID, RelevantProduct = "P2", Formula = "F2" };
+        var reaction3 = new Reaction (chem1, chem2) { ObservationID = obs3.ObservationID, RelevantProduct = "P3", Formula = "F3" };
         await dbContext.Reactions.AddRangeAsync(reaction1, reaction2, reaction3);
         await dbContext.SaveChangesAsync();
         _reaction1Id = reaction1.ReactionID;

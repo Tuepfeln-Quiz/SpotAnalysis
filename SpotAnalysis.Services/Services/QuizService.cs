@@ -132,7 +132,7 @@ public class QuizService(ILogger<QuizService> logger, IDbContextFactory<Analysis
         await dbContext.SaveChangesAsync();
     }
 
-    public async Task RemoveGroupFromQuiz(int quizId, int groupId)
+    public async Task RemoveGroupToQuiz(int quizId, int groupId)
     {
         await using var dbContext = await factory.CreateDbContextAsync();
 
@@ -151,10 +151,9 @@ public class QuizService(ILogger<QuizService> logger, IDbContextFactory<Analysis
     public async Task<List<QuizOverviewDto>> GetQuizzes(Guid studentId)
     {
         await using var context = await factory.CreateDbContextAsync();
-        return context.Quizzes
-            .Where(q => q.CreatedBy == studentId || 
-                        q.Groups.Any(g => 
-                            g.Users.Any(u => u.UserID == studentId)))
+        return context.Users.Where(u => u.UserID == studentId)
+            .SelectMany(u => u.Groups)
+            .SelectMany(g => g.Quizzes)
             .Select(q => new QuizOverviewDto
             {
                 Id = q.QuizID,
@@ -182,52 +181,14 @@ public class QuizService(ILogger<QuizService> logger, IDbContextFactory<Analysis
             });
         }
 
-        await context.SaveChangesAsync();
-
         return await context.Quizzes.Where(q => q.QuizID == quizId)
             .Select(q => new QuizDto
             {
                 Name = q.Name,
                 STLQuestions = q.QuizQuestions.Where(qq => qq.Question.Type == QuestionType.SpotTestLight)
-                    .Select(question => new STLQuestionDto
-                    {
-                        Id = question.QuestionID,
-                        Description = question.Question.Description,
-                        Order = question.Order,
-                        Educt = new ChemicalDto
-                        {
-                            Id = question.Question.STLInput.Chemical1ID,
-                            Color = question.Question.STLInput.Chemical1.Color,
-                            Name = question.Question.STLInput.Chemical1.Name,
-                            Formula = question.Question.STLInput.Formula,
-                            MethodInfo = question.Question.STLInput.Chemical1.MethodOutputs.Select(mo => new MethodInfoDto
-                            {
-                                Name = mo.Method.Name,
-                                Color = mo.Color,
-                            }).ToList(),
-                        },
-                        Observation = question.Question.STLInput.Observation.Description
-                    }).ToList(),
+                    .Select(STLQuestionDto.FromQuestion).ToList(),
                 STQuestions = q.QuizQuestions.Where(qq => qq.Question.Type == QuestionType.SpotTest)
-                    .Select(question => new STQuestionDto
-                    {
-                        Id = question.QuestionID,
-                        Description = question.Question.Description,
-                        Order = question.Order,
-                        Chemicals = question.Question.STAvailableChemicals.Select(sta => new ChemicalQuestionDto
-                        {
-                            Id = sta.ChemicalID,
-                            Color = sta.Chemical.Color,
-                            Name = sta.Chemical.Name,
-                            Formula = sta.Chemical.Formula,
-                            IsAdditive = sta.Chemical.Type == ChemicalType.Additive,
-                        }).ToList(),
-                        Methods = question.Question.STAvailableMethods.Select(am => new MethodQuestionDto
-                        {
-                            Name = am.Method.Name,
-                            Id = am.MethodID,
-                        }).ToList(),
-                    }).ToList(),
+                    .Select(STQuestionDto.FromQuestion).ToList(),
             }).SingleAsync();
     }
 
@@ -308,13 +269,6 @@ public class QuizService(ILogger<QuizService> logger, IDbContextFactory<Analysis
         return result;
     }
 
-    public async Task<QuizAttempt?> GetQuizAttempt(Guid studentId, int quizId)
-    {
-        await using var context = await factory.CreateDbContextAsync();
-
-        return await context.QuizAttempts.Where(qa => qa.QuizID == quizId && qa.UserID == studentId).FirstOrDefaultAsync();
-    }
-
     public async Task<List<QuestionOverviewDto>> GetQuestions()
     {
         await using var dbContext = await factory.CreateDbContextAsync();
@@ -331,6 +285,22 @@ public class QuizService(ILogger<QuizService> logger, IDbContextFactory<Analysis
                 MethodCount = q.STAvailableMethods.Count,
                 ReactionCount = q.STLAvailableReactions.Count,
                 QuizCount = q.QuizQuestions.Count
+            }).ToListAsync();
+    }
+    
+    public async Task<List<QuestionOverviewDto>> GetQuestionsOfQuiz(int quizId)
+    {
+        await using var dbContext = await factory.CreateDbContextAsync();
+
+        return await dbContext.Quizzes
+            .AsNoTracking()
+            .Where(x => x.QuizID == quizId)
+            .SelectMany(x => x.Questions)
+            .Select(x => new QuestionOverviewDto
+            {
+                Id = x.QuestionID,
+                Description = x.Description,
+                Type = x.Type
             }).ToListAsync();
     }
 
@@ -355,14 +325,7 @@ public class QuizService(ILogger<QuizService> logger, IDbContextFactory<Analysis
             Type = question.Type,
             Chemicals = question.STAvailableChemicals
                 .OrderBy(c => c.Order)
-                .Select(c => new ChemicalQuestionDto
-                {
-                    Id = c.ChemicalID,
-                    Color = c.Chemical.Color,
-                    Name = c.Chemical.Name,
-                    Formula = c.Chemical.Formula,
-                    IsAdditive = c.Chemical.Type == ChemicalType.Additive
-                })
+                .Select(c => ChemicalQuestionDto.FromAvailable(c))
                 .ToList(),
             Methods = question.STAvailableMethods
                 .Select(m => new MethodQuestionDto
@@ -379,6 +342,23 @@ public class QuizService(ILogger<QuizService> logger, IDbContextFactory<Analysis
 
     public async Task<List<QuestionOverviewDto>> GetQuestionsOfQuiz(int quizId)
     {
+        await using var dbContext = await factory.CreateDbContextAsync();
+
+        return await dbContext.Quizzes
+            .AsNoTracking()
+            .Where(x => x.QuizID == quizId)
+            .SelectMany(x => x.Questions)
+            .Select(x => new QuestionOverviewDto
+            {
+                Id = x.QuestionID,
+                Description = x.Description,
+                Type = x.Type
+            }).ToListAsync();
+    }
+
+    public async Task CreateSTQuestion(Guid teacherId, ConfigSTQuestionDto question)
+    {
+        throw new NotImplementedException();
         await using var dbContext = await factory.CreateDbContextAsync();
 
         return await dbContext.QuizQuestions
@@ -433,75 +413,17 @@ public class QuizService(ILogger<QuizService> logger, IDbContextFactory<Analysis
         await transaction.CommitAsync();
     }
 
-    public async Task CreateSTLQuestion(Guid createdBy, ConfigSTLQuestionDto question)
+    public Task CreateSTLQuestion(ConfigSTLQuestionDto question)
     {
-        await using var dbContext = await factory.CreateDbContextAsync();
-        await using var transaction = await dbContext.Database.BeginTransactionAsync();
-
-        var newQuestion = new Question
-        {
-            Description = question.Description,
-            Type = QuestionType.SpotTestLight,
-            CreatedBy = createdBy,
-            ReactionID = question.ReactionId
-        };
-
-        await dbContext.Questions.AddAsync(newQuestion);
-        await dbContext.SaveChangesAsync();
-
-        var reactions = question.AvailableReactions.Select(reactionId => new STLAvailableReaction
-        {
-            QuestionID = newQuestion.QuestionID,
-            ReactionID = reactionId
-        });
-        await dbContext.STLAvailableReactions.AddRangeAsync(reactions);
-
-        await dbContext.SaveChangesAsync();
-        await transaction.CommitAsync();
+        throw new NotImplementedException();
     }
 
-    public async Task UpdateSTQuestion(Guid teacherId, ConfigSTQuestionDto question)
+    public Task UpdateSTQuestion(ConfigSTQuestionDto question)
     {
-        if (question.Id is null)
-            throw new ArgumentException("Question Id is required for update.");
-
-        await using var dbContext = await factory.CreateDbContextAsync();
-        await using var transaction = await dbContext.Database.BeginTransactionAsync();
-
-        var existing = await dbContext.Questions.SingleOrDefaultAsync(q => q.QuestionID == question.Id);
-        if (existing is null)
-            throw new KeyNotFoundException($"Question with id {question.Id} not found.");
-
-        existing.Description = question.Description;
-
-        await dbContext.STAvailableChemicals
-            .Where(c => c.QuestionID == question.Id)
-            .ExecuteDeleteAsync();
-
-        var chemicals = question.AvailableChemicals.Select((chemId, index) => new STAvailableChemical
-        {
-            QuestionID = question.Id.Value,
-            ChemicalID = chemId,
-            Order = index
-        });
-        await dbContext.STAvailableChemicals.AddRangeAsync(chemicals);
-
-        await dbContext.STAvailableMethods
-            .Where(m => m.QuestionID == question.Id)
-            .ExecuteDeleteAsync();
-
-        var methods = question.AvailableMethods.Select(methodId => new STAvailableMethod
-        {
-            QuestionID = question.Id.Value,
-            MethodID = methodId
-        });
-        await dbContext.STAvailableMethods.AddRangeAsync(methods);
-
-        await dbContext.SaveChangesAsync();
-        await transaction.CommitAsync();
+        throw new NotImplementedException();
     }
 
-    public async Task UpdateSTLQuestion(Guid teacherId, ConfigSTLQuestionDto question)
+    public async Task UpdateSTLQuestion(Guid updatedBy, ConfigSTLQuestionDto question)
     {
         if (question.Id is null)
             throw new ArgumentException("Question Id is required for update.");
@@ -531,13 +453,19 @@ public class QuizService(ILogger<QuizService> logger, IDbContextFactory<Analysis
         await transaction.CommitAsync();
     }
     
-    public async Task DeleteQuestion(int questionId)
+    public async Task DeleteQuestion(Guid teacherId, int questionId)
     {
         await using var dbContext = await factory.CreateDbContextAsync();
         await using var transaction = await dbContext.Database.BeginTransactionAsync();
 
         var question = await dbContext.Questions.SingleAsync(x => x.QuestionID == questionId);
-
+        
+        if (question.CreatedBy != teacherId)
+        {
+            logger.LogError("A quiz can only be updated by its creator! Creator id: {creatorId}, Deleter id: {deletedBy}", 
+                question.CreatedBy, teacherId);
+            throw new UnauthorizedAccessException("A question can only be deleted by its creator");
+        }
         switch (question.Type)
         {
             case QuestionType.SpotTest:

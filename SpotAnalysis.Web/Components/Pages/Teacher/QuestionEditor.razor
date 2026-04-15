@@ -375,11 +375,14 @@
                 var allReactionIds = new List<int> { _selectedReactionId };
                 allReactionIds.AddRange(_selectedDistractors);
 
+                var selectedReaction = _allReactions.FirstOrDefault(r => r.ReactionID == _selectedReactionId);
+
                 var dto = new ConfigSTLQuestionDto
                 {
                     Id = _isEdit ? QuestionId : null,
                     Description = _description,
                     ReactionId = _selectedReactionId,
+                    ShowEductId = selectedReaction?.Chemical1ID ?? 0,
                     AvailableReactions = allReactionIds
                 };
 

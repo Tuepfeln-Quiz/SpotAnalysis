@@ -21,8 +21,8 @@ public class QuizService(ILogger<QuizService> logger, IDbContextFactory<Analysis
         {
             Id = qu.QuizID,
             Name = qu.Name,
-            STCount = qu.Questions.Count(x => x.Type == QuestionType.SpotTest),
-            STLCount = qu.Questions.Count(x => x.Type == QuestionType.SpotTestLight),
+            STCount = qu.QuizQuestions.Count(qq => qq.Question.Type == QuestionType.SpotTest),
+            STLCount = qu.QuizQuestions.Count(qq => qq.Question.Type == QuestionType.SpotTestLight),
             GroupCount = qu.Groups.Count
         }).ToListAsync();
     }
@@ -159,8 +159,8 @@ public class QuizService(ILogger<QuizService> logger, IDbContextFactory<Analysis
             {
                 Id = q.QuizID,
                 Name = q.Name,
-                STCount = q.Questions.Select(qq => qq.Type == QuestionType.SpotTest).Count(),
-                STLCount = q.Questions.Select(qq => qq.Type == QuestionType.SpotTestLight).Count(),
+                STCount = q.QuizQuestions.Count(qq => qq.Question.Type == QuestionType.SpotTest),
+                STLCount = q.QuizQuestions.Count(qq => qq.Question.Type == QuestionType.SpotTestLight),
             })
             .ToList();
     }

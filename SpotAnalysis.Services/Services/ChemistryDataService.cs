@@ -209,8 +209,10 @@ public class ChemistryDataService(IDbContextFactory<AnalysisContext> factory) : 
         Name = c.Name,
         Formula = c.Formula,
         ImagePath = c.ImagePath,
-        ChemicalTypeID = (int)c.Type + 1,
+        Type = c.Type,
+        ChemicalTypeID = (int)c.Type,
         ChemicalTypeName = c.Type == ChemicalType.Educt ? "Edukt" : "Zusatzstoff",
+        Color = c.Color,
         MethodOutputs = c.MethodOutputs.ToDictionary(mo => mo.Method.Name, mo => mo.Color)
     };
 

@@ -40,6 +40,6 @@ public class UsernameService : IUsernameService
         var adjective = Adjectives[Random.Shared.Next(Adjectives.Length)];
         var noun = Nouns[Random.Shared.Next(Nouns.Length)];
 
-        return $"{adjective} {Cap(noun)}";
+        return $"{adjective}{Cap(noun)}";
     }
 }

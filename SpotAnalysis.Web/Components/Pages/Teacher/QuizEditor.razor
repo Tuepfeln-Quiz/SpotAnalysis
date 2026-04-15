@@ -1,0 +1,253 @@
+@page "/teacher/quizzes/create"
+@page "/teacher/quizzes/{QuizId:int}/edit"
+@rendermode InteractiveServer
+@using SpotAnalysis.Data.Enums
+@using SpotAnalysis.Services.DTOs
+@using SpotAnalysis.Services.Services
+
+<PageTitle>@(_isEdit ? "Quiz bearbeiten" : "Neues Quiz") – Tüpfeln Digital</PageTitle>
+
+<PageHeader PageTitle="@(_isEdit ? "Quiz bearbeiten" : "Neues Quiz erstellen")" />
+
+<div class="container py-4">
+    <div class="card-form">
+        @* Quiz Name *@
+        <div class="mb-4">
+            <label class="form-label-custom">Quiz-Name</label>
+            <input type="text" class="form-control input-custom" placeholder="z.B. Säuren & Basen Grundlagen"
+                   @bind="_quizName" />
+        </div>
+
+        @* Question Assignment *@
+        <div class="mb-4">
+            <label class="form-label-custom">Fragen zuordnen</label>
+            <div class="selection-box">
+                <input type="text" class="form-control input-custom mb-2" placeholder="Fragen durchsuchen..."
+                       @bind="_searchTerm" @bind:event="oninput" />
+
+                <div class="d-flex gap-2 mb-3">
+                    <button class="btn btn-pill @(_typeFilter is null ? "active" : "")"
+                            @onclick="() => _typeFilter = null">Alle</button>
+                    <button class="btn btn-pill @(_typeFilter == QuestionType.SpotTest ? "active" : "")"
+                            @onclick="() => _typeFilter = QuestionType.SpotTest">SpotTest</button>
+                    <button class="btn btn-pill @(_typeFilter == QuestionType.SpotTestLight ? "active" : "")"
+                            @onclick="() => _typeFilter = QuestionType.SpotTestLight">Light</button>
+                </div>
+
+                <div class="question-list">
+                    @if (_allQuestions is not null)
+                    {
+                        @foreach (var q in FilteredQuestions)
+                        {
+                            var isSelected = _selectedQuestionIds.Contains(q.Id);
+                            <div class="question-item @(isSelected ? "selected" : "")"
+                                 @onclick="() => ToggleQuestion(q.Id)">
+                                <span class="me-2">@(isSelected ? "✓" : "○")</span>
+                                <span class="flex-grow-1">@q.Description</span>
+                                <span class="badge-type @(q.Type == QuestionType.SpotTest ? "badge-st" : "badge-stl")">
+                                    @(q.Type == QuestionType.SpotTest ? "SpotTest" : "Light")
+                                </span>
+                            </div>
+                        }
+                    }
+                </div>
+            </div>
+        </div>
+
+        @* Question Order *@
+        @if (_selectedQuestionIds.Count > 0)
+        {
+            <div class="mb-4">
+                <label class="form-label-custom">Reihenfolge der ausgewählten Fragen</label>
+                <div class="selection-box">
+                    @for (var i = 0; i < _orderedQuestions.Count; i++)
+                    {
+                        var index = i;
+                        var q = _orderedQuestions[i];
+                        <div class="order-item" draggable="true"
+                             @ondragstart="() => _dragIndex = index"
+                             @ondragover:preventDefault
+                             @ondrop="() => DropQuestion(index)">
+                            <span class="drag-handle">⠿</span>
+                            <span class="flex-grow-1">@(index + 1). @q.Description</span>
+                            <span class="badge-type @(q.Type == QuestionType.SpotTest ? "badge-st" : "badge-stl")">
+                                @(q.Type == QuestionType.SpotTest ? "SpotTest" : "Light")
+                            </span>
+                        </div>
+                    }
+                    <small class="text-muted mt-1">Per Drag & Drop umsortieren</small>
+                </div>
+            </div>
+        }
+
+        @* Group Assignment *@
+        <div class="mb-4">
+            <label class="form-label-custom">Gruppen zuweisen</label>
+            <div class="d-flex flex-wrap gap-2">
+                @foreach (var group in _selectedGroups)
+                {
+                    <span class="group-pill">
+                        @group.Name
+                        <span class="remove-pill" @onclick="() => RemoveGroup(group.Id)">✕</span>
+                    </span>
+                }
+                @if (_availableGroups.Any(g => !_selectedGroups.Any(sg => sg.Id == g.Id)))
+                {
+                    <div class="dropdown">
+                        <button class="btn btn-pill" data-bs-toggle="dropdown">+ Gruppe hinzufügen</button>
+                        <ul class="dropdown-menu">
+                            @foreach (var group in _availableGroups.Where(g => !_selectedGroups.Any(sg => sg.Id == g.Id)))
+                            {
+                                <li>
+                                    <button class="dropdown-item" @onclick="() => AddGroup(group)">@group.Name</button>
+                                </li>
+                            }
+                        </ul>
+                    </div>
+                }
+            </div>
+        </div>
+
+        @* Error Message *@
+        @if (_errorMessage is not null)
+        {
+            <div class="alert alert-danger">@_errorMessage</div>
+        }
+
+        @* Actions *@
+        <div class="d-flex gap-3 justify-content-end">
+            <button class="btn btn-secondary" @onclick="Cancel">Abbrechen</button>
+            <button class="btn btn-primary-purple" @onclick="Save" disabled="@_saving">
+                @(_saving ? "Speichern..." : "Quiz speichern")
+            </button>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public int? QuizId { get; set; }
+    [Inject] private IQuizService QuizService { get; set; } = default!;
+    [Inject] private ITeacherService TeacherService { get; set; } = default!;
+    [Inject] private NavigationManager Navigation { get; set; } = default!;
+
+    private bool _isEdit => QuizId.HasValue;
+    private string _quizName = "";
+    private string _searchTerm = "";
+    private QuestionType? _typeFilter;
+    private List<QuestionOverviewDto>? _allQuestions;
+    private HashSet<int> _selectedQuestionIds = new();
+    private List<QuestionOverviewDto> _orderedQuestions = new();
+    private List<GroupDto> _availableGroups = new();
+    private List<GroupDto> _selectedGroups = new();
+    private int _dragIndex;
+    private bool _saving;
+    private string? _errorMessage;
+
+    // TODO: Replace with actual teacher ID from auth when login is implemented
+    private Guid _teacherId = Guid.Parse("00000000-0000-0000-0000-000000000001");
+
+    protected override async Task OnInitializedAsync()
+    {
+        _allQuestions = await QuizService.GetQuestions();
+        _availableGroups = await TeacherService.GetGroups(_teacherId);
+
+        if (_isEdit)
+        {
+            var quizQuestions = await QuizService.GetQuestionsOfQuiz(QuizId!.Value);
+            _selectedQuestionIds = quizQuestions.Select(q => q.Id).ToHashSet();
+            _orderedQuestions = quizQuestions.ToList();
+
+            var allQuizzes = await QuizService.GetAllQuizzes();
+            var quiz = allQuizzes.FirstOrDefault(q => q.Id == QuizId!.Value);
+            if (quiz is not null) _quizName = quiz.Name;
+        }
+    }
+
+    private IEnumerable<QuestionOverviewDto> FilteredQuestions =>
+        _allQuestions?.Where(q =>
+            (_typeFilter is null || q.Type == _typeFilter) &&
+            (string.IsNullOrEmpty(_searchTerm) ||
+             q.Description.Contains(_searchTerm, StringComparison.OrdinalIgnoreCase))
+        ) ?? [];
+
+    private void ToggleQuestion(int questionId)
+    {
+        if (_selectedQuestionIds.Contains(questionId))
+        {
+            _selectedQuestionIds.Remove(questionId);
+            _orderedQuestions.RemoveAll(q => q.Id == questionId);
+        }
+        else
+        {
+            _selectedQuestionIds.Add(questionId);
+            var question = _allQuestions!.First(q => q.Id == questionId);
+            _orderedQuestions.Add(question);
+        }
+    }
+
+    private void DropQuestion(int targetIndex)
+    {
+        if (_dragIndex == targetIndex) return;
+        var item = _orderedQuestions[_dragIndex];
+        _orderedQuestions.RemoveAt(_dragIndex);
+        _orderedQuestions.Insert(targetIndex, item);
+    }
+
+    private void AddGroup(GroupDto group) => _selectedGroups.Add(group);
+    private void RemoveGroup(int groupId) => _selectedGroups.RemoveAll(g => g.Id == groupId);
+
+    private void Cancel() => Navigation.NavigateTo("/teacher/quizzes");
+
+    private async Task Save()
+    {
+        _errorMessage = null;
+
+        if (string.IsNullOrWhiteSpace(_quizName))
+        {
+            _errorMessage = "Bitte einen Quiz-Namen eingeben.";
+            return;
+        }
+
+        _saving = true;
+        try
+        {
+            var questions = _orderedQuestions.Select((q, i) => new QuestionDto
+            {
+                Id = q.Id,
+                Order = i
+            }).ToList();
+
+            var groupIds = _selectedGroups.Select(g => g.Id).ToList();
+
+            if (_isEdit)
+            {
+                await QuizService.UpdateQuiz(_teacherId, new UpdateQuizDto
+                {
+                    Id = QuizId!.Value,
+                    Name = _quizName,
+                    Questions = questions,
+                    AssignedGroupsIds = groupIds
+                });
+            }
+            else
+            {
+                await QuizService.CreateQuiz(_teacherId, new CreateQuizDto
+                {
+                    Name = _quizName,
+                    Questions = questions,
+                    AssignedGroupsIds = groupIds
+                });
+            }
+
+            Navigation.NavigateTo("/teacher/quizzes");
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = ex.Message;
+        }
+        finally
+        {
+            _saving = false;
+        }
+    }
+}

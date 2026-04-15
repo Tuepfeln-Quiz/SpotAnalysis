@@ -18,6 +18,7 @@ public interface IQuizService
     public Task<STResult> ValidateAndSaveStQuestion(ValidateStQuestionDto answer);
     
     public Task<List<QuestionOverviewDto>> GetQuestionsOfQuiz(int quizId);
+    public Task<QuestionDetailDto> GetQuestionDetail(int questionId);
     public Task CreateSTQuestion(Guid teacherId, ConfigSTQuestionDto question);
     public Task CreateSTLQuestion(Guid teacherId, ConfigSTLQuestionDto question);
     public Task UpdateSTQuestion(Guid teacherId, ConfigSTQuestionDto question);

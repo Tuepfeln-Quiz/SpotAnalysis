@@ -1,4 +1,4 @@
-﻿namespace SpotAnalysis.Services.DTOs;
+namespace SpotAnalysis.Services.DTOs;
 
 public class QuizOverviewDto
 {
@@ -6,4 +6,5 @@ public class QuizOverviewDto
     public required string Name { get; init; }
     public required int STCount { get; init; }
     public required int STLCount { get; init; }
+    public int GroupCount { get; init; }
 }

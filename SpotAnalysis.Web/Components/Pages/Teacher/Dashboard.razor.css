@@ -1,0 +1,14 @@
+.card-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+}
+
+.disabled-card {
+    opacity: 0.6;
+    pointer-events: none;
+}

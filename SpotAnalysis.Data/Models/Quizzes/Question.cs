@@ -13,13 +13,13 @@ public class Question {
     /// <summary>
     /// not visible to users
     /// </summary>
-    public string Title { get; set; } = null!;
+    public required string Title { get; set; } = null!;
 
     public QuestionType Type { get; set; }
 
     [Required]
     public string Description { get; set; } = null!;
-    public Guid CreatedBy { get; set; }
+    public Guid? CreatedBy { get; set; }
 
 
     [ForeignKey(nameof(CreatedBy))]

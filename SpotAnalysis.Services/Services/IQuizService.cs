@@ -16,6 +16,7 @@ public interface IQuizService
     public Task<QuizDto> OpenQuiz(Guid studentId, int quizId);
     public Task<STLResult> ValidateAndSaveStlQuestion(ValidateStlQuestionDto answer);
     public Task<STResult> ValidateAndSaveStQuestion(ValidateStQuestionDto answer);
+    public Task<QuizAttempt?> GetQuizAttempt(Guid studentId, int quizId);
     
     public Task<List<QuestionOverviewDto>> GetQuestions();
     public Task<List<QuestionOverviewDto>> GetQuestionsOfQuiz(int quizId);

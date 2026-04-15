@@ -1,0 +1,26 @@
+﻿@page "/teacher/quiz/add"
+
+<a class="btn btn-sucess" href="/teacher/quiz/add/new">Create</a>
+<div class="card card-body h-30 mb-2 border border-2">
+    <form class="row" method="get" asp-page="/Search">
+        <div class="search-container col-12">
+            <div class="row">
+                @*                     <button class="btn btn-primary col-2">Add</button>
+ *@                    <input type="text"
+                                             asp-for="SearchQuery"
+                                             placeholder="Search..."
+                                             class="search-input col-8" />
+                <button type="submit" class="search-btn col-2">&#128269</button>
+            </div>
+        </div>
+    </form>
+
+
+
+
+</div>
+
+
+@code {
+
+}

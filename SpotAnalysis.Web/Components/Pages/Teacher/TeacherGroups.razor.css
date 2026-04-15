@@ -1,0 +1,65 @@
+﻿@media (prefers-color-scheme: dark) {
+
+    /*#region Darkmode Pattern*/
+
+    .top-row {
+        background-color: #0D1117;
+        color: #E6EDF3;
+    }
+
+    .body {
+        background-color: #0D1117 !important;
+        color: #E6EDF3;
+    }
+
+    .card-body {
+        background-color: #2C2C41;
+    }
+
+    /*#endregion*/
+
+}
+/*#endregion*/
+
+/*#region Lightmode Auslese & Style*/
+@media (prefers-color-scheme: light) {
+    /*#region Versuch Lightmode Pattern*/
+    top-row {
+        background-color: #F4F6F9;
+        color: #1A1A2E;
+    }
+
+    body {
+        background-color: #F4F6F9;
+        color: #1A1A2E;
+    }
+
+    .card-body {
+        background-color: #FFFFFF;
+    }
+
+    border {
+        color: #DADDE1;
+    }
+
+    table-dark {
+        background-color: #FFFFFF;
+        color: #1A1A2E;
+    }
+
+    th {
+        background-color: #FFFFFF;
+        color: #1A1A2E;
+    }
+    /*#endregion*/
+}
+
+
+/*#region Height Styles*/
+.h-30{
+    height: 30%;
+}
+.h-70{
+    height: 70%;
+}
+/*#endregion*/

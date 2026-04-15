@@ -8,7 +8,6 @@ public class AnalysisContext : DbContext {
 
     #region Users, Roles, Groups
     public virtual DbSet<User> Users { get; set; }
-    public virtual DbSet<Role> Roles { get; set; }
     public virtual DbSet<Group> Groups { get; set; }
 
     #endregion Users, Roles, Groups
@@ -51,31 +50,15 @@ public class AnalysisContext : DbContext {
 
     #endregion DBSets
 
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder) {
-        if (!optionsBuilder.IsConfigured) {
-            optionsBuilder.UseSqlServer(@"Data Source=(localdb)\MSSQLLocalDB;Initial Catalog=SpotAnalysis;Connect Timeout= 30;Integrated Security=True;Encrypt=True;Trust Server Certificate=False;");
-        }
-    }
-    
+    // Connection String wird NICHT in diesem Projekt definiert.
+    // Zur Laufzeit: DI-Konfiguration in SpotAnalysis.Web/Program.cs (AddDbContext + appsettings.json)
+    // Für Migrations: --startup-project SpotAnalysis.Web (siehe EF-MIGRATIONS.md)
     public AnalysisContext(DbContextOptions<AnalysisContext> options)
         : base(options)
     {
     }
 
-    public AnalysisContext() : base()
-    {
-        
-    }
-
     protected override void OnModelCreating(ModelBuilder modelBuilder) {
-        modelBuilder.Entity<User>()
-        .HasMany(u => u.Roles)
-        .WithMany(r => r.Users)
-        .UsingEntity(
-            u => u.HasOne(typeof(Role)).WithMany().HasForeignKey("RoleID").OnDelete(DeleteBehavior.Restrict),
-            r => r.HasOne(typeof(User)).WithMany().HasForeignKey("UserID").OnDelete(DeleteBehavior.Restrict)
-        );
-
         modelBuilder.Entity<User>()
         .HasMany(u => u.Groups)
         .WithMany(r => r.Users)

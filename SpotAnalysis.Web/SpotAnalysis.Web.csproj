@@ -9,6 +9,14 @@
 
   <ItemGroup>
     <ProjectReference Include="..\SpotAnalysis.Services\SpotAnalysis.Services.csproj" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.5">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
   </ItemGroup>
+
+  <ItemGroup>
+		<ProjectReference Include="..\SpotAnalysis.Services\SpotAnalysis.Services.csproj" />
+	</ItemGroup>
 
 </Project>

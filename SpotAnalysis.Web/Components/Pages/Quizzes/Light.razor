@@ -1,5 +1,6 @@
 @page "/light"
 @inject NavigationManager Navigation
+@inject IChemistryDataService ChemistryData
 
 <PageTitle>Light – Tüpfeln Digital</PageTitle>
 
@@ -15,7 +16,7 @@
         </div>
 
         <div class="row g-4">
-            @foreach (var quiz in SeedData.LightQuizzes)
+            @foreach (var quiz in lightQuizzes)
             {
                 <div class="col-sm-6 col-lg-4">
                     <div class="card card-interactive h-100" @onclick="() => SelectQuiz(quiz)">
@@ -88,7 +89,7 @@
                         var correctReaction = question.AvailableReactions.First(r => r.ReactionID == question.CorrectReactionID);
                         var unknownChemId = correctReaction.Chemical1ID == question.Chemical.ChemicalID
                             ? correctReaction.Chemical2ID : correctReaction.Chemical1ID;
-                        var unknownChem = SeedData.Chemicals.First(c => c.ChemicalID == unknownChemId);
+                        var unknownChem = allChemicals.First(c => c.ChemicalID == unknownChemId);
                         <div class="compound-card compound-card-static chemical-@(unknownChem.ChemicalTypeName.ToLowerInvariant()) task-educt"
                              style="border-color: @ColorHelper.GetBorderColor(unknownChem.MethodOutputs.GetValueOrDefault("Eigenfarbe"))">
                             <SubstanceCard Chemical="unknownChem" />
@@ -176,7 +177,10 @@
 </div>
 
 @code {
-    private LightQuizViewModel? selectedQuiz;
+    private List<LightQuizDto> lightQuizzes = new();
+    private List<LabChemicalDto> allChemicals = new();
+
+    private LightQuizDto? selectedQuiz;
     private int currentQuestionIndex;
     private bool quizCompleted;
     private int correctCount;
@@ -185,12 +189,18 @@
     private bool hasChecked;
     private bool lastCorrect;
 
-    private LightQuestionViewModel CurrentQuestion => selectedQuiz!.Questions[currentQuestionIndex];
+    private LightQuestionDto CurrentQuestion => selectedQuiz!.Questions[currentQuestionIndex];
+
+    protected override async Task OnInitializedAsync()
+    {
+        lightQuizzes = await ChemistryData.GetLightQuizzesAsync();
+        allChemicals = await ChemistryData.GetAllChemicalsAsync();
+    }
     private int ProgressPercent => selectedQuiz!.Questions.Count > 0
         ? (int)((double)currentQuestionIndex / selectedQuiz.Questions.Count * 100)
         : 0;
 
-    private void SelectQuiz(LightQuizViewModel quiz)
+    private void SelectQuiz(LightQuizDto quiz)
     {
         selectedQuiz = quiz;
         currentQuestionIndex = 0;

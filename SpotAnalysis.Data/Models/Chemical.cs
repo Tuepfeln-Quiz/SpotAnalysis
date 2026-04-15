@@ -1,5 +1,8 @@
 ﻿namespace SpotAnalysis.Data.Models;
 
+/// <summary>
+/// Contains all chemicals that are used in the reactions. Chemicals can be used as educts or additives in a reaction. They can also be used with methods to produce an observation (MethodOutput).
+/// </summary>
 
 [Index(nameof(Type))]
 public class Chemical {
@@ -28,10 +31,7 @@ public class Chemical {
     public virtual ICollection<Reaction> Chemical2Reactions { get; set; } = [];
 
     public virtual ICollection<STAvailableChemical> STAvailableChemicals { get; set; } = [];
-    public virtual ICollection<STLInput> STLInputs { get; set; } = [];
-
 
     public virtual ICollection<STResult> STResults { get; set; } = [];
-    public virtual ICollection<STLResult> STLResults { get; set; } = [];
     public virtual ICollection<STChemicalResult> STChemicalResults { get; set; } = [];
 }

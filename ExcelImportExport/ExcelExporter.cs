@@ -10,8 +10,12 @@ public static class ExcelExporter
 {
     public static void Export<T>(IEnumerable<T> data, string filePath)
     {
-        var format = GetFormatFromPath(filePath);
         using var stream = File.Create(filePath);
+        Export(data, stream, GetFormatFromPath(filePath));
+    }
+
+    public static void Export<T>(IEnumerable<T> data, Stream stream, ExcelFormat format)
+    {
         var workbook = CreateWorkbook(format);
         var sheetName = ReflectionHelper.GetSheetName(typeof(T));
         WriteSheet(workbook, sheetName, data, typeof(T));
@@ -20,7 +24,12 @@ public static class ExcelExporter
 
     public static void ExportMultiSheet(string filePath, params SheetData[] sheets)
     {
-        var format = GetFormatFromPath(filePath);
+        using var stream = File.Create(filePath);
+        ExportMultiSheet(stream, GetFormatFromPath(filePath), sheets);
+    }
+
+    public static void ExportMultiSheet(Stream stream, ExcelFormat format, params SheetData[] sheets)
+    {
         var workbook = CreateWorkbook(format);
 
         foreach (var sheet in sheets)
@@ -28,7 +37,6 @@ public static class ExcelExporter
             WriteSheet(workbook, sheet.SheetName, sheet.Data, sheet.ItemType);
         }
 
-        using var stream = File.Create(filePath);
         workbook.Write(stream, leaveOpen: true);
     }
 

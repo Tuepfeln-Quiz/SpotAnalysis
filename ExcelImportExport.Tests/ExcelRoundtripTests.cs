@@ -1,5 +1,5 @@
 using ExcelImportExport.Helper;
-using ExcelImportExport.Tests.Models;
+using ExcelImportExport.Models;
 using NUnit.Framework;
 
 namespace ExcelImportExport.Tests;

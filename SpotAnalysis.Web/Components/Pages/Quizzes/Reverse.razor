@@ -131,12 +131,15 @@
 
 </div>
 
+@inject IChemistryDataService ChemistryData
+
 @code {
-    private List<ReactionViewModel> reactions = SeedData.Reactions;
+    private List<LabReactionDto> reactions = new();
+    private List<LabChemicalDto> chemicals = new();
     private HashSet<int> usedReactionIds = new();
     private Random rng = new();
 
-    private ReactionViewModel? currentReaction;
+    private LabReactionDto? currentReaction;
     private string answerName = "";
     private string answerFormula = "";
     private string answerObservation = "";
@@ -147,8 +150,10 @@
     private bool observationCorrect;
 
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
+        reactions = await ChemistryData.GetAllReactionsAsync();
+        chemicals = await ChemistryData.GetAllChemicalsAsync();
         LoadNextReaction();
     }
 
@@ -193,9 +198,9 @@
         LoadNextReaction();
     }
 
-    private ChemicalViewModel GetChemical(int chemicalId)
+    private LabChemicalDto GetChemical(int chemicalId)
     {
-        return SeedData.Chemicals.First(c => c.ChemicalID == chemicalId);
+        return chemicals.First(c => c.ChemicalID == chemicalId);
     }
 
     private static string NormalizeText(string text)

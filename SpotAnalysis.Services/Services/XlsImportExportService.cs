@@ -240,10 +240,8 @@ public class XlsImportExportService : IXlsImportExportService
             }
             else
             {
-                reaction = new Reaction
+                reaction = new Reaction (chem1, chem2)
                 {
-                    Chemical1ID = chem1.ChemicalID,
-                    Chemical2ID = chem2.ChemicalID,
                     RelevantProduct = combo.Product,
                     Formula = combo.Formula ?? "",
                     ObservationID = observation?.ObservationID ?? 0

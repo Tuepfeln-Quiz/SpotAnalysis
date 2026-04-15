@@ -33,7 +33,7 @@ public class Reaction {
 
     public virtual ICollection<STLAvailableReaction> STLAvailableReactions { get; set; } = [];
 
-    public virtual ICollection<Question> STLQuestions { get; set; } = [];
+    public virtual ICollection<STLQuestion> STLQuestions { get; set; } = [];
 
     // construcors
 

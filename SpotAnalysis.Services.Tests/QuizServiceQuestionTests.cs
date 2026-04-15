@@ -76,7 +76,8 @@ public class QuizServiceQuestionTests : BaseDatabaseTest
         {
             Description = "Test ST Question",
             AvailableChemicals = new List<int> { _chemical1Id, _chemical2Id },
-            AvailableMethods = new List<int> { _methodId }
+            AvailableMethods = new List<int> { _methodId },
+            Title = "HohohoTitle"
         };
 
         await _quizService.CreateSTQuestion(SeededTeacherId, dto);
@@ -96,7 +97,9 @@ public class QuizServiceQuestionTests : BaseDatabaseTest
         {
             Description = "Test STL Question",
             ReactionId = _reaction1Id,
-            AvailableReactions = new List<int> { _reaction1Id, _reaction2Id, _reaction3Id }
+            ShowEductId = 1,
+            AvailableReactions = [_reaction1Id, _reaction2Id, _reaction3Id],
+            Title = "HohohoTitle"
         };
 
         await _quizService.CreateSTLQuestion(SeededTeacherId, dto);
@@ -116,7 +119,8 @@ public class QuizServiceQuestionTests : BaseDatabaseTest
         {
             Description = "Question to protect",
             AvailableChemicals = new List<int> { _chemical1Id },
-            AvailableMethods = new List<int> { _methodId }
+            AvailableMethods = new List<int> { _methodId },
+            Title = "HohohoTitle"
         });
 
         var questions = await _quizService.GetQuestions();
@@ -143,7 +147,8 @@ public class QuizServiceQuestionTests : BaseDatabaseTest
         {
             Description = "Question to delete",
             AvailableChemicals = new List<int> { _chemical1Id },
-            AvailableMethods = new List<int> { _methodId }
+            AvailableMethods = new List<int> { _methodId },
+            Title = "HohohoTitle"
         });
 
         var questions = await _quizService.GetQuestions();

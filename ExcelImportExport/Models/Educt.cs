@@ -12,7 +12,7 @@ public class Educt
     [ExcelColumn("Formel", Order = 2)]
     public string? Formula { get; set; }
 
-    [ExcelColumn("Eigenfarbe", Order = 3, IsMethod = true)]
+    [ExcelColumn("Eigenfarbe", Order = 3)]
     public string? InherentColor { get; set; }
 
     [ExcelColumn("ph-Papier", Order = 4, IsMethod = true)]

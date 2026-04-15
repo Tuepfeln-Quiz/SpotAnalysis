@@ -8,8 +8,18 @@ public class QuestionOverviewDto
     public required string Description { get; set; }
     public required QuestionType Type { get; set; }
     public string? CreatedByName { get; set; }
-    public int ChemicalCount { get; set; }
-    public int MethodCount { get; set; }
-    public int ReactionCount { get; set; }
     public int QuizCount { get; set; }
+    
+    /// <summary>
+    /// ST Specific
+    /// </summary>
+    public int ChemicalCount { get; set; }
+    /// <summary>
+    /// ST Specific
+    /// </summary>
+    public int MethodCount { get; set; }
+    /// <summary>
+    /// STL Specific
+    /// </summary>
+    public int ReactionCount { get; set; }
 }

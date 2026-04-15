@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
+using SpotAnalysis.Data.Enums;
 using SpotAnalysis.Data.Models.Identity;
 using SpotAnalysis.Services.DTOs;
 using SpotAnalysis.Services.Services;
@@ -54,7 +55,7 @@ public class TestQuizService : BaseDatabaseTest
         {
             Id = 10,
             Name = newQuizName,
-            Questions = [],
+            Questions = []
         };
         
         await _quizService.UpdateQuiz(_createdBy, quizToUpdate);
@@ -201,7 +202,8 @@ public class TestQuizService : BaseDatabaseTest
             {
                 UserID = _createdBy,
                 UserName = "Test",
-                PasswordHash = "HohohoNoHash"
+                PasswordHash = "HohohoNoHash",
+                Roles = [Role.Teacher]
             });
 
             await dbContext.SaveChangesAsync();
@@ -214,7 +216,7 @@ public class TestQuizService : BaseDatabaseTest
             tasks.Add(_quizService.CreateQuiz(_createdBy, new CreateQuizDto
             {
                 Name = i.ToString(),
-                Questions = [],
+                Questions = []
             }));
         }
 
@@ -265,82 +267,84 @@ public class TestQuizService : BaseDatabaseTest
     [Test]
     public async Task OpenQuiz()
     {
-        await _teacherService.CreateGroup(Teacher1, new ConfigGroupDto
         {
-            Name = "Test Quiz Group",
-        });
+            await _teacherService.CreateGroup(Teacher1, new ConfigGroupDto
+            {
+                Name = "Test Quiz Group",
+            });
 
-        var groups = await _teacherService.GetGroups(Teacher1);
+            var groups = await _teacherService.GetGroups(Teacher1);
         
-        Assert.That(groups, Has.Count.EqualTo(1));
+            Assert.That(groups, Has.Count.EqualTo(1));
         
-        var gid = groups.First().Id;
+            var gid = groups.First().Id;
 
-        await _quizService.CreateQuiz(Teacher1, new CreateQuizDto
-        {
-            Name = "Test Quiz",
-            Questions = [],
-        });
+            await _quizService.CreateQuiz(Teacher1, new CreateQuizDto
+            {
+                Name = "Test Quiz",
+                Questions = [],
+            });
         
-        var quizzes = await _quizService.GetQuizzes(Teacher1);
+            var quizzes = await _quizService.GetQuizzes(Teacher1);
         
-        Assert.That(quizzes, Has.Count.EqualTo(1));
+            Assert.That(quizzes, Has.Count.EqualTo(1));
         
-        var  quiz = quizzes[0];
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(quiz.Name, Is.EqualTo("Test Quiz"));
-            Assert.That(quiz.STCount, Is.EqualTo(0));
-            Assert.That(quiz.STLCount, Is.EqualTo(0));
+            var quiz = quizzes[0];
+            using (Assert.EnterMultipleScope())
+            {
+                Assert.That(quiz.Name, Is.EqualTo("Test Quiz"));
+                Assert.That(quiz.STCount, Is.EqualTo(0));
+                Assert.That(quiz.STLCount, Is.EqualTo(0));
+            }
+
+            var opened = await _quizService.OpenQuiz(Teacher1, quiz.Id);
+            using (Assert.EnterMultipleScope())
+            {
+                Assert.That(opened.Name, Is.EqualTo("Test Quiz"));
+                Assert.That(opened.STQuestions, Has.Count.EqualTo(0));
+                Assert.That(opened.STLQuestions, Has.Count.EqualTo(0));
+            }
+        
+            var attempt = await _quizService.GetQuizAttempt(Teacher1, quiz.Id);
+        
+            Assert.That(attempt, Is.Not.Null);
+        
+            Assert.That(attempt.Completed, Is.EqualTo(DateTime.Parse("0001-01-01 00:00:00")));
         }
 
-        var opened = await _quizService.OpenQuiz(Teacher1, quiz.Id);
-        using (Assert.EnterMultipleScope())
         {
-            Assert.That(opened.Name, Is.EqualTo("Test Quiz"));
-            Assert.That(opened.STQuestions, Has.Count.EqualTo(0));
-            Assert.That(opened.STLQuestions, Has.Count.EqualTo(0));
+            var quizzes = await _quizService.GetQuizzes(Teacher1);
+        
+            Assert.That(quizzes, Has.Count.EqualTo(1));
+        
+            var quiz = quizzes[0];
+
+            await _quizService.CreateSTLQuestion(Teacher1, new ConfigSTLQuestionDto
+            {
+                Description = "A Test STL Question",
+                AvailableReactions = [
+                    1
+                ],
+                ShowEductId = 1,
+                ReactionId = 1,
+                Title = "HohohoTitle"
+            });
+        
+            await _quizService.UpdateQuiz(Teacher1, new UpdateQuizDto
+            {
+                Name = "Test Quiz",
+                Id = quiz.Id,
+                Questions = [
+                    new QuestionDto
+                    {
+                        Id = 1,
+                        Order = 1
+                    },
+                ],
+            });
         }
-        
-        var attempt = await _quizService.GetQuizAttempt(Teacher1, quiz.Id);
-        
-        Assert.That(attempt, Is.Not.Null);
-        
-        Assert.That(attempt.Completed, Is.EqualTo(DateTime.Parse("0001-01-01 00:00:00")));
     }
-
-    [Test]
-    public async Task ValidateStlQuestion()
-    {
-        var quizzes = await _quizService.GetQuizzes(Teacher1);
-        
-        Assert.That(quizzes, Has.Count.EqualTo(1));
-        
-        var quiz = quizzes[0];
-
-        await _quizService.CreateSTLQuestion(Teacher1, new ConfigSTLQuestionDto
-        {
-            Description = "A Test STL Question",
-            AvailableReactions = [
-            1
-            ],
-            ReactionId = 1
-        });
-        
-        await _quizService.UpdateQuiz(_createdBy, new UpdateQuizDto
-        {
-            Name = "Test Quiz",
-            Id = quiz.Id,
-            Questions = [
-                new QuestionDto
-                {
-                    Id = 1,
-                    Order = 1
-                },
-            ],
-        });
-    }
-
+    
     private async Task CleanUpDb()
     {
         await using var dbContext = await ContextFactory.CreateDbContextAsync();

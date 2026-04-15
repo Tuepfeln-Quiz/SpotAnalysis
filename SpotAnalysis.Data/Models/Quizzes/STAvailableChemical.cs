@@ -13,7 +13,7 @@ public class STAvailableChemical {
     public required int Order { get; set; }
 
     [DeleteBehavior(DeleteBehavior.Restrict)]
-    public Question Question { get; set; } = null!;
+    public STQuestion STQuestion { get; set; } = null!;
 
     [DeleteBehavior(DeleteBehavior.Restrict)]
     public Chemical Chemical { get; set; } = null!;

@@ -240,11 +240,11 @@
         // Load reference data
         var chemicals = await ChemistryData.GetAllChemicalsAsync();
         _eductsAvailable = chemicals
-            .Where(c => c.ChemicalTypeID == 0)
+            .Where(c => c.Type == ChemicalType.Educt)
             .Select(c => new ChemicalItem(c.ChemicalID, c.Name, c.Formula, "#9ca3af"))
             .ToList();
         _additivesAvailable = chemicals
-            .Where(c => c.ChemicalTypeID == 1)
+            .Where(c => c.Type == ChemicalType.Additive)
             .Select(c => new ChemicalItem(c.ChemicalID, c.Name, c.Formula, "#60a5fa"))
             .ToList();
 
@@ -355,7 +355,8 @@
                     Id = _isEdit ? QuestionId : null,
                     Description = _description,
                     AvailableChemicals = allChemicalIds,
-                    AvailableMethods = _selectedMethods.Select(m => m.Id).ToList()
+                    AvailableMethods = _selectedMethods.Select(m => m.Id).ToList(),
+                    Title = "Gurkenglas" // TODO
                 };
 
                 if (_isEdit)
@@ -375,12 +376,16 @@
                 var allReactionIds = new List<int> { _selectedReactionId };
                 allReactionIds.AddRange(_selectedDistractors);
 
+                var selectedReaction = _allReactions.FirstOrDefault(r => r.ReactionID == _selectedReactionId);
+
                 var dto = new ConfigSTLQuestionDto
                 {
                     Id = _isEdit ? QuestionId : null,
                     Description = _description,
                     ReactionId = _selectedReactionId,
-                    AvailableReactions = allReactionIds
+                    ShowEductId = selectedReaction?.Chemical1ID ?? 0,
+                    AvailableReactions = allReactionIds,
+                    Title = "Gurkenglas" // TODO
                 };
 
                 if (_isEdit)

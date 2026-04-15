@@ -318,14 +318,13 @@ public class TestQuizService : BaseDatabaseTest
         
         var quiz = quizzes[0];
 
-        await _quizService.CreateSTLQuestion(new ConfigSTLQuestionDto
+        await _quizService.CreateSTLQuestion(Teacher1, new ConfigSTLQuestionDto
         {
             Description = "A Test STL Question",
             AvailableReactions = [
             1
             ],
-            ChemicalId = 1,
-            ObservationId = 1
+            ReactionId = 1
         });
         
         await _quizService.UpdateQuiz(_createdBy, new UpdateQuizDto

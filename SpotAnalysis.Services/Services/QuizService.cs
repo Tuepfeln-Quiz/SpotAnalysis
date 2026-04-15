@@ -355,7 +355,14 @@ public class QuizService(ILogger<QuizService> logger, IDbContextFactory<Analysis
             Type = question.Type,
             Chemicals = question.STAvailableChemicals
                 .OrderBy(c => c.Order)
-                .Select(c => ChemicalQuestionDto.FromAvailable(c))
+                .Select(c => new ChemicalQuestionDto
+                {
+                    Id = c.ChemicalID,
+                    Color = c.Chemical.Color,
+                    Name = c.Chemical.Name,
+                    Formula = c.Chemical.Formula,
+                    IsAdditive = c.Chemical.Type == ChemicalType.Additive
+                })
                 .ToList(),
             Methods = question.STAvailableMethods
                 .Select(m => new MethodQuestionDto

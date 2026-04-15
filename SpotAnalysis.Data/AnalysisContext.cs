@@ -28,22 +28,23 @@ public class AnalysisContext : DbContext {
     public virtual DbSet<QuizAttempt> QuizAttempts { get; set; }
     public virtual DbSet<Question> Questions { get; set; }
     public virtual DbSet<QuizQuestion> QuizQuestions { get; set; }
-
+    public virtual DbSet<STLQuestion> STLQuestions { get; set; }
+    public virtual DbSet<STQuestion> STQuestions { get; set; }
+    public virtual DbSet<STAvailableChemical> STAvailableChemicals { get; set; }
+    public virtual DbSet<STAvailableMethod> STAvailableMethods { get; set; }
+    public virtual DbSet<STLAvailableReaction> STLAvailableReactions { get; set; }
+    public virtual DbSet<STLResult> STLResults { get; set; }
+    public virtual DbSet<STResult> STResults { get; set; }
+    public virtual DbSet<STChemicalResult> STChemicalResults { get; set; }
     #endregion Quizzes
 
 
     #region SpotTest
-    public virtual DbSet<STAvailableChemical> STAvailableChemicals { get; set; }
-    public virtual DbSet<STAvailableMethod> STAvailableMethods { get; set; }
-    public virtual DbSet<STResult> STResults { get; set; }
-    public virtual DbSet<STChemicalResult> STChemicalResults { get; set; }
 
     #endregion SpotTest
 
 
     #region SpotTestLight
-    public virtual DbSet<STLAvailableReaction> STLAvailableReactions { get; set; }
-    public virtual DbSet<STLResult> STLResults { get; set; }
 
     #endregion SpotTestLight
 

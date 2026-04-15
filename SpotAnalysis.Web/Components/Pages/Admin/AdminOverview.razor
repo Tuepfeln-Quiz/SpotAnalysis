@@ -28,12 +28,15 @@
                 </thead>
                 <tbody>
                     <tr>
+                        <td><a class="btn btn-secondary" href="admin-overview/create">Create New Teacher></a></td>
+                    </tr>
+                    <tr>
                         @foreach(var a in adminlist)
                         {
                             <td>@a.UserName</td>
                             <td>@a.Roles</td>
                             <td>
-                                <button class="btn btn-secondary">Edit</button>
+                                <a class="btn btn-info" href="admin-overview/edit">Edit</a>
                                 <button class="btn btn-danger">Remove</button>
                             </td>
                         }
@@ -42,13 +45,13 @@
             </table>
             
     </div>
-    <div class="h-20">
+@*     <div class="h-20">
         <div class="row col-12">
             <button class="btn btn-danger col-6">Abandon Class</button>
             <button class="btn btn-success col-6">Save Class</button>
         </div>
 
-    </div>
+    </div> *@
 
 </div>
 

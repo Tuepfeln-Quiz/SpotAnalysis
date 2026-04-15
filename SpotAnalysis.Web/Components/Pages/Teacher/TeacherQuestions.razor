@@ -22,20 +22,20 @@
         <tbody>
             <tr>
                 @*Aus Gruppe selctierte students*@
-                @foreach (var a in teacherQuestions)
+@*                 @foreach (var a in teacherQuestions)
                 {
-                    <td class="text-center">@a.Name</td>
-@*                                             <td>@a.Roles</td>
+                    <td class="text-center">@a.</td>
+                                              <td>@a.Roles</td>
                         <td>
                             <button class="btn btn-secondary">Edit</button>
                             <button class="btn btn-danger">Remove</button>
                         </td>
- *@                        <td class="btn btn-danger">
+@*                          <td class="btn btn-danger">
                         Delete
                         <i class="bi bi-trash3"></i>
                     </td>
                 } 
-            </tr>
+ *@            </tr>
         </tbody>
     </table>
 
@@ -47,5 +47,5 @@
 
 @code {
 
-    List<ChemicalViewModel> teacherQuestions = new List<ChemicalViewModel>();
+     // List<TeacherService> teacherQuestions = new List<TeacherService>();
 }

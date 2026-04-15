@@ -55,29 +55,33 @@ public class ChemistryDataService(IDbContextFactory<AnalysisContext> factory) : 
             .Where(q => q.QuizQuestions.Any(qq => qq.Question.Type == QuestionType.SpotTestLight))
             .Include(q => q.QuizQuestions)
                 .ThenInclude(qq => qq.Question)
-                    .ThenInclude(question => question.STLInput)
-                        .ThenInclude(i => i!.Chemical1)
+                    .ThenInclude(question => question.STLQuestion!)
+                        .ThenInclude(stl => stl.ShownEduct)
                             .ThenInclude(c => c.MethodOutputs)
                                 .ThenInclude(mo => mo.Method)
             .Include(q => q.QuizQuestions)
                 .ThenInclude(qq => qq.Question)
-                    .ThenInclude(question => question.STLInput)
-                        .ThenInclude(i => i!.Observation)
-            .Include(q => q.QuizQuestions)
-                .ThenInclude(qq => qq.Question)
-                    .ThenInclude(question => question.STLAvailableReactions)
-                        .ThenInclude(ar => ar.Reaction)
-                            .ThenInclude(r => r.Chemical1)
-            .Include(q => q.QuizQuestions)
-                .ThenInclude(qq => qq.Question)
-                    .ThenInclude(question => question.STLAvailableReactions)
-                        .ThenInclude(ar => ar.Reaction)
-                            .ThenInclude(r => r.Chemical2)
-            .Include(q => q.QuizQuestions)
-                .ThenInclude(qq => qq.Question)
-                    .ThenInclude(question => question.STLAvailableReactions)
-                        .ThenInclude(ar => ar.Reaction)
+                    .ThenInclude(question => question.STLQuestion!)
+                        .ThenInclude(stl => stl.Reaction)
                             .ThenInclude(r => r.Observation)
+            .Include(q => q.QuizQuestions)
+                .ThenInclude(qq => qq.Question)
+                    .ThenInclude(question => question.STLQuestion!)
+                        .ThenInclude(stl => stl.AvailableReactions)
+                            .ThenInclude(ar => ar.Reaction)
+                                .ThenInclude(r => r.Chemical1)
+            .Include(q => q.QuizQuestions)
+                .ThenInclude(qq => qq.Question)
+                    .ThenInclude(question => question.STLQuestion!)
+                        .ThenInclude(stl => stl.AvailableReactions)
+                            .ThenInclude(ar => ar.Reaction)
+                                .ThenInclude(r => r.Chemical2)
+            .Include(q => q.QuizQuestions)
+                .ThenInclude(qq => qq.Question)
+                    .ThenInclude(question => question.STLQuestion!)
+                        .ThenInclude(stl => stl.AvailableReactions)
+                            .ThenInclude(ar => ar.Reaction)
+                                .ThenInclude(r => r.Observation)
             .AsNoTracking()
             .ToListAsync();
 
@@ -90,26 +94,19 @@ public class ChemistryDataService(IDbContextFactory<AnalysisContext> factory) : 
                 .OrderBy(qq => qq.Order)
                 .Select(qq =>
                 {
-                    var input = qq.Question.STLInput!;
-                    var availableReactions = qq.Question.STLAvailableReactions
+                    var stl = qq.Question.STLQuestion!;
+                    var availableReactions = stl.AvailableReactions
                         .Select(ar => MapReaction(ar.Reaction))
                         .ToList();
-
-                    // Derive correct reaction: matches both the input chemical and observation
-                    var correctReaction = qq.Question.STLAvailableReactions
-                        .FirstOrDefault(ar =>
-                            ar.Reaction.ObservationID == input.ObservationID &&
-                            (ar.Reaction.Chemical1ID == input.Chemical1ID ||
-                             ar.Reaction.Chemical2ID == input.Chemical2ID));
 
                     return new LightQuestionDto
                     {
                         QuestionID = qq.QuestionID,
                         Description = qq.Question.Description,
-                        Chemical = MapChemical(input.Chemical1),
-                        ObservationDescription = input.Observation.Description,
+                        Chemical = MapChemical(stl.ShownEduct),
+                        ObservationDescription = stl.Reaction.Observation.Description,
                         AvailableReactions = availableReactions,
-                        CorrectReactionID = correctReaction?.ReactionID ?? 0
+                        CorrectReactionID = stl.ReactionID
                     };
                 })
                 .ToList()
@@ -124,14 +121,16 @@ public class ChemistryDataService(IDbContextFactory<AnalysisContext> factory) : 
             .Where(q => q.QuizQuestions.Any(qq => qq.Question.Type == QuestionType.SpotTest))
             .Include(q => q.QuizQuestions)
                 .ThenInclude(qq => qq.Question)
-                    .ThenInclude(question => question.STAvailableChemicals)
-                        .ThenInclude(ac => ac.Chemical)
-                            .ThenInclude(c => c.MethodOutputs)
-                                .ThenInclude(mo => mo.Method)
+                    .ThenInclude(question => question.STQuestion!)
+                        .ThenInclude(st => st.AvailableChemicals)
+                            .ThenInclude(ac => ac.Chemical)
+                                .ThenInclude(c => c.MethodOutputs)
+                                    .ThenInclude(mo => mo.Method)
             .Include(q => q.QuizQuestions)
                 .ThenInclude(qq => qq.Question)
-                    .ThenInclude(question => question.STAvailableMethods)
-                        .ThenInclude(am => am.Method)
+                    .ThenInclude(question => question.STQuestion!)
+                        .ThenInclude(st => st.AvailableMethods)
+                            .ThenInclude(am => am.Method)
             .AsNoTracking()
             .ToListAsync();
 
@@ -147,14 +146,16 @@ public class ChemistryDataService(IDbContextFactory<AnalysisContext> factory) : 
                         q.QuizQuestions.Any(qq => qq.Question.Type == QuestionType.SpotTest))
             .Include(q => q.QuizQuestions)
                 .ThenInclude(qq => qq.Question)
-                    .ThenInclude(question => question.STAvailableChemicals)
-                        .ThenInclude(ac => ac.Chemical)
-                            .ThenInclude(c => c.MethodOutputs)
-                                .ThenInclude(mo => mo.Method)
+                    .ThenInclude(question => question.STQuestion!)
+                        .ThenInclude(st => st.AvailableChemicals)
+                            .ThenInclude(ac => ac.Chemical)
+                                .ThenInclude(c => c.MethodOutputs)
+                                    .ThenInclude(mo => mo.Method)
             .Include(q => q.QuizQuestions)
                 .ThenInclude(qq => qq.Question)
-                    .ThenInclude(question => question.STAvailableMethods)
-                        .ThenInclude(am => am.Method)
+                    .ThenInclude(question => question.STQuestion!)
+                        .ThenInclude(st => st.AvailableMethods)
+                            .ThenInclude(am => am.Method)
             .AsNoTracking()
             .FirstOrDefaultAsync();
 
@@ -182,7 +183,8 @@ public class ChemistryDataService(IDbContextFactory<AnalysisContext> factory) : 
             .OrderBy(qq => qq.Order)
             .Select(qq =>
             {
-                var allChems = qq.Question.STAvailableChemicals;
+                var st = qq.Question.STQuestion!;
+                var allChems = st.AvailableChemicals;
                 return new SpotTestQuestionDto
                 {
                     QuestionID = qq.QuestionID,
@@ -195,7 +197,7 @@ public class ChemistryDataService(IDbContextFactory<AnalysisContext> factory) : 
                         .Where(ac => ac.Chemical.Type == ChemicalType.Additive)
                         .Select(ac => MapChemical(ac.Chemical))
                         .ToList(),
-                    AvailableMethods = qq.Question.STAvailableMethods
+                    AvailableMethods = st.AvailableMethods
                         .Select(am => am.Method.Name)
                         .ToList()
                 };
@@ -209,8 +211,10 @@ public class ChemistryDataService(IDbContextFactory<AnalysisContext> factory) : 
         Name = c.Name,
         Formula = c.Formula,
         ImagePath = c.ImagePath,
-        ChemicalTypeID = (int)c.Type + 1,
+        Type = c.Type,
+        ChemicalTypeID = (int)c.Type,
         ChemicalTypeName = c.Type == ChemicalType.Educt ? "Edukt" : "Zusatzstoff",
+        Color = c.Color,
         MethodOutputs = c.MethodOutputs.ToDictionary(mo => mo.Method.Name, mo => mo.Color)
     };
 

@@ -229,7 +229,11 @@ public class XlsImportExportService : IXlsImportExportService
             if (!string.IsNullOrWhiteSpace(combo.Observation))
                 existingObservations.TryGetValue(combo.Observation, out observation);
 
-            var key = (chem1.ChemicalID, chem2.ChemicalID);
+            // Normalisierung: Reaction speichert Chemicals immer mit kleinerer ID zuerst (siehe Reaction-Konstruktor + CK_Reaction_ChemicalOrder).
+            // Der Lookup-Key muss derselben Normalisierung folgen, sonst wird die Excel-Reihenfolge zur Duplikat-Falle.
+            var key = chem1.ChemicalID <= chem2.ChemicalID
+                ? (chem1.ChemicalID, chem2.ChemicalID)
+                : (chem2.ChemicalID, chem1.ChemicalID);
 
             if (existingReactions.TryGetValue(key, out var reaction))
             {
@@ -240,10 +244,8 @@ public class XlsImportExportService : IXlsImportExportService
             }
             else
             {
-                reaction = new Reaction
+                reaction = new Reaction(chem1, chem2)
                 {
-                    Chemical1ID = chem1.ChemicalID,
-                    Chemical2ID = chem2.ChemicalID,
                     RelevantProduct = combo.Product,
                     Formula = combo.Formula ?? "",
                     ObservationID = observation?.ObservationID ?? 0

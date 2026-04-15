@@ -1,12 +1,24 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
-  <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
-    <Nullable>enable</Nullable>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <BlazorDisableThrowNavigationException>true</BlazorDisableThrowNavigationException>
-  </PropertyGroup>
+	<PropertyGroup>
+		<TargetFramework>net10.0</TargetFramework>
+		<Nullable>enable</Nullable>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<BlazorDisableThrowNavigationException>true</BlazorDisableThrowNavigationException>
+	</PropertyGroup>
 
+	<ItemGroup>
+		<!-- Wird von den EF Core CLI-Tools benötigt, wenn dieses Projekt als startup-project verwendet wird.
+         Siehe SpotAnalysis.Data/EF-MIGRATIONS.md für die Migration-Befehle. -->
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.5">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+		<PackageReference Include="Serilog.AspNetCore" Version="10.0.0" />
+		<PackageReference Include="Serilog.Settings.Configuration" Version="10.0.0" />
+		<PackageReference Include="Serilog.Sinks.File" Version="7.0.0" />
+		
+	</ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\SpotAnalysis.Services\SpotAnalysis.Services.csproj" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.5">
@@ -15,7 +27,7 @@
     </PackageReference>
   </ItemGroup>
 
-  <ItemGroup>
+	<ItemGroup>
 		<ProjectReference Include="..\SpotAnalysis.Services\SpotAnalysis.Services.csproj" />
 	</ItemGroup>
 

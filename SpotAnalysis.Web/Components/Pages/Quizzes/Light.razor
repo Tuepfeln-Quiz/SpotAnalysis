@@ -80,7 +80,7 @@
                 </h5>
 
                 <div class="task-row">
-                    <div class="compound-card compound-card-static chemical-@(question.Chemical.ChemicalTypeName.ToLowerInvariant()) task-educt" style="border-color: @ColorHelper.GetBorderColor(question.Chemical.MethodOutputs.GetValueOrDefault("Eigenfarbe"))">
+                    <div class="compound-card compound-card-static chemical-@(question.Chemical.ChemicalTypeName.ToLowerInvariant()) task-educt" style="border-color: @ColorHelper.GetBorderColor(question.Chemical.Color)">
                         <SubstanceCard Chemical="question.Chemical" />
                     </div>
                     <span class="fs-4 text-muted fw-bold task-operator">+</span>
@@ -91,7 +91,7 @@
                             ? correctReaction.Chemical2ID : correctReaction.Chemical1ID;
                         var unknownChem = allChemicals.First(c => c.ChemicalID == unknownChemId);
                         <div class="compound-card compound-card-static chemical-@(unknownChem.ChemicalTypeName.ToLowerInvariant()) task-educt"
-                             style="border-color: @ColorHelper.GetBorderColor(unknownChem.MethodOutputs.GetValueOrDefault("Eigenfarbe"))">
+                             style="border-color: @ColorHelper.GetBorderColor(unknownChem.Color)">
                             <SubstanceCard Chemical="unknownChem" />
                         </div>
                     }

@@ -50,9 +50,9 @@ public class QuizServiceQuestionTests : BaseDatabaseTest
         await dbContext.Observations.AddRangeAsync(obs1, obs2, obs3);
         await dbContext.SaveChangesAsync();
 
-        var reaction1 = new Reaction { Chemical1ID = chem1.ChemicalID, Chemical2ID = chem2.ChemicalID, ObservationID = obs1.ObservationID, RelevantProduct = "P1", Formula = "F1" };
-        var reaction2 = new Reaction { Chemical1ID = chem1.ChemicalID, Chemical2ID = chem2.ChemicalID, ObservationID = obs2.ObservationID, RelevantProduct = "P2", Formula = "F2" };
-        var reaction3 = new Reaction { Chemical1ID = chem1.ChemicalID, Chemical2ID = chem2.ChemicalID, ObservationID = obs3.ObservationID, RelevantProduct = "P3", Formula = "F3" };
+        var reaction1 = new Reaction (chem1, chem2) { ObservationID = obs1.ObservationID, RelevantProduct = "P1", Formula = "F1" };
+        var reaction2 = new Reaction (chem1, chem2) { ObservationID = obs2.ObservationID, RelevantProduct = "P2", Formula = "F2" };
+        var reaction3 = new Reaction (chem1, chem2) { ObservationID = obs3.ObservationID, RelevantProduct = "P3", Formula = "F3" };
         await dbContext.Reactions.AddRangeAsync(reaction1, reaction2, reaction3);
         await dbContext.SaveChangesAsync();
         _reaction1Id = reaction1.ReactionID;
@@ -76,7 +76,8 @@ public class QuizServiceQuestionTests : BaseDatabaseTest
         {
             Description = "Test ST Question",
             AvailableChemicals = new List<int> { _chemical1Id, _chemical2Id },
-            AvailableMethods = new List<int> { _methodId }
+            AvailableMethods = new List<int> { _methodId },
+            Title = "HohohoTitle"
         };
 
         await _quizService.CreateSTQuestion(SeededTeacherId, dto);
@@ -96,7 +97,9 @@ public class QuizServiceQuestionTests : BaseDatabaseTest
         {
             Description = "Test STL Question",
             ReactionId = _reaction1Id,
-            AvailableReactions = new List<int> { _reaction1Id, _reaction2Id, _reaction3Id }
+            ShowEductId = 1,
+            AvailableReactions = [_reaction1Id, _reaction2Id, _reaction3Id],
+            Title = "HohohoTitle"
         };
 
         await _quizService.CreateSTLQuestion(SeededTeacherId, dto);
@@ -116,7 +119,8 @@ public class QuizServiceQuestionTests : BaseDatabaseTest
         {
             Description = "Question to protect",
             AvailableChemicals = new List<int> { _chemical1Id },
-            AvailableMethods = new List<int> { _methodId }
+            AvailableMethods = new List<int> { _methodId },
+            Title = "HohohoTitle"
         });
 
         var questions = await _quizService.GetQuestions();
@@ -129,8 +133,7 @@ public class QuizServiceQuestionTests : BaseDatabaseTest
             Questions = new List<DTOs.QuestionDto>
             {
                 new() { Id = question.Id, Order = 0 }
-            },
-            AssignedGroupsIds = new List<int>()
+            }
         });
 
         Assert.ThrowsAsync<InvalidOperationException>(
@@ -144,7 +147,8 @@ public class QuizServiceQuestionTests : BaseDatabaseTest
         {
             Description = "Question to delete",
             AvailableChemicals = new List<int> { _chemical1Id },
-            AvailableMethods = new List<int> { _methodId }
+            AvailableMethods = new List<int> { _methodId },
+            Title = "HohohoTitle"
         });
 
         var questions = await _quizService.GetQuestions();

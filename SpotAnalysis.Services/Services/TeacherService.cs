@@ -28,6 +28,11 @@ public class TeacherService(IDbContextFactory<AnalysisContext> factory) : ITeach
             {
                 Id = u.UserID,
                 UserName = u.UserName,
+                AssignedGroups = u.Groups.Select(g => new GroupDto
+                {
+                    Id = g.GroupID,
+                    Name = g.Name,
+                }).ToList()
             }).ToList();
     }
 

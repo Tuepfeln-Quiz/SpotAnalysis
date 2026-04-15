@@ -22,12 +22,7 @@ public abstract class BaseDatabaseTest
 
         await _context.Database.EnsureDeletedAsync();
         await _context.Database.MigrateAsync();
-
-        var seedSql = await File.ReadAllTextAsync(Path.Join(AppDomain.CurrentDomain.BaseDirectory, "seed.sql"));
-        if (!string.IsNullOrEmpty(seedSql))
-        {
-            await _context.Database.ExecuteSqlRawAsync(seedSql);
-        }
+        await SeedDatabase();
     }
 
     [SetUp]
@@ -62,5 +57,14 @@ public abstract class BaseDatabaseTest
     private class TestDbContextFactory(DbContextOptions<AnalysisContext> options) : IDbContextFactory<AnalysisContext>
     {
         public AnalysisContext CreateDbContext() => new AnalysisContext(options);
+    }
+
+    protected async Task SeedDatabase()
+    {
+        var seedSql = await File.ReadAllTextAsync(Path.Join(AppDomain.CurrentDomain.BaseDirectory, "seed.sql"));
+        if (!string.IsNullOrEmpty(seedSql))
+        {
+            await _context.Database.ExecuteSqlRawAsync(seedSql);
+        }
     }
 }

@@ -1,0 +1,403 @@
+@page "/teacher/questions/create"
+@page "/teacher/questions/{QuestionId:int}/edit"
+@rendermode InteractiveServer
+@using SpotAnalysis.Data.Enums
+@using SpotAnalysis.Services.DTOs
+@using SpotAnalysis.Services.Services
+
+<PageTitle>@(_isEdit ? "Frage bearbeiten" : "Neue Frage") – Tüpfeln Digital</PageTitle>
+
+<PageHeader PageTitle="@(_isEdit ? "Frage bearbeiten" : "Neue Frage erstellen")" />
+
+<div class="container py-4">
+    <div class="card-form">
+        @* Question Type Toggle *@
+        <div class="mb-4">
+            <label class="form-label-custom">Fragetyp</label>
+            <div class="d-flex gap-2">
+                <button class="btn btn-type @(_questionType == QuestionType.SpotTest ? "active-st" : "")"
+                        @onclick="() => SetType(QuestionType.SpotTest)"
+                        disabled="@_isEdit">SpotTest</button>
+                <button class="btn btn-type @(_questionType == QuestionType.SpotTestLight ? "active-stl" : "")"
+                        @onclick="() => SetType(QuestionType.SpotTestLight)"
+                        disabled="@_isEdit">Light</button>
+            </div>
+        </div>
+
+        @* Description *@
+        <div class="mb-4">
+            <label class="form-label-custom">Beschreibung / Aufgabenstellung</label>
+            <textarea class="form-control input-custom" rows="3"
+                      placeholder="@(_questionType == QuestionType.SpotTest
+                          ? "z.B. Identifiziere die drei unbekannten Chemikalien."
+                          : "z.B. Welche Reaktion ergibt Natriumchlorid?")"
+                      @bind="_description"></textarea>
+        </div>
+
+        @if (_questionType == QuestionType.SpotTest)
+        {
+            @* 1. Edukte *@
+            <div class="mb-4">
+                <label class="form-label-custom">1. Zu identifizierende Edukte</label>
+                <p class="hint-text">Die unbekannten Stoffe, die der Schüler herausfinden muss</p>
+                <div class="selection-box">
+                    <div class="d-flex flex-wrap gap-2 mb-2">
+                        @foreach (var chem in _selectedEducts)
+                        {
+                            <span class="tag tag-educt">
+                                <span class="color-dot" style="background: @chem.Color;"></span>
+                                @chem.Formula <span class="tag-name">(@chem.Name)</span>
+                                <span class="tag-remove" @onclick="() => RemoveEduct(chem.Id)">✕</span>
+                            </span>
+                        }
+                    </div>
+                    <select class="form-select form-select-sm input-custom"
+                            @onchange="OnEductSelected">
+                        <option value="">+ Edukt hinzufügen...</option>
+                        @foreach (var chem in _eductsAvailable.Where(c => !_selectedEducts.Any(s => s.Id == c.Id)))
+                        {
+                            <option value="@chem.Id">@chem.Formula – @chem.Name</option>
+                        }
+                    </select>
+                </div>
+            </div>
+
+            @* 2. Zusatzstoffe *@
+            <div class="mb-4">
+                <label class="form-label-custom">2. Verfügbare Zusatzstoffe</label>
+                <p class="hint-text">Reagenzien wie HCl, NaOH etc., die der Schüler zum Testen verwenden kann</p>
+                <div class="selection-box">
+                    <div class="d-flex flex-wrap gap-2 mb-2">
+                        @foreach (var chem in _selectedAdditives)
+                        {
+                            <span class="tag tag-additive">
+                                @chem.Formula <span class="tag-name">(@chem.Name)</span>
+                                <span class="tag-remove" @onclick="() => RemoveAdditive(chem.Id)">✕</span>
+                            </span>
+                        }
+                    </div>
+                    <select class="form-select form-select-sm input-custom"
+                            @onchange="OnAdditiveSelected">
+                        <option value="">+ Zusatzstoff hinzufügen...</option>
+                        @foreach (var chem in _additivesAvailable.Where(c => !_selectedAdditives.Any(s => s.Id == c.Id)))
+                        {
+                            <option value="@chem.Id">@chem.Formula – @chem.Name</option>
+                        }
+                    </select>
+                </div>
+            </div>
+
+            @* 3. Methoden *@
+            <div class="mb-4">
+                <label class="form-label-custom">3. Verfügbare Methoden</label>
+                <p class="hint-text">Analysemethoden, die dem Schüler zur Verfügung stehen</p>
+                <div class="selection-box">
+                    <div class="d-flex flex-wrap gap-2 mb-2">
+                        @foreach (var method in _selectedMethods)
+                        {
+                            <span class="tag tag-method">
+                                @method.Name
+                                <span class="tag-remove" @onclick="() => RemoveMethod(method.Id)">✕</span>
+                            </span>
+                        }
+                    </div>
+                    <select class="form-select form-select-sm input-custom"
+                            @onchange="OnMethodSelected">
+                        <option value="">+ Methode hinzufügen...</option>
+                        @foreach (var method in _allMethods.Where(m => !_selectedMethods.Any(s => s.Id == m.Id)))
+                        {
+                            <option value="@method.Id">@method.Name</option>
+                        }
+                    </select>
+                </div>
+            </div>
+        }
+        else
+        {
+            @* Light: Correct Reaction *@
+            <div class="mb-4">
+                <label class="form-label-custom">Korrekte Reaktion</label>
+                <p class="hint-text">Die richtige Antwort auf die Frage</p>
+                <select class="form-select input-custom" @bind="_selectedReactionId">
+                    <option value="0">Reaktion auswählen...</option>
+                    @foreach (var reaction in _allReactions)
+                    {
+                        <option value="@reaction.ReactionID">@reaction.Formula</option>
+                    }
+                </select>
+                @if (_selectedReactionId > 0)
+                {
+                    var selected = _allReactions.FirstOrDefault(r => r.ReactionID == _selectedReactionId);
+                    if (selected is not null)
+                    {
+                        <div class="reaction-preview">
+                            <div class="preview-label">Gewählte Reaktion:</div>
+                            <div>@selected.Formula</div>
+                            <small class="text-muted">Beobachtung: @selected.ObservationDescription</small>
+                        </div>
+                    }
+                }
+            </div>
+
+            @* Light: Available Reactions (Distractors) *@
+            <div class="mb-4">
+                <label class="form-label-custom">Auswahl-Optionen</label>
+                <p class="hint-text">Reaktionen, die dem Schüler als Optionen angezeigt werden</p>
+                <div class="selection-box">
+                    @if (_selectedReactionId > 0)
+                    {
+                        var correct = _allReactions.FirstOrDefault(r => r.ReactionID == _selectedReactionId);
+                        if (correct is not null)
+                        {
+                            <div class="reaction-option correct">
+                                <span class="me-2">★</span>
+                                <span class="flex-grow-1">@correct.Formula</span>
+                                <small class="text-success">Richtig</small>
+                            </div>
+                        }
+                    }
+                    @foreach (var reactionId in _selectedDistractors)
+                    {
+                        var reaction = _allReactions.FirstOrDefault(r => r.ReactionID == reactionId);
+                        if (reaction is not null)
+                        {
+                            <div class="reaction-option">
+                                <span class="me-2 text-muted">○</span>
+                                <span class="flex-grow-1">@reaction.Formula</span>
+                                <span class="tag-remove" @onclick="() => RemoveDistractor(reactionId)">✕</span>
+                            </div>
+                        }
+                    }
+                    <select class="form-select form-select-sm input-custom mt-2"
+                            @onchange="OnDistractorSelected">
+                        <option value="">+ Reaktion als Auswahloption hinzufügen...</option>
+                        @foreach (var reaction in _allReactions.Where(r =>
+                            r.ReactionID != _selectedReactionId &&
+                            !_selectedDistractors.Contains(r.ReactionID)))
+                        {
+                            <option value="@reaction.ReactionID">@reaction.Formula</option>
+                        }
+                    </select>
+                </div>
+            </div>
+        }
+
+        @* Error *@
+        @if (_errorMessage is not null)
+        {
+            <div class="alert alert-danger">@_errorMessage</div>
+        }
+
+        @* Actions *@
+        <div class="d-flex gap-3 justify-content-end">
+            <button class="btn btn-secondary" @onclick="Cancel">Abbrechen</button>
+            <button class="btn btn-primary-purple" @onclick="Save" disabled="@_saving">
+                @(_saving ? "Speichern..." : "Frage speichern")
+            </button>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public int? QuestionId { get; set; }
+    [SupplyParameterFromQuery] public string? Type { get; set; }
+
+    [Inject] private IQuizService QuizService { get; set; } = default!;
+    [Inject] private IChemistryDataService ChemistryData { get; set; } = default!;
+    [Inject] private NavigationManager Navigation { get; set; } = default!;
+
+    private bool _isEdit => QuestionId.HasValue;
+    private QuestionType _questionType = QuestionType.SpotTest;
+    private string _description = "";
+
+    // SpotTest state
+    private record ChemicalItem(int Id, string Name, string Formula, string Color);
+    private record MethodItem(int Id, string Name);
+    private List<ChemicalItem> _eductsAvailable = new();
+    private List<ChemicalItem> _additivesAvailable = new();
+    private List<MethodItem> _allMethods = new();
+    private List<ChemicalItem> _selectedEducts = new();
+    private List<ChemicalItem> _selectedAdditives = new();
+    private List<MethodItem> _selectedMethods = new();
+
+    // Light state
+    private List<LabReactionDto> _allReactions = new();
+    private int _selectedReactionId;
+    private List<int> _selectedDistractors = new();
+
+    private bool _saving;
+    private string? _errorMessage;
+
+    // TODO: Replace with actual teacher ID from auth when login is implemented
+    private Guid _teacherId = Guid.Parse("00000000-0000-0000-0000-000000000001");
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Parse type from query string for edit mode
+        if (_isEdit && Enum.TryParse<QuestionType>(Type, out var parsedType))
+            _questionType = parsedType;
+
+        // Load reference data
+        var chemicals = await ChemistryData.GetAllChemicalsAsync();
+        _eductsAvailable = chemicals
+            .Where(c => c.ChemicalTypeID == 0)
+            .Select(c => new ChemicalItem(c.ChemicalID, c.Name, c.Formula, "#9ca3af"))
+            .ToList();
+        _additivesAvailable = chemicals
+            .Where(c => c.ChemicalTypeID == 1)
+            .Select(c => new ChemicalItem(c.ChemicalID, c.Name, c.Formula, "#60a5fa"))
+            .ToList();
+
+        var reactions = await ChemistryData.GetAllReactionsAsync();
+        _allReactions = reactions;
+
+        var methods = await ChemistryData.GetAllMethodsAsync();
+        _allMethods = methods.Select(m => new MethodItem(m.Id, m.Name)).ToList();
+
+        if (_isEdit)
+        {
+            await LoadExistingQuestion();
+        }
+    }
+
+    private async Task LoadExistingQuestion()
+    {
+        var detail = await QuizService.GetQuestionDetail(QuestionId!.Value);
+        _description = detail.Description;
+        _questionType = detail.Type;
+
+        if (_questionType == QuestionType.SpotTest)
+        {
+            _selectedEducts = detail.Chemicals
+                .Where(c => !c.IsAdditive)
+                .Select(c => new ChemicalItem(c.Id, c.Name, c.Formula, c.Color))
+                .ToList();
+            _selectedAdditives = detail.Chemicals
+                .Where(c => c.IsAdditive)
+                .Select(c => new ChemicalItem(c.Id, c.Name, c.Formula, c.Color))
+                .ToList();
+            _selectedMethods = detail.Methods
+                .Select(m => new MethodItem(m.Id, m.Name))
+                .ToList();
+        }
+        else
+        {
+            _selectedReactionId = detail.ReactionId;
+            _selectedDistractors = detail.AvailableReactionIds
+                .Where(id => id != detail.ReactionId)
+                .ToList();
+        }
+    }
+
+    private void SetType(QuestionType type) => _questionType = type;
+
+    private void OnEductSelected(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out var id))
+        {
+            var chem = _eductsAvailable.FirstOrDefault(c => c.Id == id);
+            if (chem is not null) _selectedEducts.Add(chem);
+        }
+    }
+
+    private void OnAdditiveSelected(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out var id))
+        {
+            var chem = _additivesAvailable.FirstOrDefault(c => c.Id == id);
+            if (chem is not null) _selectedAdditives.Add(chem);
+        }
+    }
+
+    private void OnMethodSelected(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out var id))
+        {
+            var method = _allMethods.FirstOrDefault(m => m.Id == id);
+            if (method is not null) _selectedMethods.Add(method);
+        }
+    }
+
+    private void OnDistractorSelected(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out var id) && id > 0)
+            _selectedDistractors.Add(id);
+    }
+
+    private void RemoveEduct(int id) => _selectedEducts.RemoveAll(c => c.Id == id);
+    private void RemoveAdditive(int id) => _selectedAdditives.RemoveAll(c => c.Id == id);
+    private void RemoveMethod(int id) => _selectedMethods.RemoveAll(m => m.Id == id);
+    private void RemoveDistractor(int id) => _selectedDistractors.Remove(id);
+
+    private void Cancel() => Navigation.NavigateTo("/teacher/questions");
+
+    private async Task Save()
+    {
+        _errorMessage = null;
+
+        if (string.IsNullOrWhiteSpace(_description))
+        {
+            _errorMessage = "Bitte eine Beschreibung eingeben.";
+            return;
+        }
+
+        _saving = true;
+        try
+        {
+            if (_questionType == QuestionType.SpotTest)
+            {
+                var allChemicalIds = _selectedEducts.Select(c => c.Id)
+                    .Concat(_selectedAdditives.Select(c => c.Id))
+                    .ToList();
+
+                var dto = new ConfigSTQuestionDto
+                {
+                    Id = _isEdit ? QuestionId : null,
+                    Description = _description,
+                    AvailableChemicals = allChemicalIds,
+                    AvailableMethods = _selectedMethods.Select(m => m.Id).ToList()
+                };
+
+                if (_isEdit)
+                    await QuizService.UpdateSTQuestion(_teacherId, dto);
+                else
+                    await QuizService.CreateSTQuestion(_teacherId, dto);
+            }
+            else
+            {
+                if (_selectedReactionId == 0)
+                {
+                    _errorMessage = "Bitte eine korrekte Reaktion auswählen.";
+                    _saving = false;
+                    return;
+                }
+
+                var allReactionIds = new List<int> { _selectedReactionId };
+                allReactionIds.AddRange(_selectedDistractors);
+
+                var dto = new ConfigSTLQuestionDto
+                {
+                    Id = _isEdit ? QuestionId : null,
+                    Description = _description,
+                    ReactionId = _selectedReactionId,
+                    AvailableReactions = allReactionIds
+                };
+
+                if (_isEdit)
+                    await QuizService.UpdateSTLQuestion(_teacherId, dto);
+                else
+                    await QuizService.CreateSTLQuestion(_teacherId, dto);
+            }
+
+            Navigation.NavigateTo("/teacher/questions");
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = ex.Message;
+        }
+        finally
+        {
+            _saving = false;
+        }
+    }
+}

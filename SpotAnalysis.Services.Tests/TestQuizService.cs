@@ -145,6 +145,45 @@ public class TestQuizService : BaseDatabaseTest
             Assert.That(group.Quizzes, Has.Count.EqualTo(0));
         }
     }
+    
+    [Test]
+    public async Task GetQuestionsFromQuiz_GetQuestions()
+    {
+        await CleanUpDb();
+        
+        await CreateMultipleQuizzes();
+
+        Group createdQuiz; 
+
+        await using (var dbContext = await ContextFactory.CreateDbContextAsync())
+        {
+            var quiz = await dbContext.Quizzes.FirstAsync();
+        
+            var result = await dbContext.Groups.AddAsync(new Group
+            {
+                Name = "Fetzige Group",
+                Quizzes = [quiz]
+            });
+
+            createdQuiz = result.Entity;
+            
+            await dbContext.SaveChangesAsync();
+            
+            Assert.DoesNotThrowAsync(async () =>
+            {
+                await _quizService.RemoveGroupFromQuiz(quiz.QuizID, createdQuiz.GroupID);
+            });
+        }
+        
+        await using (var dbContext = await ContextFactory.CreateDbContextAsync())
+        {
+            var group = await dbContext.Groups
+                .Include(x => x.Quizzes)
+                .SingleAsync(x => x.GroupID == createdQuiz.GroupID);
+            
+            Assert.That(group.Quizzes, Has.Count.EqualTo(0));
+        }
+    }
 
     private async Task<int> CreateMultipleQuizzes()
     {
@@ -175,6 +214,45 @@ public class TestQuizService : BaseDatabaseTest
 
         return tasks.Count;
     }
+    
+    // private async Task<int> CreateMultipleQuestions()
+    // {
+    //     await using (var dbContext = await ContextFactory.CreateDbContextAsync())
+    //     {
+    //         await dbContext.Users.AddAsync(new User
+    //         {
+    //             UserID = _createdBy,
+    //             UserName = "Test",
+    //             PasswordHash = "HohohoNoHash"
+    //         });
+    //
+    //         await dbContext.SaveChangesAsync();
+    //     }
+    //     
+    //     List<Task> tasks = [];
+    //     
+    //     for (int i = 0; i < 100; i++)
+    //     {
+    //         tasks.Add(_quizService.CreateSTQuestion(_createdBy, new CreateQuizDto
+    //         {
+    //             Name = i.ToString(),
+    //             Questions = []
+    //         }));
+    //     }
+    //     
+    //     for (int i = 0; i < 100; i++)
+    //     {
+    //         tasks.Add(_quizService.CreateSTLQuestion(_createdBy, new CreateQuizDto
+    //         {
+    //             Name = i.ToString(),
+    //             Questions = []
+    //         }));
+    //     }
+    //
+    //     Task.WaitAll(tasks);
+    //
+    //     return tasks.Count;
+    // }
 
     private async Task CleanUpDb()
     {

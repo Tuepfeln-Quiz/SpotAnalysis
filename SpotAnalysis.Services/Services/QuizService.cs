@@ -345,7 +345,7 @@ public class QuizService(ILogger<QuizService> logger, IDbContextFactory<Analysis
             }).ToListAsync();
     }
 
-    public async Task CreateSTQuestion(Guid createdBy, ConfigSTQuestionDto question)
+    public async Task CreateSTQuestion(Guid teacherId, ConfigSTQuestionDto question)
     {
         await using var dbContext = await factory.CreateDbContextAsync();
         await using var transaction = await dbContext.Database.BeginTransactionAsync();
@@ -354,7 +354,7 @@ public class QuizService(ILogger<QuizService> logger, IDbContextFactory<Analysis
         {
             Description = question.Description,
             Type = QuestionType.SpotTest,
-            CreatedBy = createdBy,
+            CreatedBy = teacherId,
             ReactionID = null
         };
 
@@ -407,7 +407,7 @@ public class QuizService(ILogger<QuizService> logger, IDbContextFactory<Analysis
         await transaction.CommitAsync();
     }
 
-    public async Task UpdateSTQuestion(Guid updatedBy, ConfigSTQuestionDto question)
+    public async Task UpdateSTQuestion(Guid teacherId, ConfigSTQuestionDto question)
     {
         if (question.Id is null)
             throw new ArgumentException("Question Id is required for update.");
@@ -448,7 +448,7 @@ public class QuizService(ILogger<QuizService> logger, IDbContextFactory<Analysis
         await transaction.CommitAsync();
     }
 
-    public async Task UpdateSTLQuestion(Guid updatedBy, ConfigSTLQuestionDto question)
+    public async Task UpdateSTLQuestion(Guid teacherId, ConfigSTLQuestionDto question)
     {
         if (question.Id is null)
             throw new ArgumentException("Question Id is required for update.");
@@ -478,19 +478,12 @@ public class QuizService(ILogger<QuizService> logger, IDbContextFactory<Analysis
         await transaction.CommitAsync();
     }
     
-    public async Task DeleteQuestion(Guid teacherId, int questionId)
+    public async Task DeleteQuestion(int questionId)
     {
         await using var dbContext = await factory.CreateDbContextAsync();
         await using var transaction = await dbContext.Database.BeginTransactionAsync();
 
         var question = await dbContext.Questions.SingleAsync(x => x.QuestionID == questionId);
-        
-        if (question.CreatedBy != teacherId)
-        {
-            logger.LogError("A quiz can only be updated by its creator! Creator id: {creatorId}, Deleter id: {deletedBy}", 
-                question.CreatedBy, teacherId);
-            throw new UnauthorizedAccessException("A question can only be deleted by its creator");
-        }
 
         switch (question.Type)
         {

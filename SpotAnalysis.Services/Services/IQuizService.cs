@@ -17,11 +17,12 @@ public interface IQuizService
     public Task<STLResult> ValidateAndSaveStlQuestion(ValidateStlQuestionDto answer);
     public Task<STResult> ValidateAndSaveStQuestion(ValidateStQuestionDto answer);
     
+    public Task<List<QuestionOverviewDto>> GetQuestions();
     public Task<List<QuestionOverviewDto>> GetQuestionsOfQuiz(int quizId);
     public Task<QuestionDetailDto> GetQuestionDetail(int questionId);
     public Task CreateSTQuestion(Guid teacherId, ConfigSTQuestionDto question);
     public Task CreateSTLQuestion(Guid teacherId, ConfigSTLQuestionDto question);
     public Task UpdateSTQuestion(Guid teacherId, ConfigSTQuestionDto question);
     public Task UpdateSTLQuestion(Guid teacherId, ConfigSTLQuestionDto question);
-    public Task DeleteQuestion(Guid teacherId, int questionId);
+    public Task DeleteQuestion(int questionId);
 }

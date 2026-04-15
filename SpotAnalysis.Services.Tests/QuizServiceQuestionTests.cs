@@ -129,8 +129,7 @@ public class QuizServiceQuestionTests : BaseDatabaseTest
             Questions = new List<DTOs.QuestionDto>
             {
                 new() { Id = question.Id, Order = 0 }
-            },
-            AssignedGroupsIds = new List<int>()
+            }
         });
 
         Assert.ThrowsAsync<InvalidOperationException>(

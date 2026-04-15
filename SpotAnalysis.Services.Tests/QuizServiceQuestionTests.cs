@@ -96,7 +96,8 @@ public class QuizServiceQuestionTests : BaseDatabaseTest
         {
             Description = "Test STL Question",
             ReactionId = _reaction1Id,
-            AvailableReactions = new List<int> { _reaction1Id, _reaction2Id, _reaction3Id }
+            ShowEductId = 1,
+            AvailableReactions = [_reaction1Id, _reaction2Id, _reaction3Id]
         };
 
         await _quizService.CreateSTLQuestion(SeededTeacherId, dto);

@@ -7,7 +7,6 @@ public class STQuestion {
     [DeleteBehavior(DeleteBehavior.Restrict)]
     public virtual Question Question { get; set; } = null!;
 
-    public virtual ICollection<STAvailableChemical> STAvailableChemicals { get; set; } = [];
-    public virtual ICollection<STAvailableMethod> STAvailableMethods { get; set; } = [];
-    public virtual ICollection<STLAvailableReaction> STLAvailableReactions { get; set; } = [];
+    public virtual ICollection<STAvailableChemical> AvailableChemicals { get; set; } = [];
+    public virtual ICollection<STAvailableMethod> AvailableMethods { get; set; } = [];
 }

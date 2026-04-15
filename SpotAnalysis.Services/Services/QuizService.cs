@@ -327,15 +327,17 @@ public class QuizService(ILogger<QuizService> logger, IDbContextFactory<Analysis
                 Description = q.Description,
                 Type = q.Type,
                 CreatedByName = q.Creator.UserName,
+                QuizCount = q.QuizQuestions.Count,
                 ChemicalCount = q.STQuestion!.AvailableChemicals.Count,
                 MethodCount = q.STQuestion.AvailableMethods.Count,
-                
+
             } : new QuestionOverviewDto
             {
                 Id = q.QuestionID,
                 Description = q.Description,
                 Type = q.Type,
                 CreatedByName = q.Creator.UserName,
+                QuizCount = q.QuizQuestions.Count,
                 ReactionCount = q.STLQuestion!.AvailableReactions.Count,
             }).ToListAsync();
     }
@@ -405,15 +407,17 @@ public class QuizService(ILogger<QuizService> logger, IDbContextFactory<Analysis
                 Description = q.Question.Description,
                 Type = q.Question.Type,
                 CreatedByName = q.Question.Creator.UserName,
+                QuizCount = q.Question.QuizQuestions.Count,
                 ChemicalCount = q.Question.STQuestion!.AvailableChemicals.Count,
                 MethodCount = q.Question.STQuestion.AvailableMethods.Count,
-                
+
             } : new QuestionOverviewDto
             {
                 Id = q.QuestionID,
                 Description = q.Question.Description,
                 Type = q.Question.Type,
                 CreatedByName = q.Question.Creator.UserName,
+                QuizCount = q.Question.QuizQuestions.Count,
                 ReactionCount = q.Question.STLQuestion!.AvailableReactions.Count,
             }).ToListAsync();
     }

@@ -13,12 +13,14 @@ BEGIN TRANSACTION;
 DECLARE @SeedUserID UNIQUEIDENTIFIER = '9c9c2138-f945-41fa-823e-f3bd286c0fa1'; -- Lehrer1
 
 -- ── Idempotenz: vorhandene Quiz-Seeds wegräumen (Reihenfolge wegen FKs) ─────
-DELETE FROM STAvailableMethods   WHERE QuestionID IN (1,2,3,4,5,6,7,8);
-DELETE FROM STAvailableChemicals WHERE QuestionID IN (1,2,3,4,5,6,7,8);
+DELETE FROM STAvailableMethods    WHERE QuestionID IN (1,2,3,4,5,6,7,8);
+DELETE FROM STAvailableChemicals  WHERE QuestionID IN (1,2,3,4,5,6,7,8);
 DELETE FROM STLAvailableReactions WHERE QuestionID IN (1,2,3,4,5,6,7,8);
-DELETE FROM QuizQuestions        WHERE QuizID IN (1,2,3,4);
-DELETE FROM Questions            WHERE QuestionID IN (1,2,3,4,5,6,7,8);
-DELETE FROM Quizzes              WHERE QuizID IN (1,2,3,4);
+DELETE FROM STLQuestions          WHERE QuestionID IN (1,2,3,4,5,6,7,8);
+DELETE FROM STQuestions           WHERE QuestionID IN (1,2,3,4,5,6,7,8);
+DELETE FROM QuizQuestions         WHERE QuizID IN (1,2,3,4);
+DELETE FROM Questions             WHERE QuestionID IN (1,2,3,4,5,6,7,8);
+DELETE FROM Quizzes               WHERE QuizID IN (1,2,3,4);
 
 -- ============================================================================
 -- HINWEIS: Additiv-Reaktionen (Edukt+NaOH/HCl) kommen aus dem Excel-Import.
@@ -40,26 +42,36 @@ INSERT INTO Quizzes (QuizID, Name, CreatedBy) VALUES
 SET IDENTITY_INSERT Quizzes OFF;
 
 -- ── Questions (Light) ───────────────────────────────────────────────────────
--- ReactionID = die korrekte Reaktion (FK auf Reactions-Tabelle)
+-- Hinweis: Korrekte Reaktion + angezeigter Edukt liegen jetzt in STLQuestions
 SET IDENTITY_INSERT Questions ON;
 
 -- Quiz 1: Niederschlaege erkennen (3 Fragen)
-INSERT INTO Questions (QuestionID, Type, Title, Description, CreatedBy, ReactionID) VALUES
-    -- Q1: korrekt = R7 (Pb+KI -> PbI2, gelber Niederschlag)
-    (1, 1, 'Light Q1 - gelber Niederschlag Pb(NO3)2', 'Was fuehrt zu einem gelben Niederschlag mit Blei(II)nitrat?', @SeedUserID, 7),
-    -- Q2: korrekt = R2 (Fe+KI -> I2, orangebraune Faerbung)
-    (2, 1, 'Light Q2 - orangebraune Faerbung FeCl3', 'Welche Reaktion zeigt orangebraune Faerbung mit Eisen(III)chlorid?', @SeedUserID, 2),
-    -- Q3: korrekt = R13 (KI+Ag -> AgI, gelber Niederschlag)
-    (3, 1, 'Light Q3 - gelber Niederschlag AgNO3', 'Was erzeugt gelben Niederschlag mit Silber(I)nitrat?', @SeedUserID, 13);
+INSERT INTO Questions (QuestionID, Type, Title, Description, CreatedBy) VALUES
+    (1, 1, 'Light Q1 - gelber Niederschlag Pb(NO3)2', 'Was fuehrt zu einem gelben Niederschlag mit Blei(II)nitrat?', @SeedUserID),
+    (2, 1, 'Light Q2 - orangebraune Faerbung FeCl3', 'Welche Reaktion zeigt orangebraune Faerbung mit Eisen(III)chlorid?', @SeedUserID),
+    (3, 1, 'Light Q3 - gelber Niederschlag AgNO3', 'Was erzeugt gelben Niederschlag mit Silber(I)nitrat?', @SeedUserID);
 
 -- Quiz 2: Beobachtungen zuordnen (2 Fragen)
-INSERT INTO Questions (QuestionID, Type, Title, Description, CreatedBy, ReactionID) VALUES
-    -- Q4: korrekt = R20 (Ag+Ba(OH)2 -> AgOH, brauner Niederschlag)
-    (4, 1, 'Light Q4 - brauner Niederschlag AgNO3', 'Welche Reaktion verursacht braunen Niederschlag mit Silber(I)nitrat?', @SeedUserID, 20),
-    -- Q5: korrekt = R3 (Fe+NaCO3 -> Fe2(CO3)3, brauner Niederschlag)
-    (5, 1, 'Light Q5 - brauner Niederschlag NaCO3', 'Was erzeugt braunen Niederschlag mit Natriumcarbonat?', @SeedUserID, 3);
+INSERT INTO Questions (QuestionID, Type, Title, Description, CreatedBy) VALUES
+    (4, 1, 'Light Q4 - brauner Niederschlag AgNO3', 'Welche Reaktion verursacht braunen Niederschlag mit Silber(I)nitrat?', @SeedUserID),
+    (5, 1, 'Light Q5 - brauner Niederschlag NaCO3', 'Was erzeugt braunen Niederschlag mit Natriumcarbonat?', @SeedUserID);
 
 SET IDENTITY_INSERT Questions OFF;
+
+-- ── STLQuestions (korrekte Reaktion + angezeigter Edukt pro Light-Frage) ────
+-- ReactionID = FK auf Reactions (die korrekte Antwort)
+-- ShownEductID = FK auf Chemicals (der im Aufgabentext genannte Edukt)
+INSERT INTO STLQuestions (QuestionID, ReactionID, ShownEductID) VALUES
+    -- Q1: korrekt R7 (Pb+KI -> PbI2, gelb), gezeigt: Pb(NO3)2=2
+    (1, 7, 2),
+    -- Q2: korrekt R2 (Fe+KI -> I2, orange), gezeigt: FeCl3=1
+    (2, 2, 1),
+    -- Q3: korrekt R13 (KI+Ag -> AgI, gelb), gezeigt: AgNO3=5
+    (3, 13, 5),
+    -- Q4: korrekt R20 (Ag+Ba(OH)2 -> AgOH, braun), gezeigt: AgNO3=5
+    (4, 20, 5),
+    -- Q5: korrekt R3 (Fe+NaCO3 -> Fe2(CO3)3, braun), gezeigt: NaCO3=4
+    (5, 3, 4);
 
 -- ── QuizQuestions (Zuordnung Quiz <-> Frage) ────────────────────────────────
 INSERT INTO QuizQuestions (QuizID, QuestionID, [Order]) VALUES
@@ -123,7 +135,6 @@ INSERT INTO Quizzes (QuizID, Name, CreatedBy) VALUES
 SET IDENTITY_INSERT Quizzes OFF;
 
 -- ── Questions (SpotTest / Tuepfeln) ─────────────────────────────────────────
--- SpotTest-Fragen (Type=0) haben kein ReactionID (NULL)
 SET IDENTITY_INSERT Questions ON;
 
 INSERT INTO Questions (QuestionID, Type, Title, Description, CreatedBy) VALUES
@@ -134,6 +145,9 @@ INSERT INTO Questions (QuestionID, Type, Title, Description, CreatedBy) VALUES
     (8, 0, 'Tuepfeln Q8 - vier Unbekannte', 'Vier unbekannte Edukte - nutze alle verfuegbaren Hilfsmittel.', @SeedUserID);
 
 SET IDENTITY_INSERT Questions OFF;
+
+-- ── STQuestions (Parent-Row pro SpotTest-Frage, FK von Available* benoetigt) ─
+INSERT INTO STQuestions (QuestionID) VALUES (6), (7), (8);
 
 -- ── QuizQuestions ───────────────────────────────────────────────────────────
 INSERT INTO QuizQuestions (QuizID, QuestionID, [Order]) VALUES
@@ -171,6 +185,8 @@ COMMIT TRANSACTION;
 SELECT 'Reactions' AS [Table], COUNT(*) AS [Count] FROM Reactions
 UNION ALL SELECT 'Quizzes', COUNT(*) FROM Quizzes
 UNION ALL SELECT 'Questions', COUNT(*) FROM Questions
+UNION ALL SELECT 'STLQuestions', COUNT(*) FROM STLQuestions
+UNION ALL SELECT 'STQuestions', COUNT(*) FROM STQuestions
 UNION ALL SELECT 'QuizQuestions', COUNT(*) FROM QuizQuestions
 UNION ALL SELECT 'STLAvailableReactions', COUNT(*) FROM STLAvailableReactions
 UNION ALL SELECT 'STAvailableChemicals', COUNT(*) FROM STAvailableChemicals

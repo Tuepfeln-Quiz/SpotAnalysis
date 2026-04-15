@@ -132,7 +132,7 @@ public class QuizService(ILogger<QuizService> logger, IDbContextFactory<Analysis
         await dbContext.SaveChangesAsync();
     }
 
-    public async Task RemoveGroupToQuiz(int quizId, int groupId)
+    public async Task RemoveGroupFromQuiz(int quizId, int groupId)
     {
         await using var dbContext = await factory.CreateDbContextAsync();
 
@@ -287,22 +287,6 @@ public class QuizService(ILogger<QuizService> logger, IDbContextFactory<Analysis
                 QuizCount = q.QuizQuestions.Count
             }).ToListAsync();
     }
-    
-    public async Task<List<QuestionOverviewDto>> GetQuestionsOfQuiz(int quizId)
-    {
-        await using var dbContext = await factory.CreateDbContextAsync();
-
-        return await dbContext.Quizzes
-            .AsNoTracking()
-            .Where(x => x.QuizID == quizId)
-            .SelectMany(x => x.Questions)
-            .Select(x => new QuestionOverviewDto
-            {
-                Id = x.QuestionID,
-                Description = x.Description,
-                Type = x.Type
-            }).ToListAsync();
-    }
 
     public async Task<QuestionDetailDto> GetQuestionDetail(int questionId)
     {
@@ -342,23 +326,6 @@ public class QuizService(ILogger<QuizService> logger, IDbContextFactory<Analysis
 
     public async Task<List<QuestionOverviewDto>> GetQuestionsOfQuiz(int quizId)
     {
-        await using var dbContext = await factory.CreateDbContextAsync();
-
-        return await dbContext.Quizzes
-            .AsNoTracking()
-            .Where(x => x.QuizID == quizId)
-            .SelectMany(x => x.Questions)
-            .Select(x => new QuestionOverviewDto
-            {
-                Id = x.QuestionID,
-                Description = x.Description,
-                Type = x.Type
-            }).ToListAsync();
-    }
-
-    public async Task CreateSTQuestion(Guid teacherId, ConfigSTQuestionDto question)
-    {
-        throw new NotImplementedException();
         await using var dbContext = await factory.CreateDbContextAsync();
 
         return await dbContext.QuizQuestions
@@ -413,17 +380,75 @@ public class QuizService(ILogger<QuizService> logger, IDbContextFactory<Analysis
         await transaction.CommitAsync();
     }
 
-    public Task CreateSTLQuestion(ConfigSTLQuestionDto question)
+    public Task CreateSTLQuestion(Guid teacherId, ConfigSTLQuestionDto question)
     {
-        throw new NotImplementedException();
+        await using var dbContext = await factory.CreateDbContextAsync();
+        await using var transaction = await dbContext.Database.BeginTransactionAsync();
+
+        var newQuestion = new Question
+        {
+            Description = question.Description,
+            Type = QuestionType.SpotTestLight,
+            CreatedBy = teacherId,
+            ReactionID = question.ReactionId
+        };
+
+        await dbContext.Questions.AddAsync(newQuestion);
+        await dbContext.SaveChangesAsync();
+
+        var reactions = question.AvailableReactions.Select(reactionId => new STLAvailableReaction
+        {
+            QuestionID = newQuestion.QuestionID,
+            ReactionID = reactionId
+        });
+        await dbContext.STLAvailableReactions.AddRangeAsync(reactions);
+
+        await dbContext.SaveChangesAsync();
+        await transaction.CommitAsync();
     }
 
-    public Task UpdateSTQuestion(ConfigSTQuestionDto question)
+    public async Task UpdateSTQuestion(Guid teacherId, ConfigSTQuestionDto question)
     {
-        throw new NotImplementedException();
+        if (question.Id is null)
+            throw new ArgumentException("Question Id is required for update.");
+
+        await using var dbContext = await factory.CreateDbContextAsync();
+        await using var transaction = await dbContext.Database.BeginTransactionAsync();
+
+        var existing = await dbContext.Questions.SingleOrDefaultAsync(q => q.QuestionID == question.Id);
+        if (existing is null)
+            throw new KeyNotFoundException($"Question with id {question.Id} not found.");
+
+        existing.Description = question.Description;
+
+        await dbContext.STAvailableChemicals
+            .Where(c => c.QuestionID == question.Id)
+            .ExecuteDeleteAsync();
+
+        var chemicals = question.AvailableChemicals.Select((chemId, index) => new STAvailableChemical
+        {
+            QuestionID = question.Id.Value,
+            ChemicalID = chemId,
+            Order = index
+        });
+        await dbContext.STAvailableChemicals.AddRangeAsync(chemicals);
+
+        await dbContext.STAvailableMethods
+            .Where(m => m.QuestionID == question.Id)
+            .ExecuteDeleteAsync();
+
+        var methods = question.AvailableMethods.Select(methodId => new STAvailableMethod
+        {
+            QuestionID = question.Id.Value,
+            MethodID = methodId
+        });
+        await dbContext.STAvailableMethods.AddRangeAsync(methods);
+
+        await dbContext.SaveChangesAsync();
+        await transaction.CommitAsync();
     }
 
-    public async Task UpdateSTLQuestion(Guid updatedBy, ConfigSTLQuestionDto question)
+    public async Task UpdateSTLQuestion(Guid teacherId, ConfigSTLQuestionDto question)
     {
         if (question.Id is null)
             throw new ArgumentException("Question Id is required for update.");
@@ -453,19 +478,13 @@ public class QuizService(ILogger<QuizService> logger, IDbContextFactory<Analysis
         await transaction.CommitAsync();
     }
     
-    public async Task DeleteQuestion(Guid teacherId, int questionId)
+    public async Task DeleteQuestion(int questionId)
     {
         await using var dbContext = await factory.CreateDbContextAsync();
         await using var transaction = await dbContext.Database.BeginTransactionAsync();
 
         var question = await dbContext.Questions.SingleAsync(x => x.QuestionID == questionId);
-        
-        if (question.CreatedBy != teacherId)
-        {
-            logger.LogError("A quiz can only be updated by its creator! Creator id: {creatorId}, Deleter id: {deletedBy}", 
-                question.CreatedBy, teacherId);
-            throw new UnauthorizedAccessException("A question can only be deleted by its creator");
-        }
+
         switch (question.Type)
         {
             case QuestionType.SpotTest:

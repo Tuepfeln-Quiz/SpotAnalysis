@@ -428,6 +428,7 @@ public class QuizService(ILogger<QuizService> logger, IDbContextFactory<Analysis
             Description = question.Description,
             Type = QuestionType.SpotTest,
             CreatedBy = teacherId,
+            Title = question.Title,
         };
 
         await dbContext.Questions.AddAsync(newQuestion);
@@ -462,6 +463,7 @@ public class QuizService(ILogger<QuizService> logger, IDbContextFactory<Analysis
             Description = question.Description,
             Type = QuestionType.SpotTestLight,
             CreatedBy = teacherId,
+            Title = question.Title
         };
 
         await dbContext.Questions.AddAsync(newQuestion);

@@ -10,7 +10,7 @@
 @inject NavigationManager NavigationManager;
 @inject AuthenticationStateProvider AuthStateProvider
 @inject IHttpContextAccessor HttpContextAccessor;
-@* @inject IStudentService _StudentService; *@
+@inject IUserService UserService;
 
 <div class="row">
     <div class="col-lg-4 offset-lg-4 pt-4 pb-4 border">
@@ -110,26 +110,15 @@
             return;
         }
 
-        @* var userAccount = _StudentService.Register(LoginVM);
-
-        if (userAccount == null)
+        try
         {
-            ErrorMessage = "Invalid username or password.";
-            return;
+            await UserService.Register(LoginVM.UserName, LoginVM.Password);
+            NavigationManager.NavigateTo("/login");
         }
-        else
+        catch (Exception e)
         {
-            var claims = new List<Claim>
-            {
-                new Claim(ClaimTypes.Name, userAccount.UserName ?? string.Empty),
-                new Claim(ClaimTypes.Role, userAccount.Roles?.FirstOrDefault()?.Title ?? string.Empty)
-            };
-
-            var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-            var principal = new ClaimsPrincipal(identity);
-            await HttpContext.SignInAsync(principal);
-            NavigationManager.NavigateTo("/");
-        } *@
+            // TODO
+        }
     }
 
     private bool isValid(string? pw)
@@ -145,10 +134,7 @@
               .{8,}$           # mindestens 8 Zeichen
             ", RegexOptions.IgnorePatternWhitespace);
 
-        if (isv)
-            return true;
-        else
-            return false;
+        return isv;
     }
 
     protected override async Task OnInitializedAsync()

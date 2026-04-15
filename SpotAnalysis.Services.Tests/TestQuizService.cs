@@ -11,8 +11,8 @@ namespace SpotAnalysis.Services.Tests;
 [TestFixture]
 public class TestQuizService : BaseDatabaseTest
 {
-    private IQuizService _quizService;
-    private ITeacherService _teacherService;
+    private QuizService _quizService;
+    private TeacherService _teacherService;
     
     private readonly Guid _createdBy = Guid.NewGuid();
     

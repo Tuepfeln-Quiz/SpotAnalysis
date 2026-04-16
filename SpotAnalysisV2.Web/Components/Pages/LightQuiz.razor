@@ -1,10 +1,11 @@
 @page "/light/quiz/{QuizId}"
 @rendermode InteractiveServer
 @inject NavigationManager Navigation
+@using Microsoft.AspNetCore.WebUtilities
 
 <div class="size-full flex flex-col bg-gray-50">
     <header class="bg-white shadow-sm px-6 py-4 flex items-center justify-between">
-        <NavLink href="/light" class="p-2 hover:bg-gray-100 rounded-lg transition-colors" style="display: flex; align-items: center;" aria-label="Zurück">
+        <NavLink href="/uebungen" class="p-2 hover:bg-gray-100 rounded-lg transition-colors" style="display: flex; align-items: center;" aria-label="Zurück">
             <svg class="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M15 19l-7-7 7-7" />
             </svg>
@@ -13,14 +14,47 @@
         <div class="absolute left-1/2 -translate-x-1/2 flex gap-3 z-10">
             <NavLink href="/sandbox" class="bg-gray-100 text-gray-700 px-6 py-2 rounded-lg font-medium hover:bg-gray-200 transition-colors" style="text-decoration: none;">Sandbox</NavLink>
             <NavLink href="/reverse" class="bg-gray-100 text-gray-700 px-6 py-2 rounded-lg font-medium hover:bg-gray-200 transition-colors" style="text-decoration: none;">Reverse</NavLink>
-            <div class="bg-yellow-500 text-white px-6 py-2 rounded-lg font-medium">Light</div>
-            <NavLink href="/tupfeln" class="bg-gray-100 text-gray-700 px-6 py-2 rounded-lg font-medium hover:bg-gray-200 transition-colors" style="text-decoration: none;">Tüpfeln</NavLink>
+            <NavLink href="/uebungen" class="bg-gray-100 text-gray-700 px-6 py-2 rounded-lg font-medium hover:bg-gray-200 transition-colors" style="text-decoration: none;">Übungen</NavLink>
         </div>
 
         <img src="https://images.unsplash.com/photo-1655249493799-9cee4fe983bb?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxwcm9maWxlJTIwcG9ydHJhaXR8ZW58MXx8fHwxNzczNjY1OTA5fDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral"
              alt="Profil"
              class="w-10 h-10 rounded-full object-cover ml-auto" />
     </header>
+
+    @if (ShowAufgabenNavigator)
+    {
+        <aside class="fixed right-4 top-24 w-64 bg-white border border-gray-200 rounded-xl shadow-md p-3 z-20">
+            <div class="flex items-center justify-between mb-2">
+                <h3 class="text-sm font-semibold text-gray-800">Aufgaben</h3>
+                <span class="text-[11px] px-2 py-0.5 rounded-full @(IsTupfelnAufgabe(CurrentAufgabeIdSafe) ? "bg-teal-100 text-teal-700" : "bg-yellow-100 text-yellow-700")">
+                    @(IsTupfelnAufgabe(CurrentAufgabeIdSafe) ? "🧪 Tüpfeln" : "🔦 Light")
+                </span>
+            </div>
+
+            <div class="space-y-1.5 mb-3 max-h-64 overflow-y-auto">
+                @for (var i = 1; i <= TotalAufgabenSafe; i++)
+                {
+                    var isCurrent = i == CurrentAufgabeIdSafe;
+                    var isTupfeln = IsTupfelnAufgabe(i);
+                    <button @onclick="(() => NavigateToAufgabe(i))"
+                            class="w-full text-left rounded-lg border p-2.5 transition-colors @(isCurrent ? (isTupfeln ? "border-teal-300 bg-teal-50" : "border-yellow-300 bg-yellow-50") : "border-gray-200 bg-white hover:bg-gray-50")">
+                        <div class="flex items-center justify-between gap-2">
+                            <span class="text-sm font-medium @(isCurrent ? "text-gray-800" : "text-gray-700")">Aufgabe @i</span>
+                            <span class="text-[11px] px-2 py-0.5 rounded-full @(isTupfeln ? "bg-teal-100 text-teal-700" : "bg-yellow-100 text-yellow-700")">
+                                @(isTupfeln ? "🧪 Tüpfeln" : "🔦 Light")
+                            </span>
+                        </div>
+                    </button>
+                }
+            </div>
+
+            <div class="flex gap-2">
+                <button @onclick="NavigateToPreviousAufgabe" class="flex-1 px-2 py-1.5 rounded-lg bg-gray-100 text-gray-700 text-xs hover:bg-gray-200">← Zurück</button>
+                <button @onclick="NavigateToNextAufgabe" class="flex-1 px-2 py-1.5 rounded-lg bg-gray-100 text-gray-700 text-xs hover:bg-gray-200">Überspringen →</button>
+            </div>
+        </aside>
+    }
 
     @if (finished)
     {
@@ -40,7 +74,14 @@
                 </div>
                 <div class="flex gap-3">
                     <button @onclick="HandleRestart" class="flex-1 py-3 rounded-lg font-medium bg-yellow-500 text-white hover:bg-yellow-600 transition-colors">Nochmal</button>
-                    <NavLink href="/light" class="flex-1 py-3 rounded-lg font-medium bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors text-center" style="text-decoration: none;">Zurück</NavLink>
+                    @if (!string.IsNullOrWhiteSpace(Next))
+                    {
+                        <button @onclick="HandleContinue" class="flex-1 py-3 rounded-lg font-medium bg-teal-500 text-white hover:bg-teal-600 transition-colors">Weiter zu Tüpfeln</button>
+                    }
+                    else
+                    {
+                        <NavLink href="/light" class="flex-1 py-3 rounded-lg font-medium bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors text-center" style="text-decoration: none;">Zurück</NavLink>
+                    }
                 </div>
             </div>
         </div>
@@ -233,7 +274,33 @@
 </div>
 
 @code {
-    [Parameter] public string? QuizId { get; set; }
+    [Parameter]
+    public string? QuizId { get; set; }
+
+    [Parameter]
+    [SupplyParameterFromQuery]
+    public string? Next { get; set; }
+
+    [Parameter]
+    [SupplyParameterFromQuery(Name = "from")]
+    public string? From { get; set; }
+
+    [Parameter]
+    [SupplyParameterFromQuery(Name = "uebungId")]
+    public int? UebungContextId { get; set; }
+
+    [Parameter]
+    [SupplyParameterFromQuery(Name = "aufgabeId")]
+    public int? AufgabeContextId { get; set; }
+
+    [Parameter]
+    [SupplyParameterFromQuery(Name = "total")]
+    public int? TotalAufgaben { get; set; }
+
+    [Parameter]
+    [SupplyParameterFromQuery(Name = "phase")]
+    public string? Phase { get; set; }
+
     private const string PhIconPath = "/icons/ph-icon.svg";
 
     private class Edukt
@@ -308,7 +375,7 @@
         allQuizQuestions["2"] = new()
         {
             new() { Edukt1 = edukte[6], CorrectEdukt2 = edukte[1], Produkt = "Fe₂O₃", Formel = "4Fe + 3O₂ → 2Fe₂O₃", Frage = "Welches Element lässt Eisen rosten und einen rötlich-braunen Feststoff bilden?", Options = new() { new() { Id = "a", Edukt2 = edukte[5], Produkt = "FeS", Formel = "Fe + S → FeS" }, new() { Id = "b", Edukt2 = edukte[1], Produkt = "Fe₂O₃", Formel = "4Fe + 3O₂ → 2Fe₂O₃" }, new() { Id = "c", Edukt2 = edukte[8], Produkt = "FeCl₃", Formel = "2Fe + 3Cl₂ → 2FeCl₃" }, new() { Id = "d", Edukt2 = edukte[4], Produkt = "FeC", Formel = "Fe + C → FeC" } } },
-            new() { Edukt1 = edukte[7], CorrectEdukt2 = edukte[5], Produkt = "CuS", Formel = "Cu + S → CuS", Frage = "Welches Element bildet mit Kupfer einen schwarzen Niederschlag?", Options = new() { new() { Id = "a", Edukt2 = edukte[1], Produkt = "CuO", Formel = "2Cu + O₂ → 2CuO" }, new() { Id = "b", Edukt2 = edukte[8], Produkt = "CuCl₂", Formel = "Cu + Cl₂ → CuCl₂" }, new() { Id = "c", Edukt2 = edukte[5], Produkt = "CuS", Formel = "Cu + S → CuS" }, new() { Id = "d", Edukt2 = edukte[0], Produkt = "CuH₂", Formel = "Cu + H₂ → CuH₂" } } },
+            new() { Edukt1 = edukte[7], CorrectEdukt2 = edukte[5], Produkt = "CuS", Formel = "Cu + S → CuS", Frage = "Welches Element bildet mit Kupfer einen schwarzen Niederschlag?", Options = new() { new() { Id = "a", Edukt2 = edukte[1],Produkt = "CuO", Formel = "2Cu + O₂ → 2CuO" }, new() { Id = "b", Edukt2 = edukte[8], Produkt = "CuCl₂", Formel = "Cu + Cl₂ → CuCl₂" }, new() { Id = "c", Edukt2 = edukte[5], Produkt = "CuS", Formel = "Cu + S → CuS" }, new() { Id = "d", Edukt2 = edukte[0], Produkt = "CuH₂", Formel = "Cu + H₂ → CuH₂" } } },
             new() { Edukt1 = edukte[3], CorrectEdukt2 = edukte[0], Produkt = "NH₃", Formel = "N₂ + 3H₂ → 2NH₃", Frage = "Welches Element reagiert mit Stickstoff zu einem stechend riechenden Gas?", Options = new() { new() { Id = "a", Edukt2 = edukte[0], Produkt = "NH₃", Formel = "N₂ + 3H₂ → 2NH₃" }, new() { Id = "b", Edukt2 = edukte[1], Produkt = "NO₂", Formel = "N₂ + 2O₂ → 2NO₂" }, new() { Id = "c", Edukt2 = edukte[5], Produkt = "NS", Formel = "N₂ + S → NS" }, new() { Id = "d", Edukt2 = edukte[8], Produkt = "NCl₃", Formel = "N₂ + 3Cl₂ → 2NCl₃" } } }
         };
 
@@ -369,6 +436,10 @@
             answered = false;
             SetCurrentQuestion();
         }
+        else if (!string.IsNullOrWhiteSpace(Next))
+        {
+            Navigation.NavigateTo(Uri.UnescapeDataString(Next), replace: true);
+        }
         else
         {
             finished = true;
@@ -383,6 +454,57 @@
         score = 0;
         finished = false;
         SetCurrentQuestion();
+    }
+
+    private void HandleContinue()
+    {
+        if (string.IsNullOrWhiteSpace(Next)) return;
+        Navigation.NavigateTo(Uri.UnescapeDataString(Next));
+    }
+
+    private bool ShowAufgabenNavigator => true;
+
+    private int TotalAufgabenSafe => Math.Max(1, TotalAufgaben ?? TryGetQueryInt("total") ?? 4);
+
+    private int? CurrentUebungId => UebungContextId ?? TryGetQueryInt("uebungId");
+    private int? CurrentAufgabeId => AufgabeContextId ?? TryGetQueryInt("aufgabeId");
+    private int CurrentAufgabeIdSafe => Math.Clamp(CurrentAufgabeId ?? 1, 1, TotalAufgabenSafe);
+    private int ResolvedUebungId => CurrentUebungId ?? ParseQuizIdOrDefault();
+
+    private int ParseQuizIdOrDefault()
+    {
+        return int.TryParse(QuizId, out var parsed) && parsed > 0 ? parsed : 1;
+    }
+
+    private bool IsTupfelnAufgabe(int aufgabeId)
+    {
+        return aufgabeId % 2 == 0;
+    }
+
+    private int? TryGetQueryInt(string key)
+    {
+        var uri = Navigation.ToAbsoluteUri(Navigation.Uri);
+        var query = QueryHelpers.ParseQuery(uri.Query);
+        if (!query.TryGetValue(key, out var value)) return null;
+        return int.TryParse(value.ToString(), out var parsed) ? parsed : null;
+    }
+
+    private void NavigateToAufgabe(int targetAufgabe)
+    {
+        var clamped = Math.Clamp(targetAufgabe, 1, TotalAufgabenSafe);
+        Navigation.NavigateTo($"/uebungen/{ResolvedUebungId}/aufgabe/{clamped}");
+    }
+
+    private void NavigateToPreviousAufgabe()
+    {
+        var previous = CurrentAufgabeIdSafe > 1 ? CurrentAufgabeIdSafe - 1 : TotalAufgabenSafe;
+        NavigateToAufgabe(previous);
+    }
+
+    private void NavigateToNextAufgabe()
+    {
+        var next = CurrentAufgabeIdSafe < TotalAufgabenSafe ? CurrentAufgabeIdSafe + 1 : 1;
+        NavigateToAufgabe(next);
     }
 
     private string GetOptionClass(bool isCorrectOpt, bool isSelected)

@@ -1,0 +1,80 @@
+@page "/uebungen"
+@rendermode InteractiveServer
+
+<div class="size-full flex flex-col bg-gray-50">
+    <header class="bg-white shadow-sm px-6 py-4 flex items-center justify-between">
+        <NavLink href="/" class="p-2 hover:bg-gray-100 rounded-lg transition-colors" style="display: flex; align-items: center;" aria-label="Home">
+            <svg class="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                <polyline points="9 22 9 12 15 12 15 22"></polyline>
+            </svg>
+        </NavLink>
+
+        <h1 class="absolute left-1/2 -translate-x-1/2 text-lg font-semibold text-gray-800">Quiz</h1>
+
+        <div class="w-10 h-10 rounded-full bg-gray-100 border border-gray-200 flex items-center justify-center" aria-label="Profile">
+            <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.121 17.804A9 9 0 1118.88 17.804M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+        </div>
+    </header>
+
+    <main class="flex-1 overflow-y-auto p-8">
+        <div class="max-w-3xl mx-auto">
+            <p class="text-gray-600 mb-8">Wählen Sie ein Quiz aus. Beim Klick startet direkt die erste Aufgabe.</p>
+
+            <div class="space-y-4">
+                @foreach (var quiz in quizzes)
+                {
+                    <NavLink href="@($"/uebungen/{quiz.Id}/aufgabe/1")"
+                             class="w-full block bg-white hover:bg-gray-50 shadow-md rounded-xl p-6 transition-all hover:shadow-lg group"
+                             style="text-decoration: none;">
+                        <div class="flex items-center justify-between">
+                            <div class="flex-1">
+                                <h2 class="text-xl font-medium text-gray-800 group-hover:text-teal-600 transition-colors mb-1">@quiz.Title</h2>
+                                <p class="text-gray-500 text-sm mb-3">@quiz.Description</p>
+                                <div class="flex gap-2">
+                                    <span class="px-3 py-1 rounded-lg bg-teal-50 border border-teal-200 text-teal-700 text-sm font-medium">
+                                        @quiz.AufgabenCount Aufgaben
+                                    </span>
+                                    <span class="px-3 py-1 rounded-lg bg-yellow-50 border border-yellow-200 text-yellow-700 text-sm">
+                                        🔦 @quiz.LightCount Light
+                                    </span>
+                                    <span class="px-3 py-1 rounded-lg bg-teal-50 border border-teal-200 text-teal-700 text-sm">
+                                        🧪 @quiz.TupfelnCount Tüpfeln
+                                    </span>
+                                </div>
+                            </div>
+                            <svg class="w-6 h-6 text-gray-400 group-hover:text-teal-600 transition-colors ml-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M9 5l7 7-7 7" />
+                            </svg>
+                        </div>
+                    </NavLink>
+                }
+            </div>
+        </div>
+    </main>
+</div>
+
+@code {
+    private const int AufgabenProQuiz = 4;
+    private const int LightAufgabenProQuiz = 2;
+    private const int TupfelnAufgabenProQuiz = 2;
+
+    private sealed class QuizListItem
+    {
+        public int Id { get; set; }
+        public string Title { get; set; } = "";
+        public string Description { get; set; } = "";
+        public int AufgabenCount { get; set; }
+        public int LightCount { get; set; }
+        public int TupfelnCount { get; set; }
+    }
+
+    private readonly List<QuizListItem> quizzes =
+    [
+        new() { Id = 1, Title = "Quiz 1", Description = "Einstieg: grundlegende Reaktionen und einfache Nachweise.", AufgabenCount = AufgabenProQuiz, LightCount = LightAufgabenProQuiz, TupfelnCount = TupfelnAufgabenProQuiz },
+        new() { Id = 2, Title = "Quiz 2", Description = "Mittelstufe: Salze, Metallionen und typische Reaktionsmuster.", AufgabenCount = AufgabenProQuiz, LightCount = LightAufgabenProQuiz, TupfelnCount = TupfelnAufgabenProQuiz },
+        new() { Id = 3, Title = "Quiz 3", Description = "Wiederholung: gemischte Aufgaben mit Light und Tüpfeln.", AufgabenCount = AufgabenProQuiz, LightCount = LightAufgabenProQuiz, TupfelnCount = TupfelnAufgabenProQuiz },
+    ];
+}

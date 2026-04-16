@@ -1,74 +1,14 @@
 @page "/tupfeln"
 @rendermode InteractiveServer
+@inject NavigationManager Navigation
 
-<div class="size-full flex flex-col bg-gray-50">
-    <header class="bg-white shadow-sm px-6 py-4 flex items-center justify-between">
-        <NavLink href="/" class="p-2 hover:bg-gray-100 rounded-lg transition-colors" style="display: flex; align-items: center;" aria-label="Home">
-            <svg class="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-                <polyline points="9 22 9 12 15 12 15 22"></polyline>
-            </svg>
-        </NavLink>
-
-        <div class="absolute left-1/2 -translate-x-1/2 flex gap-3 z-10">
-            <NavLink href="/sandbox" class="bg-gray-100 text-gray-700 px-6 py-2 rounded-lg font-medium hover:bg-gray-200 transition-colors" style="text-decoration: none;">Sandbox</NavLink>
-            <NavLink href="/reverse" class="bg-gray-100 text-gray-700 px-6 py-2 rounded-lg font-medium hover:bg-gray-200 transition-colors" style="text-decoration: none;">Reverse</NavLink>
-            <NavLink href="/light" class="bg-gray-100 text-gray-700 px-6 py-2 rounded-lg font-medium hover:bg-gray-200 transition-colors" style="text-decoration: none;">Light</NavLink>
-            <div class="bg-teal-500 text-white px-6 py-2 rounded-lg font-medium">Tüpfeln</div>
-        </div>
-
-        <img src="https://images.unsplash.com/photo-1655249493799-9cee4fe983bb?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxwcm9maWxlJTIwcG9ydHJhaXR8ZW58MXx8fHwxNzczNjY1OTA5fDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral"
-             alt="Profil"
-             class="w-10 h-10 rounded-full object-cover ml-auto" />
-    </header>
-
-    <main class="flex-1 overflow-y-auto p-8">
-        <div class="max-w-4xl mx-auto">
-            <h1 class="text-3xl font-semibold mb-8">Tüpfeln Quizze</h1>
-
-            <div class="space-y-4">
-                @foreach (var quiz in quizList)
-                {
-                    <NavLink href="@($"/tupfeln/quiz/{quiz.Id}")"
-                             class="w-full block bg-white hover:bg-gray-50 shadow-md rounded-xl p-6 transition-all hover:shadow-lg text-left group"
-                             style="text-decoration: none;">
-                        <div class="flex items-center justify-between">
-                            <div class="flex-1">
-                                <h2 class="text-xl font-medium group-hover:text-teal-600 transition-colors mb-3">@quiz.Title</h2>
-                                <div class="flex flex-wrap gap-2">
-                                    <div class="px-3 py-1 rounded-lg bg-teal-50 border border-teal-200 text-teal-700 text-sm font-medium">
-                                        @quiz.TaskCount Aufgaben
-                                    </div>
-                                    <div class="px-3 py-1 rounded-lg bg-gray-50 border border-gray-200 text-gray-600 text-sm">
-                                        @quiz.UnknownCount unbekannte Edukte
-                                    </div>
-                                </div>
-                            </div>
-                            <svg class="w-6 h-6 text-gray-400 group-hover:text-teal-600 transition-colors ml-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M9 5l7 7-7 7" />
-                            </svg>
-                        </div>
-                    </NavLink>
-                }
-            </div>
-        </div>
-    </main>
+<div class="size-full flex items-center justify-center bg-gray-50">
+    <div class="text-sm text-gray-500">Weiterleitung zu Übungen…</div>
 </div>
 
 @code {
-    private class QuizListItem
+    protected override void OnParametersSet()
     {
-        public string Id { get; set; } = "";
-        public string Title { get; set; } = "";
-        public int TaskCount { get; set; }
-        public int UnknownCount { get; set; }
+        Navigation.NavigateTo("/uebungen", replace: true);
     }
-
-    private readonly List<QuizListItem> quizList = new()
-    {
-        new() { Id = "1", Title = "Grundlagen", TaskCount = 2, UnknownCount = 5 },
-        new() { Id = "2", Title = "Mittelstufe", TaskCount = 2, UnknownCount = 6 },
-        new() { Id = "3", Title = "Fortgeschritten", TaskCount = 1, UnknownCount = 4 },
-        new() { Id = "4", Title = "Experte", TaskCount = 1, UnknownCount = 7 }
-    };
 }

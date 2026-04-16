@@ -1,0 +1,41 @@
+@page "/uebungen/{UebungId:int}/aufgabe/{AufgabeId:int}"
+@rendermode InteractiveServer
+@inject NavigationManager Navigation
+
+<div class="size-full flex items-center justify-center bg-gray-50">
+    <div class="text-sm text-gray-500">Quiz wird geöffnet…</div>
+</div>
+
+@code {
+    [Parameter] public int UebungId { get; set; }
+    [Parameter] public int AufgabeId { get; set; }
+
+    private const int AufgabenProQuiz = 4;
+
+    protected override void OnParametersSet()
+    {
+        var clampedAufgabeId = Math.Clamp(AufgabeId, 1, AufgabenProQuiz);
+        var quizId = GetQuizId(UebungId, clampedAufgabeId);
+
+        if (IsTupfelnAufgabe(clampedAufgabeId))
+        {
+            Navigation.NavigateTo($"/tupfeln/quiz/{quizId}?from=uebung&uebungId={UebungId}&aufgabeId={clampedAufgabeId}&total={AufgabenProQuiz}&phase=tupfeln", replace: true);
+            return;
+        }
+
+        Navigation.NavigateTo($"/light/quiz/{quizId}?from=uebung&uebungId={UebungId}&aufgabeId={clampedAufgabeId}&total={AufgabenProQuiz}&phase=light", replace: true);
+    }
+
+    private static bool IsTupfelnAufgabe(int aufgabeId)
+    {
+        return aufgabeId % 2 == 0;
+    }
+
+    private static int GetQuizId(int uebungId, int aufgabeId)
+    {
+        var seed = Math.Abs(HashCode.Combine(uebungId, aufgabeId, 10));
+        return seed % 3 + 1;
+    }
+}
+
+

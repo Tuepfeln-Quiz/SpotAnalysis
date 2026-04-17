@@ -85,16 +85,16 @@ public class TestUserService : BaseDatabaseTest
         #region TestStudentFailLogin
 
         {
-            var user = await _userService.Login(StudentName3, "AWrongPassword");
-            Assert.That(user, Is.Null);
+            Assert.ThrowsAsync<AuthenticationException>(async () =>
+                await _userService.Login(StudentName3, "AWrongPassword"));
 
             foreach (var (uname, _) in registeredUsers)
             {
-                user  = await _userService.Login(uname, RandomString(12));
-                Assert.That(user, Is.Null);
+                Assert.ThrowsAsync<AuthenticationException>(async () =>
+                    await _userService.Login(uname, RandomString(12)));
             }
         }
-        
+
         #endregion
     }
 }

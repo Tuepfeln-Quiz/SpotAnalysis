@@ -6,8 +6,20 @@ using System.Linq;
 
 namespace SpotAnalysis.Services.Tests;
 
-public class TestAdminService(IAdminService _adminService, IUserService _userService ) : BaseDatabaseTest
+public class TestAdminService : BaseDatabaseTest
 {
+    private IAdminService _adminService;
+    private IUserService _userService;
+
+    [OneTimeSetUp]
+    public void InitServices()
+    {
+        var adminLogger = Substitute.For<ILogger<AdminService>>();
+        var userLogger = Substitute.For<ILogger<UserService>>();
+        _adminService = new AdminService(ContextFactory, adminLogger);
+        _userService = new UserService(userLogger, ContextFactory);
+    }
+
     [Test]
     public async Task AddRoleToUser_RemoveRoleFromUser()
     {
@@ -50,8 +62,8 @@ public class TestAdminService(IAdminService _adminService, IUserService _userSer
         Assert.That(user, Is.Not.Null);
 
         await _adminService.DeleteUser(user.UserID);
-        user = await _userService.Login("RandomUser", "RandomPassword");
-        Assert.That(user, Is.Null);
+        Assert.ThrowsAsync<ArgumentException>(async () =>
+            await _userService.Login("RandomUser", "RandomPassword"));
     }
 
     [Test]

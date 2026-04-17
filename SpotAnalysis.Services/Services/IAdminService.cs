@@ -1,4 +1,4 @@
-﻿using SpotAnalysis.Data.Enums;
+using SpotAnalysis.Data.Enums;
 using SpotAnalysis.Services.DTOs;
 
 namespace SpotAnalysis.Services.Services;
@@ -9,5 +9,4 @@ public interface IAdminService
     Task RemoveRoleFromUser(Guid userId, Role role);
     Task DeleteUser(Guid userId);
     Task<List<UserDto>> GetUsersByRole(Role role);
-    Task<List<UserDto>> GetUsersWithoutRole();
 }

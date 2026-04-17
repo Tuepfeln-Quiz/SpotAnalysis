@@ -10,6 +10,7 @@ public class MethodOutput {
     public int MethodID { get; set; }
 
     [Required]
+    [StringLength(128)]
     public string Color { get; set; } = null!;
 
 

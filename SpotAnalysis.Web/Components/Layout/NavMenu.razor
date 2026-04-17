@@ -1,1 +1,68 @@
-@* Navigation moved to PageHeader *@
+@using Microsoft.AspNetCore.Components.Authorization
+@inject NavigationManager NavigationManager
+
+<div class="navbar-container">
+    <div class="navbar-header">
+        <button class="burger-btn" @onclick="ToggleMenu">
+            <i class="bi @(IsMenuOpen ? "bi-x-lg" : "bi-list")"></i>
+        </button>
+        <button class="home-btn" @onclick="NavigateAndCloseMenu">
+            <i class="bi bi-house"></i>
+        </button>
+        <div class="user-greeting">
+            <AuthorizeView>
+                <Authorized>
+                    <span>Welcome, @context.User.Identity?.Name</span>
+                </Authorized>
+                <NotAuthorized>
+                    <span>Welcome, Guest</span>
+                </NotAuthorized>
+            </AuthorizeView>
+        </div>
+    </div>
+
+    
+    <div class="nav-menu @(IsMenuOpen ? "open" : "")">
+        <div class="nav-links">
+            <NavLink class="nav-link-item" href="/" Match="NavLinkMatch.Prefix" @onclick="CloseMenu">
+                <i class="bi bi-lightbulb"></i> Quizzes
+            </NavLink>
+            <NavLink class="nav-link-item" href="/statistics" Match="NavLinkMatch.Prefix" @onclick="CloseMenu">
+                <i class="bi bi-bar-chart"></i> Statistiken
+            </NavLink>
+        </div>
+        <div class="nav-auth">
+            <AuthorizeView>
+                <Authorized>
+                    <form method="post" action="/api/auth/logout">
+                        <button type="submit" class="btn btn-outline-danger w-100">
+                            <i class="bi bi-box-arrow-right"></i> Logout
+                        </button>
+                    </form>
+                </Authorized>
+                <NotAuthorized>
+                    <NavLink href="/login" class="btn btn-primary w-100" @onclick="CloseMenu">
+                        <i class="bi bi-box-arrow-in-right"></i> Login
+                    </NavLink>
+                </NotAuthorized>
+            </AuthorizeView>
+        </div>
+    </div>
+</div>
+
+@if (IsMenuOpen)
+{
+    <div class="nav-overlay" @onclick="CloseMenu"></div>
+}
+@code {
+    private bool IsMenuOpen = false;
+    private void ToggleMenu() => IsMenuOpen = !IsMenuOpen;
+    private void CloseMenu() => IsMenuOpen = false;
+
+     private void NavigateAndCloseMenu()
+    {
+        CloseMenu();
+        NavigationManager.NavigateTo("/");
+    }
+    
+}

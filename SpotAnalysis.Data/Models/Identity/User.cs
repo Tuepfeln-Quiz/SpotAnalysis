@@ -7,9 +7,11 @@ public class User {
     public Guid UserID { get; set; }
 
     [Required]
+    [StringLength(128)]
     public string UserName { get; set; } = null!;
 
     [Required]
+    [StringLength(256)]
     public string PasswordHash { get; set; } = null!;
 
     public DateTime? LastLogin { get; set; }

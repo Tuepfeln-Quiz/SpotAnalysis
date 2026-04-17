@@ -1,9 +1,8 @@
 @using SpotAnalysis.Services.Services;
 
 <div class="input-group">
-    <InputText style="padding-left: 4rem;" 
-               @bind-Value="Value" 
-               class="form-control font-bold"/>
+    <InputText @bind-Value="Value" 
+               class="form-control font-bold text-center"/>
     <button type="button" 
             class="btn btn-outline-secondary" 
             @onclick="Generate"
@@ -27,7 +26,7 @@
     private async Task Generate()
     {
         var name = UsernameService.Generate();
-        Value = name; // Update the local value
+        Value = name;
         await ValueChanged.InvokeAsync(name);
     }
 }

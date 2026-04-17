@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using SpotAnalysis.Data;
 using SpotAnalysis.Data.Enums;
@@ -54,12 +54,9 @@ public class AdminService(IDbContextFactory<AnalysisContext> contextFactory, ILo
     }
 
     /// <summary>
-    /// This will delete the user and all quiz attempts of the user as well as all groups the user is referenced in. 
-    /// It will not delete any quizzes created by the user, but it will set the creator of those quizzes to null. 
+    /// This will delete the user and all quiz attempts of the user as well as all groups the user is referenced in.
+    /// It will not delete any quizzes created by the user, but it will set the creator of those quizzes to null.
     /// </summary>
-    /// <param name="userId"></param>
-    /// <param name="role"></param>
-    /// <returns></returns>
     public async Task DeleteUser(Guid userId)
     {
         await using var dbContext = await contextFactory.CreateDbContextAsync();
@@ -87,24 +84,4 @@ public class AdminService(IDbContextFactory<AnalysisContext> contextFactory, ILo
             })
             .ToListAsync();
     }
-
-    public async Task<List<UserDto>> GetUsersWithoutRole()
-    {
-        await using var dbContext = await contextFactory.CreateDbContextAsync();
-
-        return await dbContext.Users
-            .Where(u => u.Roles.Count == 0)
-            .Select(u => new UserDto
-            {
-                Id = u.UserID,
-                UserName = u.UserName,
-                AssignedGroups = u.Groups.Select(g => new GroupDto
-                {
-                    Id = g.GroupID,
-                    Name = g.Name
-                }).ToList()
-            })
-            .ToListAsync();
-    }
-
 }

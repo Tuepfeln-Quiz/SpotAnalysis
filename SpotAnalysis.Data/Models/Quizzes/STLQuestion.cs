@@ -10,8 +10,7 @@ public class STLQuestion {
     public int QuestionID { get; set; }
     public int ReactionID { get; set; }
     public int ShownEductID { get; set; }
-
-
+    
     [DeleteBehavior(DeleteBehavior.Restrict)]
     public virtual Question Question { get; set; } = null!;
 

@@ -1,6 +1,7 @@
 ﻿using System.Security.Authentication;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
+using SpotAnalysis.Data.Enums;
 using SpotAnalysis.Services.Services;
 
 namespace SpotAnalysis.Services.Tests;
@@ -25,6 +26,18 @@ public class TestUserService : BaseDatabaseTest
 
     #endregion
     
+    #region helpers
+    
+    private static Random random = new Random();
+    public static string RandomString(int length)
+    {
+        const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+        return new string(Enumerable.Repeat(chars, length)
+            .Select(s => s[random.Next(s.Length)]).ToArray());
+    }
+    
+    #endregion
+    
     [OneTimeSetUp]
     public void InitStudentService()
     {
@@ -35,10 +48,20 @@ public class TestUserService : BaseDatabaseTest
     [Test]
     public async Task TestAllUserService()
     {
+        var registeredUsers = new HashSet<(string, string)>();
+        
         #region TestStudentRegister
 
         {
             await _userService.Register(StudentName3, StudentPassword3, null, Student3);
+
+            for (var i = 0; i < 100; i++)
+            {
+                var uname = RandomString(12);
+                var password = RandomString(12);
+                registeredUsers.Add((uname, password));
+                await _userService.Register(uname, password);
+            }
         }
 
         #endregion
@@ -48,6 +71,13 @@ public class TestUserService : BaseDatabaseTest
         {
             var user = await _userService.Login(StudentName3, StudentPassword3);
             Assert.That(user, Is.Not.Null);
+            Assert.That(user.Roles.Contains(Role.Student));
+
+            foreach (var (uname, password) in registeredUsers)
+            {
+                user = await _userService.Login(uname, password);
+                Assert.That(user, Is.Not.Null);
+            }
         }
         
         #endregion
@@ -55,7 +85,14 @@ public class TestUserService : BaseDatabaseTest
         #region TestStudentFailLogin
 
         {
-            Assert.ThrowsAsync<AuthenticationException>(async () => await _userService.Login(StudentName3, "AWrongPassword"));
+            var user = await _userService.Login(StudentName3, "AWrongPassword");
+            Assert.That(user, Is.Null);
+
+            foreach (var (uname, _) in registeredUsers)
+            {
+                user  = await _userService.Login(uname, RandomString(12));
+                Assert.That(user, Is.Null);
+            }
         }
         
         #endregion

@@ -1,7 +1,5 @@
-﻿@using SpotAnalysis.Services.DTOs;
-
-@page "/admin-overview"
-@inject IAdminService adminservice
+﻿@page "/admin/overview"
+@inject IAdminService AdminService
 
 <div class="h-100">
     <div class="card card-body h-20 mb-2 border border-2">
@@ -32,14 +30,14 @@
                         <td colspan="12"><a class="btn btn-secondary" href="admin-overview/create">Create New Teacher</a></td>
                     </tr>
 
-                    @foreach(var a in adminlist)
+                    @foreach(var teacherAdmin in _teacherAdmins)
                     {
                         <tr>
-                            <td>@a.UserName</td>
-                            <td>@a.Roles</td>
+                            <td>@teacherAdmin.UserName</td>
+                            <td>@(string.Join(", ", teacherAdmin.Roles))</td>
                             <td>
-                                <a class="btn btn-info" href="admin-overview/edit">Edit</a>
-                                <button class="btn btn-danger" @onclick="() => Delete(a.Id)">Remove</button>
+                                <a class="btn btn-info" href="/admin/@teacherAdmin.Id/edit">Edit</a>
+                                <button class="btn btn-danger" @onclick="() => Delete(teacherAdmin.Id)">Remove</button>
                             </td>
                         </tr>
                     }
@@ -57,22 +55,22 @@
 
 @code {
 
-    List<TeacherAdminDto> adminlist = new List<TeacherAdminDto>();
+    private List<UserDto> _teacherAdmins = [];
 
-   
-    public async Task GetUsers()
+    protected override async Task OnInitializedAsync()
     {
+        var teachers = await AdminService.GetUsersByRole(Role.Teacher);
+        var admins = await AdminService.GetUsersByRole(Role.Admin);
         
-       var teachers = await adminservice.GetUsersByRole(Role.Teacher);
-       var admins = await adminservice.GetUsersByRole(Role.Admin);
-       
+        _teacherAdmins.AddRange(teachers);
+        _teacherAdmins.AddRange(admins);
     }
 
 
-    public async Task Delete(Guid userId)
+    private async Task Delete(Guid userId)
     {
-        await adminservice.DeleteUser(userId);
-        adminlist.RemoveAll(a => a.Id == userId);
+        await AdminService.DeleteUser(userId);
+        _teacherAdmins.RemoveAll(a => a.Id == userId);
     }
 
 }

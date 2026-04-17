@@ -34,7 +34,6 @@ public class StatisticsService(IDbContextFactory<AnalysisContext> factory) : ISt
         {
             AttemptID = attemptId,
             QuestionID = questionId,
-            ChosenChemicalID = 0,
             ChosenReactionID = chosenReactionId,
             IsCorrect = isCorrect
         };

@@ -6,19 +6,8 @@ using System.Linq;
 
 namespace SpotAnalysis.Services.Tests;
 
-public class TestAdminService : BaseDatabaseTest
+public class TestAdminService(IAdminService _adminService, IUserService _userService ) : BaseDatabaseTest
 {
-    private AdminService _adminService;
-    private IUserService _userService;
-
-    [OneTimeSetUp]
-    public void InitAdminService()
-    {
-        var logger = Substitute.For<ILogger<AdminService>>();
-        _adminService = new AdminService(ContextFactory, logger);
-        _userService = new UserService(ContextFactory);
-    }
-
     [Test]
     public async Task AddRoleToUser_RemoveRoleFromUser()
     {

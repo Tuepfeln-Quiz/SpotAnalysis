@@ -24,6 +24,15 @@
             </div>
         </div>
 
+        @* Title *@
+        <div class="mb-4">
+            <label class="form-label-custom">Titel</label>
+            <p class="hint-text">Interner Titel (nur für Lehrer sichtbar, nicht für Schüler)</p>
+            <input type="text" class="form-control input-custom"
+                   placeholder="z.B. Tüpfeln Q1 - drei Unbekannte"
+                   @bind="_title" />
+        </div>
+
         @* Description *@
         <div class="mb-4">
             <label class="form-label-custom">Beschreibung / Aufgabenstellung</label>
@@ -52,6 +61,7 @@
                         }
                     </div>
                     <select class="form-select form-select-sm input-custom"
+                            value=""
                             @onchange="OnEductSelected">
                         <option value="">+ Edukt hinzufügen...</option>
                         @foreach (var chem in _eductsAvailable.Where(c => !_selectedEducts.Any(s => s.Id == c.Id)))
@@ -77,6 +87,7 @@
                         }
                     </div>
                     <select class="form-select form-select-sm input-custom"
+                            value=""
                             @onchange="OnAdditiveSelected">
                         <option value="">+ Zusatzstoff hinzufügen...</option>
                         @foreach (var chem in _additivesAvailable.Where(c => !_selectedAdditives.Any(s => s.Id == c.Id)))
@@ -102,6 +113,7 @@
                         }
                     </div>
                     <select class="form-select form-select-sm input-custom"
+                            value=""
                             @onchange="OnMethodSelected">
                         <option value="">+ Methode hinzufügen...</option>
                         @foreach (var method in _allMethods.Where(m => !_selectedMethods.Any(s => s.Id == m.Id)))
@@ -169,6 +181,7 @@
                         }
                     }
                     <select class="form-select form-select-sm input-custom mt-2"
+                            value=""
                             @onchange="OnDistractorSelected">
                         <option value="">+ Reaktion als Auswahloption hinzufügen...</option>
                         @foreach (var reaction in _allReactions.Where(r =>
@@ -208,6 +221,7 @@
 
     private bool _isEdit => QuestionId.HasValue;
     private QuestionType _questionType = QuestionType.SpotTest;
+    private string _title = "";
     private string _description = "";
 
     // SpotTest state
@@ -229,7 +243,7 @@
     private string? _errorMessage;
 
     // TODO: Replace with actual teacher ID from auth when login is implemented
-    private Guid _teacherId = Guid.Parse("00000000-0000-0000-0000-000000000001");
+    private Guid _teacherId = Guid.Parse("9c9c2138-f945-41fa-823e-f3bd286c0fa1");
 
     protected override async Task OnInitializedAsync()
     {
@@ -263,6 +277,7 @@
     private async Task LoadExistingQuestion()
     {
         var detail = await QuizService.GetQuestionDetail(QuestionId!.Value);
+        _title = detail.Title;
         _description = detail.Description;
         _questionType = detail.Type;
 
@@ -335,6 +350,12 @@
     {
         _errorMessage = null;
 
+        if (string.IsNullOrWhiteSpace(_title))
+        {
+            _errorMessage = "Bitte einen Titel eingeben.";
+            return;
+        }
+
         if (string.IsNullOrWhiteSpace(_description))
         {
             _errorMessage = "Bitte eine Beschreibung eingeben.";
@@ -356,7 +377,7 @@
                     Description = _description,
                     AvailableChemicals = allChemicalIds,
                     AvailableMethods = _selectedMethods.Select(m => m.Id).ToList(),
-                    Title = "Gurkenglas" // TODO
+                    Title = _title
                 };
 
                 if (_isEdit)
@@ -385,7 +406,7 @@
                     ReactionId = _selectedReactionId,
                     ShowEductId = selectedReaction?.Chemical1ID ?? 0,
                     AvailableReactions = allReactionIds,
-                    Title = "Gurkenglas" // TODO
+                    Title = _title
                 };
 
                 if (_isEdit)

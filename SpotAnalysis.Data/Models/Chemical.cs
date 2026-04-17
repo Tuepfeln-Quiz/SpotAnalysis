@@ -11,14 +11,18 @@ public class Chemical {
     public ChemicalType Type { get; set; }
 
     [Required]
+    [StringLength(256)]
     public string Name { get; set; } = null!;
 
     [Required]
+    [StringLength(256)]
     public string Formula { get; set; } = null!;
 
     [Required]
+    [StringLength(128)]
     public string Color { get; set; } = null!;
 
+    [StringLength(256)]
     public string? ImagePath { get; set; }
 
 

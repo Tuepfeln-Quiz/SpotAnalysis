@@ -13,11 +13,13 @@ public class Question {
     /// <summary>
     /// not visible to users
     /// </summary>
+    [StringLength(256)]
     public required string Title { get; set; } = null!;
 
     public QuestionType Type { get; set; }
 
     [Required]
+    [StringLength(1024)]
     public string Description { get; set; } = null!;
     public Guid? CreatedBy { get; set; }
 

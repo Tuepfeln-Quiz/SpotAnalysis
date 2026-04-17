@@ -1,0 +1,121 @@
+﻿@page "/admin/{userId:guid}/edit"
+
+@inject NavigationManager NavManager
+@inject IAdminService AdminService
+
+<AuthorizeView>
+    <NotAuthorized>
+        <PageTitle>Zugriff verweigert</PageTitle>
+        <PageHeader PageTitle="Zugriff verweigert" />
+        <div class="container py-4 flex-grow-1">
+            <div class="alert alert-danger text-center" role="alert">
+                <i class="bi bi-x-circle me-2"></i>
+                Sie haben keinen Zugriff auf diesen Bereich.
+            </div>
+        </div>
+    </NotAuthorized>
+    <Authorized>
+        
+        @if (_user is null)
+        {
+            return;
+        }
+        
+        <PageTitle>Nutzer bearbeiten</PageTitle>
+
+        <PageHeader PageTitle="Nutzer bearbeiten"/>
+
+        <div class="container py-4">
+            <div>
+                <div class="mb-4">
+                    <label>Nutzername</label>
+                    <InputText readonly @bind-Value="_userName"/>
+                </div>
+
+                <div class="mb-4">
+                    <label>Rolen zuordnen</label>
+                    <div>
+                        <div class="d-flex gap-2 mb-3">
+                            @foreach (var role in _availableRoles)
+                            {
+                                <label>
+                                    @role.Role
+                                    <InputCheckbox @bind-Value="role.IsAssigned"/>
+                                </label>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <button @onclick="Update">Aktualisieren</button>
+                    <button @onclick="NavigateBack">Abbrechen</button>
+                </div>
+            </div>
+        </div>
+    </Authorized>
+</AuthorizeView>
+
+@code {
+
+    [Parameter]
+    public required Guid UserId { get; set; }
+
+    private ConfigUserDto? _user;
+    
+    private string _userName = string.Empty;
+
+    private AssignableRoles[] _availableRoles = Enum.GetValues<Role>()
+        .Where(role => role != Role.Student)
+        .Select(role => new AssignableRoles
+        {
+            Role = role,
+            IsAssigned = false
+        })
+        .ToArray();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var user = await AdminService.GetUser(UserId);
+
+        _userName = user.UserName;
+        user.Roles.ForEach(role => _availableRoles.SingleOrDefault(x => x.Role == role)?.IsAssigned = true);
+        _user = user;
+    }
+
+    private async Task Update()
+    {
+        var newRoles = _availableRoles.Where(x => x.IsAssigned).Select(x => x.Role).Except(_user.Roles).ToList();
+        var rolesToDelete = _user.Roles.Except(_availableRoles.Where(x => x.IsAssigned).Select(x => x.Role)).ToList();
+
+        if (newRoles.Count > 0)
+        {
+            foreach (var newRole in newRoles)
+            {
+                await AdminService.AddRoleToUser(UserId, newRole);
+            }
+        }
+
+        if (rolesToDelete.Count > 0)
+        {
+            foreach (var roleToDelete in rolesToDelete)
+            {
+                await AdminService.RemoveRoleFromUser(UserId, roleToDelete);
+            }
+        }
+        
+        NavigateBack();
+    }
+
+    private void NavigateBack()
+    {
+        NavManager.NavigateTo("/admin/overview");
+    }
+
+
+    private class AssignableRoles
+    {
+        public Role Role { get; set; }
+        public bool IsAssigned { get; set; }
+    }
+}

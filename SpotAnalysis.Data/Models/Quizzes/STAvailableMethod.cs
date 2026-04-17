@@ -8,8 +8,7 @@
 public class STAvailableMethod {
     public int QuestionID { get; set; }
     public int MethodID { get; set; }
-
-
+    
     [ForeignKey(nameof(QuestionID))]
     [DeleteBehavior(DeleteBehavior.Restrict)]
     public STQuestion STQuestion { get; set; } = null!;

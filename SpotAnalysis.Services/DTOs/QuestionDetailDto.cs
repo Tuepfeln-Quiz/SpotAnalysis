@@ -5,6 +5,7 @@ namespace SpotAnalysis.Services.DTOs;
 public class QuestionDetailDto
 {
     public required int Id { get; init; }
+    public required string Title { get; init; }
     public required string Description { get; init; }
     public required QuestionType Type { get; init; }
     

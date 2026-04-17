@@ -9,6 +9,7 @@ public class Observation {
     public int ObservationID { get; set; }
 
     [Required]
+    [StringLength(512)]
     public string Description { get; set; } = null!;
 
 

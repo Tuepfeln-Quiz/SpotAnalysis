@@ -5,6 +5,7 @@ public class Quiz {
     public int QuizID { get; set; }
 
     [Required]
+    [StringLength(128)]
     public string Name { get; set; } = null!;
     public Guid? CreatedBy { get; set; }
 

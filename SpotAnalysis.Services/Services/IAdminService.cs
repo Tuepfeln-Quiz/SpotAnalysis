@@ -1,4 +1,4 @@
-﻿using SpotAnalysis.Data.Enums;
+using SpotAnalysis.Data.Enums;
 using SpotAnalysis.Services.DTOs;
 
 namespace SpotAnalysis.Services.Services;

@@ -7,8 +7,6 @@
 
 <PageTitle>@(_isEdit ? "Quiz bearbeiten" : "Neues Quiz") – Tüpfeln Digital</PageTitle>
 
-<PageHeader PageTitle="@(_isEdit ? "Quiz bearbeiten" : "Neues Quiz erstellen")" />
-
 <div class="container py-4">
     <div class="card-form">
         @* Quiz Name *@
@@ -82,28 +80,41 @@
 
         @* Group Assignment *@
         <div class="mb-4">
-            <label class="form-label-custom">Gruppen zuweisen</label>
-            <div class="d-flex flex-wrap gap-2">
-                @foreach (var group in _selectedGroups)
-                {
-                    <span class="group-pill">
-                        @group.Name
-                        <span class="remove-pill" @onclick="() => RemoveGroup(group.Id)">✕</span>
-                    </span>
-                }
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <label class="form-label-custom mb-0">Gruppen zuweisen</label>
                 @if (_availableGroups.Any(g => !_selectedGroups.Any(sg => sg.Id == g.Id)))
                 {
-                    <div class="dropdown">
-                        <button class="btn btn-pill" data-bs-toggle="dropdown">+ Gruppe hinzufügen</button>
-                        <ul class="dropdown-menu">
-                            @foreach (var group in _availableGroups.Where(g => !_selectedGroups.Any(sg => sg.Id == g.Id)))
-                            {
-                                <li>
-                                    <button class="dropdown-item" @onclick="() => AddGroup(group)">@group.Name</button>
-                                </li>
-                            }
-                        </ul>
-                    </div>
+                    <button class="btn btn-sm btn-primary-purple" @onclick="() => _showGroupDropdown = !_showGroupDropdown">
+                        <i class="bi bi-plus-lg me-1"></i> Hinzufügen
+                    </button>
+                }
+            </div>
+            <div class="selection-box">
+                @if (_selectedGroups.Count > 0)
+                {
+                    @foreach (var group in _selectedGroups)
+                    {
+                        <div class="group-row">
+                            <span class="fw-bold">@group.Name</span>
+                            <button class="btn btn-sm btn-delete" @onclick="() => RemoveGroup(group.Id)">
+                                Entfernen
+                            </button>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <p class="text-muted small mb-0">Keine Gruppen zugewiesen.</p>
+                }
+                @if (_showGroupDropdown)
+                {
+                    <hr class="my-2" />
+                    @foreach (var group in _availableGroups.Where(g => !_selectedGroups.Any(sg => sg.Id == g.Id)))
+                    {
+                        <div class="question-item" @onclick="() => AddGroup(group)">
+                            <span>@group.Name</span>
+                        </div>
+                    }
                 }
             </div>
         </div>
@@ -127,7 +138,7 @@
 @code {
     [Parameter] public int? QuizId { get; set; }
     [Inject] private IQuizService QuizService { get; set; } = default!;
-    [Inject] private ITeacherService TeacherService { get; set; } = default!;
+    [Inject] private IGroupService GroupService { get; set; } = default!;
     [Inject] private NavigationManager Navigation { get; set; } = default!;
 
     private bool _isEdit => QuizId.HasValue;
@@ -141,6 +152,7 @@
     private List<GroupDto> _selectedGroups = new();
     private int _dragIndex;
     private bool _saving;
+    private bool _showGroupDropdown;
     private string? _errorMessage;
 
     // TODO: Replace with actual teacher ID from auth when login is implemented
@@ -149,7 +161,7 @@
     protected override async Task OnInitializedAsync()
     {
         _allQuestions = await QuizService.GetQuestions();
-        _availableGroups = await TeacherService.GetGroups(_teacherId);
+        _availableGroups = await GroupService.GetGroups(_teacherId);
 
         if (_isEdit)
         {
@@ -160,6 +172,8 @@
             var allQuizzes = await QuizService.GetAllQuizzes();
             var quiz = allQuizzes.FirstOrDefault(q => q.Id == QuizId!.Value);
             if (quiz is not null) _quizName = quiz.Name;
+
+            _selectedGroups = await QuizService.GetGroupsByQuiz(QuizId!.Value);
         }
     }
 
@@ -193,7 +207,12 @@
         _orderedQuestions.Insert(targetIndex, item);
     }
 
-    private void AddGroup(GroupDto group) => _selectedGroups.Add(group);
+    private void AddGroup(GroupDto group)
+    {
+        _selectedGroups.Add(group);
+        if (!_availableGroups.Any(g => !_selectedGroups.Any(sg => sg.Id == g.Id)))
+            _showGroupDropdown = false;
+    }
     private void RemoveGroup(int groupId) => _selectedGroups.RemoveAll(g => g.Id == groupId);
 
     private void Cancel() => Navigation.NavigateTo("/teacher/quizzes");
@@ -217,25 +236,37 @@
                 Order = i
             }).ToList();
 
-            var groupIds = _selectedGroups.Select(g => g.Id).ToList();
+            var selectedGroupIds = _selectedGroups.Select(g => g.Id).ToHashSet();
+            int quizId;
 
             if (_isEdit)
             {
+                quizId = QuizId!.Value;
                 await QuizService.UpdateQuiz(_teacherId, new UpdateQuizDto
                 {
-                    Id = QuizId!.Value,
+                    Id = quizId,
                     Name = _quizName,
                     Questions = questions,
                 });
             }
             else
             {
-                await QuizService.CreateQuiz(_teacherId, new CreateQuizDto
+                quizId = await QuizService.CreateQuiz(_teacherId, new CreateQuizDto
                 {
                     Name = _quizName,
                     Questions = questions,
                 });
             }
+
+            // Sync group assignments
+            var existingGroups = await QuizService.GetGroupsByQuiz(quizId);
+            var existingGroupIds = existingGroups.Select(g => g.Id).ToHashSet();
+
+            foreach (var groupId in selectedGroupIds.Except(existingGroupIds))
+                await QuizService.AssignGroupToQuiz(quizId, groupId);
+
+            foreach (var groupId in existingGroupIds.Except(selectedGroupIds))
+                await QuizService.RemoveGroupFromQuiz(quizId, groupId);
 
             Navigation.NavigateTo("/teacher/quizzes");
         }

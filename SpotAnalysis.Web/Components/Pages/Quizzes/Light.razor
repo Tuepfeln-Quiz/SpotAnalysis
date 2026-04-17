@@ -127,7 +127,7 @@
                                 @onclick="() => SelectReaction(reaction.ReactionID)"
                                 disabled="@hasChecked">
                             <strong>@reaction.Chemical1Name + @reaction.Chemical2Name</strong>
-                            <br /><small>→ @reaction.RelevantProduct (@reaction.Formula)</small>
+                            <br /><small>→ @reaction.RelevantProduct (<ChemFormula Value="@reaction.Formula" />)</small>
                             @if (reaction.ImagePath != null)
                             {
                                 <img src="@reaction.ImagePath" class="img-fluid rounded mt-1" style="max-height: 80px;" alt="" />

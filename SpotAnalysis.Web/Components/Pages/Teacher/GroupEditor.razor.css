@@ -1,0 +1,30 @@
+.card-form {
+    background: white;
+    border-radius: 16px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.form-label-custom {
+    font-weight: 600;
+    font-size: 0.85rem;
+    display: block;
+    margin-bottom: 0.4rem;
+}
+
+.input-custom {
+    border-radius: 10px;
+    border: 1px solid #d1d5db;
+}
+
+.btn-primary-purple {
+    background: linear-gradient(135deg, #6b21a8, #4c1d95);
+    color: white;
+    border: none;
+    border-radius: 10px;
+}
+
+.btn-primary-purple:hover {
+    background: linear-gradient(135deg, #7c3aed, #5b21b6);
+    color: white;
+}

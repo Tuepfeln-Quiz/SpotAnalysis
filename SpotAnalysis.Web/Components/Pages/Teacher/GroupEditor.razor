@@ -1,0 +1,111 @@
+@page "/teacher/groups/new"
+@page "/teacher/groups/{Id:int}/edit"
+@rendermode InteractiveServer
+@using SpotAnalysis.Services.DTOs
+@using SpotAnalysis.Services.Services
+
+<PageTitle>@(IsEdit ? "Gruppe bearbeiten" : "Neue Gruppe") – Tüpfeln Digital</PageTitle>
+
+<div class="container py-4" style="max-width: 640px;">
+    <div class="card-form">
+        <EditForm Model="_model" OnValidSubmit="Save">
+            <DataAnnotationsValidator />
+
+            <div class="mb-4">
+                <label class="form-label-custom">Name</label>
+                <InputText class="form-control input-custom" @bind-Value="_model.Name" />
+                <ValidationMessage For="() => _model.Name" />
+            </div>
+
+            <div class="mb-4">
+                <label class="form-label-custom">Beschreibung</label>
+                <InputTextArea class="form-control input-custom" rows="4" @bind-Value="_model.Description" />
+            </div>
+
+            @if (!string.IsNullOrEmpty(_error))
+            {
+                <div class="alert alert-danger">@_error</div>
+            }
+
+            <div class="d-flex gap-3 justify-content-end">
+                <button class="btn btn-secondary" type="button" @onclick="Cancel">Abbrechen</button>
+                <button class="btn btn-primary-purple" type="submit">Speichern</button>
+            </div>
+        </EditForm>
+    </div>
+</div>
+
+@code {
+    [Parameter] public int? Id { get; set; }
+    [Inject] private IGroupService GroupService { get; set; } = default!;
+    [Inject] private NavigationManager Navigation { get; set; } = default!;
+
+    private bool IsEdit => Id.HasValue;
+
+    private FormModel _model = new();
+    private string? _error;
+
+    // TODO: Replace with actual teacher ID from auth when login is implemented
+    private readonly Guid _teacherId = Guid.Parse("9c9c2138-f945-41fa-823e-f3bd286c0fa1");
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (IsEdit)
+        {
+            var groups = await GroupService.GetGroups(_teacherId);
+            var current = groups.FirstOrDefault(g => g.Id == Id!.Value);
+            if (current is null)
+            {
+                Navigation.NavigateTo("/teacher/groups");
+                return;
+            }
+            _model.Name = current.Name;
+            _model.Description = current.Description ?? "";
+        }
+    }
+
+    private async Task Save()
+    {
+        _error = null;
+        try
+        {
+            var dto = new ConfigGroupDto
+            {
+                Name = _model.Name,
+                Description = string.IsNullOrWhiteSpace(_model.Description) ? null : _model.Description
+            };
+
+            if (IsEdit)
+            {
+                await GroupService.UpdateGroup(_teacherId, dto);
+            }
+            else
+            {
+                await GroupService.CreateGroup(_teacherId, dto);
+            }
+
+            Navigation.NavigateTo("/teacher/groups");
+        }
+        catch (Exception ex) when (ex.InnerException?.Message?.Contains("unique", StringComparison.OrdinalIgnoreCase) == true
+                                    || ex.InnerException?.Message?.Contains("duplicate", StringComparison.OrdinalIgnoreCase) == true
+                                    || ex.InnerException?.Message?.Contains("IX_Groups_Name", StringComparison.OrdinalIgnoreCase) == true)
+        {
+            _error = $"Eine Gruppe mit dem Namen \"{_model.Name}\" existiert bereits.";
+        }
+        catch (Exception ex)
+        {
+            _error = $"Speichern fehlgeschlagen: {ex.Message}";
+        }
+    }
+
+    private void Cancel() => Navigation.NavigateTo("/teacher/groups");
+
+    private class FormModel
+    {
+        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "Name erforderlich")]
+        [System.ComponentModel.DataAnnotations.StringLength(200)]
+        public string Name { get; set; } = "";
+
+        public string Description { get; set; } = "";
+    }
+}

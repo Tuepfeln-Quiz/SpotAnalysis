@@ -4,7 +4,7 @@
 <AuthorizeView Roles="Admin,Teacher">
     <NotAuthorized>
         <PageTitle>Zugriff verweigert</PageTitle>
-        <PageHeader PageTitle="Zugriff verweigert" />
+
         <div class="container py-4 flex-grow-1">
             <div class="alert alert-danger text-center" role="alert">
                 <i class="bi bi-x-circle me-2"></i>
@@ -15,7 +15,6 @@
     <Authorized>
         <PageTitle>Lehrerbereich – Tüpfeln Digital</PageTitle>
 
-        <PageHeader PageTitle="Lehrerbereich" />
 
         <div class="container py-4 flex-grow-1">
             <div class="row g-4 justify-content-center">
@@ -42,14 +41,13 @@
                     </div>
                 </div>
                 <div class="col-sm-6 col-lg-4">
-                    <div class="card card-interactive h-100 disabled-card">
+                    <div class="card card-interactive h-100" @onclick='() => Navigation.NavigateTo("/teacher/groups")'>
                         <div class="card-body text-center p-4">
                             <div class="card-icon mb-3" style="background-color: #fef3c7;">
                                 <i class="bi bi-people" style="color: #d97706; font-size: 2rem;"></i>
                             </div>
                             <h5 class="card-title fw-bold">Gruppen</h5>
                             <p class="card-text text-muted">Gruppen & Schüler verwalten</p>
-                            <small class="text-warning">Wird separat implementiert</small>
                         </div>
                     </div>
                 </div>

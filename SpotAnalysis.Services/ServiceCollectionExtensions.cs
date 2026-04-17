@@ -19,7 +19,8 @@ public static class ServiceCollectionExtensions
             options.UseSqlServer(configuration.GetConnectionString("MyDatabase")));
 
         services.AddScoped<IUserService, UserService>();
-        services.AddScoped<ITeacherService, TeacherService>();
+        services.AddScoped<IGroupInviteTokenService, GroupInviteTokenService>();
+        services.AddScoped<IGroupService, GroupService>();
         services.AddScoped<IQuizService, QuizService>();
         services.AddScoped<IUsernameService, UsernameService>();
         services.AddScoped<IStatisticsService, StatisticsService>();

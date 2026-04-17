@@ -1,6 +1,7 @@
 ﻿using System.Security.Authentication;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
+using SpotAnalysis.Data.Enums;
 using SpotAnalysis.Services.Services;
 
 namespace SpotAnalysis.Services.Tests;

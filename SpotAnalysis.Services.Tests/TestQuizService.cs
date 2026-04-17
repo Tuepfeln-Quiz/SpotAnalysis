@@ -1,4 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.DataProtection;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 using SpotAnalysis.Data.Enums;
@@ -12,22 +14,27 @@ namespace SpotAnalysis.Services.Tests;
 public class TestQuizService : BaseDatabaseTest
 {
     private QuizService _quizService;
-    private TeacherService _teacherService;
-    
+    private GroupService _teacherService;
+
     private readonly Guid _createdBy = Guid.NewGuid();
-    
+
     #region Users
-    
+
     private static readonly Guid Teacher1 = Guid.Parse("9c9c2138-f945-41fa-823e-f3bd286c0fa1");
-    
+
     #endregion
-    
+
     [OneTimeSetUp]
-    public void InitTeacherService()
+    public void InitGroupService()
     {
         var logger = Substitute.For<ILogger<QuizService>>();
         _quizService = new QuizService(logger, ContextFactory);
-        _teacherService = new TeacherService(ContextFactory);
+        var dpServices = new ServiceCollection();
+        dpServices.AddDataProtection();
+        var dpProvider = dpServices.BuildServiceProvider()
+            .GetRequiredService<IDataProtectionProvider>();
+        var inviteTokens = new GroupInviteTokenService(dpProvider);
+        _teacherService = new GroupService(ContextFactory, inviteTokens);
     }
     
     [Test]

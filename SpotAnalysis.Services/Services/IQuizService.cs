@@ -6,11 +6,12 @@ namespace SpotAnalysis.Services.Services;
 public interface IQuizService
 {
     public Task<List<QuizOverviewDto>> GetAllQuizzes();
-    public Task CreateQuiz(Guid teacherId, CreateQuizDto quiz);
+    public Task<int> CreateQuiz(Guid teacherId, CreateQuizDto quiz);
     public Task UpdateQuiz(Guid teacherId, UpdateQuizDto quiz);
     public Task DeleteQuiz(Guid teacherId, int quizId);
     public Task AssignGroupToQuiz(int quizId, int groupId);
     public Task RemoveGroupFromQuiz(int quizId, int groupId);
+    public Task<List<GroupDto>> GetGroupsByQuiz(int quizId);
     
     public Task<List<QuizOverviewDto>> GetQuizzes(Guid studentId);
     public Task<QuizDto> OpenQuiz(Guid studentId, int quizId);

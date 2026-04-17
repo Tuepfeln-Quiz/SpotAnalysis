@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using SpotAnalysis.Data;
 using SpotAnalysis.Data.Enums;
@@ -54,12 +54,9 @@ public class AdminService(IDbContextFactory<AnalysisContext> contextFactory, ILo
     }
 
     /// <summary>
-    /// This will delete the user and all quiz attempts of the user as well as all groups the user is referenced in. 
-    /// It will not delete any quizzes created by the user, but it will set the creator of those quizzes to null. 
+    /// This will delete the user and all quiz attempts of the user as well as all groups the user is referenced in.
+    /// It will not delete any quizzes created by the user, but it will set the creator of those quizzes to null.
     /// </summary>
-    /// <param name="userId"></param>
-    /// <param name="role"></param>
-    /// <returns></returns>
     public async Task DeleteUser(Guid userId)
     {
         await using var dbContext = await contextFactory.CreateDbContextAsync();

@@ -1,10 +1,14 @@
 using SpotAnalysisV2.Web.Components;
+using SpotAnalysisV2.Web.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
+
+builder.Services.AddScoped<AufgabeProgressService>();
+builder.Services.AddSingleton<QuizDataService>();
 
 var app = builder.Build();
 

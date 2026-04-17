@@ -8,7 +8,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="wwwroot\js\" />
+    <None Include="wwwroot\js\build-css.js" />
+    <None Include="wwwroot\js\postcss.config.js" />
+    <None Include="wwwroot\js\tailwind.config.js" />
   </ItemGroup>
 
 </Project>

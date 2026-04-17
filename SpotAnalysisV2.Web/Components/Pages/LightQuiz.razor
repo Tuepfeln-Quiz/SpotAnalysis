@@ -1,11 +1,14 @@
 @page "/light/quiz/{QuizId}"
 @rendermode InteractiveServer
 @inject NavigationManager Navigation
+@inject SpotAnalysisV2.Web.Services.AufgabeProgressService ProgressService
+@inject SpotAnalysisV2.Web.Services.QuizDataService QuizService
 @using Microsoft.AspNetCore.WebUtilities
+@using SpotAnalysisV2.Web.Models
 
 <div class="size-full flex flex-col bg-gray-50">
     <header class="bg-white shadow-sm px-6 py-4 flex items-center justify-between">
-        <NavLink href="/uebungen" class="p-2 hover:bg-gray-100 rounded-lg transition-colors" style="display: flex; align-items: center;" aria-label="Zurück">
+        <NavLink href="/Uebungen" class="p-2 hover:bg-gray-100 rounded-lg transition-colors" style="display: flex; align-items: center;" aria-label="Zurück">
             <svg class="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M15 19l-7-7 7-7" />
             </svg>
@@ -22,38 +25,88 @@
              class="w-10 h-10 rounded-full object-cover ml-auto" />
     </header>
 
-    @if (ShowAufgabenNavigator)
+    <!-- Aufgaben Navigator Toggle Button -->
+    <button @onclick="() => showNavigatorPopup = true"
+            class="fixed bottom-6 right-6 z-20 w-14 h-14 rounded-full bg-rose-500 text-white shadow-lg hover:bg-rose-600 transition-colors flex items-center justify-center"
+            title="Aufgaben anzeigen">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+        </svg>
+    </button>
+
+    @if (showNavigatorPopup)
     {
-        <aside class="fixed right-4 top-24 w-64 bg-white border border-gray-200 rounded-xl shadow-md p-3 z-20">
-            <div class="flex items-center justify-between mb-2">
-                <h3 class="text-sm font-semibold text-gray-800">Aufgaben</h3>
-                <span class="text-[11px] px-2 py-0.5 rounded-full @(IsTupfelnAufgabe(CurrentAufgabeIdSafe) ? "bg-teal-100 text-teal-700" : "bg-yellow-100 text-yellow-700")">
-                    @(IsTupfelnAufgabe(CurrentAufgabeIdSafe) ? "🧪 Tüpfeln" : "🔦 Light")
-                </span>
-            </div>
+        <!-- Backdrop -->
+        <div class="fixed inset-0 bg-black/40 z-30" @onclick="() => showNavigatorPopup = false"></div>
 
-            <div class="space-y-1.5 mb-3 max-h-64 overflow-y-auto">
-                @for (var i = 1; i <= TotalAufgabenSafe; i++)
-                {
-                    var isCurrent = i == CurrentAufgabeIdSafe;
-                    var isTupfeln = IsTupfelnAufgabe(i);
-                    <button @onclick="(() => NavigateToAufgabe(i))"
-                            class="w-full text-left rounded-lg border p-2.5 transition-colors @(isCurrent ? (isTupfeln ? "border-teal-300 bg-teal-50" : "border-yellow-300 bg-yellow-50") : "border-gray-200 bg-white hover:bg-gray-50")">
-                        <div class="flex items-center justify-between gap-2">
-                            <span class="text-sm font-medium @(isCurrent ? "text-gray-800" : "text-gray-700")">Aufgabe @i</span>
-                            <span class="text-[11px] px-2 py-0.5 rounded-full @(isTupfeln ? "bg-teal-100 text-teal-700" : "bg-yellow-100 text-yellow-700")">
-                                @(isTupfeln ? "🧪 Tüpfeln" : "🔦 Light")
-                            </span>
-                        </div>
+        <!-- Popup Panel -->
+        <div class="fixed inset-0 z-40 flex items-center justify-center pointer-events-none">
+            <div class="pointer-events-auto bg-white rounded-2xl shadow-2xl w-80 max-h-[90vh] flex flex-col overflow-hidden">
+                <!-- Header -->
+                <div class="flex items-center justify-between px-4 pt-4 pb-2">
+                    <div class="flex items-center gap-2">
+                        <h3 class="text-base font-semibold text-gray-800">Aufgaben</h3>
+                        <span class="text-[11px] px-2 py-0.5 rounded-full @(IsTupfelnAufgabe(CurrentAufgabeIdSafe) ? "bg-teal-100 text-teal-700" : "bg-yellow-100 text-yellow-700")">
+                            @(IsTupfelnAufgabe(CurrentAufgabeIdSafe) ? "🧪 Tüpfeln" : "🔦 Light")
+                        </span>
+                    </div>
+                    <button @onclick="() => showNavigatorPopup = false" class="p-1.5 rounded-lg hover:bg-gray-100 text-gray-500">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
                     </button>
-                }
-            </div>
+                </div>
 
-            <div class="flex gap-2">
-                <button @onclick="NavigateToPreviousAufgabe" class="flex-1 px-2 py-1.5 rounded-lg bg-gray-100 text-gray-700 text-xs hover:bg-gray-200">← Zurück</button>
-                <button @onclick="NavigateToNextAufgabe" class="flex-1 px-2 py-1.5 rounded-lg bg-gray-100 text-gray-700 text-xs hover:bg-gray-200">Überspringen →</button>
+                <!-- Aufgaben Liste -->
+                <div class="overflow-y-auto flex-1 px-4 pb-2 space-y-2">
+                    @for (var i = 1; i <= TotalAufgabenSafe; i++)
+                    {
+                        var isCurrent = i == CurrentAufgabeIdSafe;
+                        var isTupfeln = IsTupfelnAufgabe(i);
+                        var result = ProgressService.GetResult(ResolvedUebungId, i);
+                        <button @onclick="(() => { NavigateToAufgabe(i); showNavigatorPopup = false; })"
+                                class="w-full text-left rounded-xl border p-3 transition-colors @(isCurrent ? (isTupfeln ? "border-teal-400 bg-teal-50 ring-2 ring-teal-200" : "border-yellow-400 bg-yellow-50 ring-2 ring-yellow-200") : result == true ? "border-green-300 bg-green-50 hover:bg-green-100" : result == false ? "border-red-300 bg-red-50 hover:bg-red-100" : "border-gray-200 bg-white hover:bg-gray-50")">
+                            <div class="flex items-center justify-between gap-2">
+                                <div class="flex items-center gap-2">
+                                    @if (isCurrent)
+                                    {
+                                        <span class="w-5 h-5 rounded-full bg-yellow-400 flex items-center justify-center flex-shrink-0">
+                                            <svg class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="6"/></svg>
+                                        </span>
+                                    }
+                                    else if (result == true)
+                                    {
+                                        <span class="w-5 h-5 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0">
+                                            <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                                        </span>
+                                    }
+                                    else if (result == false)
+                                    {
+                                        <span class="w-5 h-5 rounded-full bg-red-500 flex items-center justify-center flex-shrink-0">
+                                            <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="w-5 h-5 rounded-full border-2 border-gray-300 flex-shrink-0"></span>
+                                    }
+                                    <span class="text-sm font-medium @(isCurrent ? "text-gray-900" : "text-gray-700")">Aufgabe @i</span>
+                                </div>
+                                <span class="text-[11px] px-2 py-0.5 rounded-full @(isTupfeln ? "bg-teal-100 text-teal-700" : "bg-yellow-100 text-yellow-700")">
+                                    @(isTupfeln ? "🧪 Tüpfeln" : "🔦 Light")
+                                </span>
+                            </div>
+                        </button>
+                    }
+                </div>
+
+                <!-- Footer Buttons -->
+                <div class="flex gap-2 px-4 py-3 border-t border-gray-100">
+                    <button @onclick="() => { NavigateToPreviousAufgabe(); showNavigatorPopup = false; }" class="flex-1 px-2 py-2 rounded-xl bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200 transition-colors">← Zurück</button>
+                    <button @onclick="() => { NavigateToNextAufgabe(); showNavigatorPopup = false; }" class="flex-1 px-2 py-2 rounded-xl bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200 transition-colors">Überspringen →</button>
+                </div>
             </div>
-        </aside>
+        </div>
     }
 
     @if (finished)
@@ -74,7 +127,15 @@
                 </div>
                 <div class="flex gap-3">
                     <button @onclick="HandleRestart" class="flex-1 py-3 rounded-lg font-medium bg-yellow-500 text-white hover:bg-yellow-600 transition-colors">Nochmal</button>
-                    @if (!string.IsNullOrWhiteSpace(Next))
+                    @if (IsInUebungContext && CurrentAufgabeIdSafe < TotalAufgabenSafe)
+                    {
+                        <button @onclick="NavigateToNextAufgabe" class="flex-1 py-3 rounded-lg font-medium bg-teal-500 text-white hover:bg-teal-600 transition-colors">Nächste Aufgabe →</button>
+                    }
+                    else if (IsInUebungContext)
+                    {
+                        <NavLink href="/uebungen" class="flex-1 py-3 rounded-lg font-medium bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors text-center" style="text-decoration: none;">Fertig ✓</NavLink>
+                    }
+                    else if (!string.IsNullOrWhiteSpace(Next))
                     {
                         <button @onclick="HandleContinue" class="flex-1 py-3 rounded-lg font-medium bg-teal-500 text-white hover:bg-teal-600 transition-colors">Weiter zu Tüpfeln</button>
                     }
@@ -301,97 +362,46 @@
     [SupplyParameterFromQuery(Name = "phase")]
     public string? Phase { get; set; }
 
-    private const string PhIconPath = "/icons/ph-icon.svg";
-
-    private class Edukt
-    {
-        public string Id { get; set; } = "";
-        public string Name { get; set; } = "";
-        public string Type { get; set; } = "";
-        public string Color { get; set; } = "";
-        public string PhLevel { get; set; } = "";
-        public string FlameColor { get; set; } = "";
-    }
-
-    private class Option
-    {
-        public string Id { get; set; } = "";
-        public Edukt Edukt2 { get; set; } = new();
-        public string Produkt { get; set; } = "";
-        public string Formel { get; set; } = "";
-    }
-
-    private class Question
-    {
-        public Edukt Edukt1 { get; set; } = new();
-        public Edukt CorrectEdukt2 { get; set; } = new();
-        public string Produkt { get; set; } = "";
-        public string Formel { get; set; } = "";
-        public string Frage { get; set; } = "";
-        public List<Option> Options { get; set; } = new();
-    }
-
-    private readonly List<Edukt> edukte = new()
-    {
-        new() { Id = "1", Name = "H₂", Type = "Wasserstoff", Color = "bg-blue-100 border-blue-300", PhLevel = "7", FlameColor = "Blassblau" },
-        new() { Id = "2", Name = "O₂", Type = "Sauerstoff", Color = "bg-red-100 border-red-300", PhLevel = "7", FlameColor = "Keine" },
-        new() { Id = "3", Name = "NaCl", Type = "Salz", Color = "bg-gray-100 border-gray-300", PhLevel = "7", FlameColor = "Gelb" },
-        new() { Id = "4", Name = "N₂", Type = "Stickstoff", Color = "bg-purple-100 border-purple-300", PhLevel = "7", FlameColor = "Keine" },
-        new() { Id = "5", Name = "C", Type = "Kohlenstoff", Color = "bg-slate-200 border-slate-400", PhLevel = "-", FlameColor = "Rot-Orange" },
-        new() { Id = "6", Name = "S", Type = "Schwefel", Color = "bg-yellow-100 border-yellow-300", PhLevel = "-", FlameColor = "Blau" },
-        new() { Id = "7", Name = "Fe", Type = "Eisen", Color = "bg-gray-200 border-gray-400", PhLevel = "-", FlameColor = "Orangefunken" },
-        new() { Id = "8", Name = "Cu", Type = "Kupfer", Color = "bg-orange-200 border-orange-400", PhLevel = "-", FlameColor = "Grün" },
-        new() { Id = "9", Name = "Cl₂", Type = "Chlor", Color = "bg-green-200 border-green-400", PhLevel = "-", FlameColor = "Keine" },
-        new() { Id = "10", Name = "CO₂", Type = "Kohlendioxid", Color = "bg-gray-100 border-gray-300", PhLevel = "5.6", FlameColor = "Keine" },
-        new() { Id = "11", Name = "H₂O", Type = "Wasser", Color = "bg-cyan-100 border-cyan-300", PhLevel = "7", FlameColor = "Keine" },
-        new() { Id = "12", Name = "NH₃", Type = "Ammoniak", Color = "bg-blue-200 border-blue-400", PhLevel = "11", FlameColor = "Keine" }
-    };
-
-    private readonly Dictionary<string, List<Question>> allQuizQuestions = new();
-    private List<Question> questions = new();
-    private Question? question;
+    private readonly Dictionary<string, List<LightFrage>> allQuizQuestions = new();
+    private List<LightFrage> questions = new();
+    private LightFrage? question;
     private int currentIdx;
     private string? selectedOption;
     private bool answered;
     private int score;
     private bool finished;
     private string? correctOptionId;
+    private bool showNavigatorPopup;
 
     protected override void OnInitialized()
     {
         SeedQuestions();
-        LoadQuiz(QuizId ?? "1");
+    }
+
+    protected override void OnParametersSet()
+    {
+        EnsureUebungContext();
+        var id = QuizId ?? "1";
+        LoadQuiz(id);
     }
 
     private void SeedQuestions()
     {
-        allQuizQuestions["1"] = new()
+        foreach (var data in QuizService.GetLightQuizzes())
         {
-            new() { Edukt1 = edukte[0], CorrectEdukt2 = edukte[1], Produkt = "H₂O", Formel = "2H₂ + O₂ → 2H₂O", Frage = "Welche Reaktion erzeugt Wasser durch eine Knallgasreaktion?", Options = new() { new() { Id = "a", Edukt2 = edukte[1], Produkt = "H₂O", Formel = "2H₂ + O₂ → 2H₂O" }, new() { Id = "b", Edukt2 = edukte[3], Produkt = "N₂H₂", Formel = "H₂ + N₂ → N₂H₂" }, new() { Id = "c", Edukt2 = edukte[5], Produkt = "H₂S", Formel = "H₂ + S → H₂S" }, new() { Id = "d", Edukt2 = edukte[8], Produkt = "HCl", Formel = "H₂ + Cl₂ → 2HCl" } } },
-            new() { Edukt1 = edukte[4], CorrectEdukt2 = edukte[1], Produkt = "CO₂", Formel = "C + O₂ → CO₂", Frage = "Welches Element verbrennt mit Kohlenstoff zu einem farblosen Gas?", Options = new() { new() { Id = "a", Edukt2 = edukte[5], Produkt = "CS₂", Formel = "C + 2S → CS₂" }, new() { Id = "b", Edukt2 = edukte[1], Produkt = "CO₂", Formel = "C + O₂ → CO₂" }, new() { Id = "c", Edukt2 = edukte[0], Produkt = "CH₄", Formel = "C + 2H₂ → CH₄" }, new() { Id = "d", Edukt2 = edukte[3], Produkt = "CN₂", Formel = "C + N₂ → CN₂" } } },
-            new() { Edukt1 = edukte[6], CorrectEdukt2 = edukte[5], Produkt = "FeS", Formel = "Fe + S → FeS", Frage = "Welches Element reagiert mit Eisen zu einem schwarzen Feststoff unter Glühen?", Options = new() { new() { Id = "a", Edukt2 = edukte[1], Produkt = "Fe₂O₃", Formel = "4Fe + 3O₂ → 2Fe₂O₃" }, new() { Id = "b", Edukt2 = edukte[4], Produkt = "FeC", Formel = "Fe + C → FeC" }, new() { Id = "c", Edukt2 = edukte[5], Produkt = "FeS", Formel = "Fe + S → FeS" }, new() { Id = "d", Edukt2 = edukte[8], Produkt = "FeCl₃", Formel = "2Fe + 3Cl₂ → 2FeCl₃" } } }
-        };
-
-        allQuizQuestions["2"] = new()
-        {
-            new() { Edukt1 = edukte[6], CorrectEdukt2 = edukte[1], Produkt = "Fe₂O₃", Formel = "4Fe + 3O₂ → 2Fe₂O₃", Frage = "Welches Element lässt Eisen rosten und einen rötlich-braunen Feststoff bilden?", Options = new() { new() { Id = "a", Edukt2 = edukte[5], Produkt = "FeS", Formel = "Fe + S → FeS" }, new() { Id = "b", Edukt2 = edukte[1], Produkt = "Fe₂O₃", Formel = "4Fe + 3O₂ → 2Fe₂O₃" }, new() { Id = "c", Edukt2 = edukte[8], Produkt = "FeCl₃", Formel = "2Fe + 3Cl₂ → 2FeCl₃" }, new() { Id = "d", Edukt2 = edukte[4], Produkt = "FeC", Formel = "Fe + C → FeC" } } },
-            new() { Edukt1 = edukte[7], CorrectEdukt2 = edukte[5], Produkt = "CuS", Formel = "Cu + S → CuS", Frage = "Welches Element bildet mit Kupfer einen schwarzen Niederschlag?", Options = new() { new() { Id = "a", Edukt2 = edukte[1],Produkt = "CuO", Formel = "2Cu + O₂ → 2CuO" }, new() { Id = "b", Edukt2 = edukte[8], Produkt = "CuCl₂", Formel = "Cu + Cl₂ → CuCl₂" }, new() { Id = "c", Edukt2 = edukte[5], Produkt = "CuS", Formel = "Cu + S → CuS" }, new() { Id = "d", Edukt2 = edukte[0], Produkt = "CuH₂", Formel = "Cu + H₂ → CuH₂" } } },
-            new() { Edukt1 = edukte[3], CorrectEdukt2 = edukte[0], Produkt = "NH₃", Formel = "N₂ + 3H₂ → 2NH₃", Frage = "Welches Element reagiert mit Stickstoff zu einem stechend riechenden Gas?", Options = new() { new() { Id = "a", Edukt2 = edukte[0], Produkt = "NH₃", Formel = "N₂ + 3H₂ → 2NH₃" }, new() { Id = "b", Edukt2 = edukte[1], Produkt = "NO₂", Formel = "N₂ + 2O₂ → 2NO₂" }, new() { Id = "c", Edukt2 = edukte[5], Produkt = "NS", Formel = "N₂ + S → NS" }, new() { Id = "d", Edukt2 = edukte[8], Produkt = "NCl₃", Formel = "N₂ + 3Cl₂ → 2NCl₃" } } }
-        };
-
-        allQuizQuestions["3"] = new()
-        {
-            new() { Edukt1 = edukte[5], CorrectEdukt2 = edukte[1], Produkt = "SO₂", Formel = "S + O₂ → SO₂", Frage = "Welches Element erzeugt mit Schwefel eine blaue Flamme und stechenden Geruch?", Options = new() { new() { Id = "a", Edukt2 = edukte[0], Produkt = "H₂S", Formel = "H₂ + S → H₂S" }, new() { Id = "b", Edukt2 = edukte[1], Produkt = "SO₂", Formel = "S + O₂ → SO₂" }, new() { Id = "c", Edukt2 = edukte[6], Produkt = "FeS", Formel = "Fe + S → FeS" }, new() { Id = "d", Edukt2 = edukte[4], Produkt = "CS₂", Formel = "C + 2S → CS₂" } } },
-            new() { Edukt1 = edukte[7], CorrectEdukt2 = edukte[8], Produkt = "CuCl₂", Formel = "Cu + Cl₂ → CuCl₂", Frage = "Welches Element bildet mit Kupfer eine grünlich-braune Lösung?", Options = new() { new() { Id = "a", Edukt2 = edukte[5], Produkt = "CuS", Formel = "Cu + S → CuS" }, new() { Id = "b", Edukt2 = edukte[1], Produkt = "CuO", Formel = "2Cu + O₂ → 2CuO" }, new() { Id = "c", Edukt2 = edukte[8], Produkt = "CuCl₂", Formel = "Cu + Cl₂ → CuCl₂" }, new() { Id = "d", Edukt2 = edukte[0], Produkt = "CuH₂", Formel = "Cu + H₂ → CuH₂" } } },
-            new() { Edukt1 = edukte[11], CorrectEdukt2 = edukte[10], Produkt = "NH₄OH", Formel = "NH₃ + H₂O → NH₄OH", Frage = "Welches Element löst Ammoniak zu einer basischen Lösung?", Options = new() { new() { Id = "a", Edukt2 = edukte[1], Produkt = "NO₂", Formel = "NH₃ + O₂ → NO₂" }, new() { Id = "b", Edukt2 = edukte[10], Produkt = "NH₄OH", Formel = "NH₃ + H₂O → NH₄OH" }, new() { Id = "c", Edukt2 = edukte[8], Produkt = "NH₃Cl₂", Formel = "NH₃ + Cl₂ → NH₃Cl₂" }, new() { Id = "d", Edukt2 = edukte[5], Produkt = "NH₃S", Formel = "NH₃ + S → NH₃S" } } }
-        };
+            allQuizQuestions[data.Id.ToString()] = data.Fragen;
+        }
     }
 
     private void LoadQuiz(string quizId)
     {
-        if (!allQuizQuestions.TryGetValue(quizId, out var quizQuestions))
+        if (!allQuizQuestions.TryGetValue(quizId, out var quizQuestions) || quizQuestions.Count == 0)
         {
-            quizQuestions = allQuizQuestions["1"];
+            questions = new();
+            question = null;
+            correctOptionId = null;
+            finished = false;
+            return;
         }
 
         questions = quizQuestions;
@@ -405,8 +415,16 @@
 
     private void SetCurrentQuestion()
     {
-        question = questions.Count == 0 ? null : questions[currentIdx];
-        correctOptionId = question?.Options.FirstOrDefault(o => o.Edukt2.Id == question.CorrectEdukt2.Id)?.Id;
+        if (questions.Count == 0)
+        {
+            question = null;
+            correctOptionId = null;
+            return;
+        }
+
+        currentIdx = Math.Clamp(currentIdx, 0, questions.Count - 1);
+        question = questions[currentIdx];
+        correctOptionId = question.Options.FirstOrDefault(o => o.Edukt2.Id == question.CorrectEdukt2.Id)?.Id;
     }
 
     private void HandleSelect(string optionId)
@@ -436,12 +454,16 @@
             answered = false;
             SetCurrentQuestion();
         }
-        else if (!string.IsNullOrWhiteSpace(Next))
-        {
-            Navigation.NavigateTo(Uri.UnescapeDataString(Next), replace: true);
-        }
         else
         {
+            ProgressService.RecordResult(ResolvedUebungId, CurrentAufgabeIdSafe, score == questions.Count);
+
+            if (IsInUebungContext && CurrentAufgabeIdSafe < TotalAufgabenSafe)
+            {
+                NavigateToAufgabe(CurrentAufgabeIdSafe + 1);
+                return;
+            }
+
             finished = true;
         }
     }
@@ -464,12 +486,25 @@
 
     private bool ShowAufgabenNavigator => true;
 
-    private int TotalAufgabenSafe => Math.Max(1, TotalAufgaben ?? TryGetQueryInt("total") ?? 4);
+    private bool IsInUebungContext => ProgressService.IsInUebung
+        || string.Equals(From, "uebung", StringComparison.OrdinalIgnoreCase)
+        || string.Equals(TryGetQueryString("from"), "uebung", StringComparison.OrdinalIgnoreCase)
+        || UebungContextId.HasValue
+        || TryGetQueryInt("uebungId").HasValue;
 
-    private int? CurrentUebungId => UebungContextId ?? TryGetQueryInt("uebungId");
-    private int? CurrentAufgabeId => AufgabeContextId ?? TryGetQueryInt("aufgabeId");
-    private int CurrentAufgabeIdSafe => Math.Clamp(CurrentAufgabeId ?? 1, 1, TotalAufgabenSafe);
-    private int ResolvedUebungId => CurrentUebungId ?? ParseQuizIdOrDefault();
+    private int TotalAufgabenSafe => Math.Max(1, TotalAufgaben ?? TryGetQueryInt("total") ?? (ProgressService.IsInUebung ? ProgressService.CurrentTotal : 1));
+    private int CurrentAufgabeIdSafe => Math.Clamp(AufgabeContextId ?? TryGetQueryInt("aufgabeId") ?? (ProgressService.IsInUebung ? ProgressService.CurrentAufgabeId : 1), 1, TotalAufgabenSafe);
+    private int ResolvedUebungId => UebungContextId ?? TryGetQueryInt("uebungId") ?? (ProgressService.IsInUebung ? ProgressService.CurrentUebungId : ParseQuizIdOrDefault());
+
+    private void EnsureUebungContext()
+    {
+        var uebungId = UebungContextId ?? TryGetQueryInt("uebungId");
+        if (!uebungId.HasValue) return;
+
+        var total = Math.Max(1, TotalAufgaben ?? TryGetQueryInt("total") ?? QuizService.GetAufgabenCount(uebungId.Value));
+        var aufgabeId = Math.Clamp(AufgabeContextId ?? TryGetQueryInt("aufgabeId") ?? 1, 1, total);
+        ProgressService.SetUebungContext(uebungId.Value, aufgabeId, total);
+    }
 
     private int ParseQuizIdOrDefault()
     {
@@ -478,7 +513,8 @@
 
     private bool IsTupfelnAufgabe(int aufgabeId)
     {
-        return aufgabeId % 2 == 0;
+        if (!IsInUebungContext) return false;
+        return QuizService.GetAufgabe(ResolvedUebungId, aufgabeId)?.Typ == AufgabeTyp.Tuepfeln;
     }
 
     private int? TryGetQueryInt(string key)
@@ -487,6 +523,13 @@
         var query = QueryHelpers.ParseQuery(uri.Query);
         if (!query.TryGetValue(key, out var value)) return null;
         return int.TryParse(value.ToString(), out var parsed) ? parsed : null;
+    }
+
+    private string? TryGetQueryString(string key)
+    {
+        var uri = Navigation.ToAbsoluteUri(Navigation.Uri);
+        var query = QueryHelpers.ParseQuery(uri.Query);
+        return query.TryGetValue(key, out var value) ? value.ToString() : null;
     }
 
     private void NavigateToAufgabe(int targetAufgabe)
@@ -543,7 +586,7 @@
         return question?.Options.FirstOrDefault(o => o.Id == selectedOption)?.Edukt2;
     }
 
-    private string GetNiederschlagText(string produkt)
+    private string GetNiederschlagText(String produkt)
     {
         return produkt switch
         {

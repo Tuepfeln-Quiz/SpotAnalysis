@@ -11,13 +11,18 @@
         </button>
         <div class="user-greeting">
             <AuthorizeView>
-                <Authorized>
-                    <span>Welcome, @context.User.Identity?.Name</span>
-                </Authorized>
-                <NotAuthorized>
-                    <span>Welcome, Guest</span>
-                </NotAuthorized>
-            </AuthorizeView>
+        <Authorized>
+            <span>Welcome, @context.User.Identity?.Name</span>
+            <button class="nav-link btn btn-link p-0 m-0"
+                    @onclick="ChangePassword">
+                    
+                Change Password
+            </button>
+        </Authorized>
+        <NotAuthorized>
+            <span>Welcome, Guest</span>
+        </NotAuthorized>
+    </AuthorizeView>
         </div>
     </div>
 
@@ -36,7 +41,7 @@
                 <Authorized>
                     <form method="post" action="/api/auth/logout">
                         <button type="submit" class="btn btn-outline-danger w-100">
-                            <i class="bi bi-box-arrow-right"></i> Logout
+                            <i class="bi bi-box-arrow-left"></i> Logout
                         </button>
                     </form>
                 </Authorized>
@@ -63,6 +68,12 @@
     {
         CloseMenu();
         NavigationManager.NavigateTo("/");
+    } private void ChangePassword()
+    {
+        
+        NavigationManager.NavigateTo("/reset-password");
     }
+
+
     
 }

@@ -14,12 +14,13 @@
 @code {
     [Parameter] public string Value { get; set; } = "";
     [Parameter] public EventCallback<string> ValueChanged { get; set; }
-
+    [Parameter] public bool AutoGenerate { get; set; } = true;
+        
     [Inject] public IUsernameService UsernameService { get; set; } = default!;
 
     protected override async Task OnInitializedAsync()
     {
-        if (string.IsNullOrWhiteSpace(Value))
+        if (AutoGenerate && string.IsNullOrWhiteSpace(Value))
             await Generate();
     }
 

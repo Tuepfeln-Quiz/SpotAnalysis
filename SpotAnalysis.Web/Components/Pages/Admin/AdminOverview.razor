@@ -29,13 +29,14 @@
                 </thead>
                 <tbody>
                     <tr>
-                        <td colspan="3"><a class="btn btn-secondary" href="admin-overview/create">Create New Teacher</a></td>
+                        <td colspan="12"><a class="btn btn-secondary" href="admin-overview/create">Create New Teacher</a></td>
                     </tr>
 
                     @foreach(var a in adminlist)
                     {
                         <tr>
                             <td>@a.UserName</td>
+                            <td>@a.Roles</td>
                             <td>
                                 <a class="btn btn-info" href="admin-overview/edit">Edit</a>
                                 <button class="btn btn-danger" @onclick="() => Delete(a.Id)">Remove</button>
@@ -58,7 +59,6 @@
 
     List<TeacherAdminDto> adminlist = new List<TeacherAdminDto>();
 
-    
    
     public async Task GetUsers()
     {

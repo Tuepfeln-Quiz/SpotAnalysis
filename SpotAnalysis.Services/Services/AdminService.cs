@@ -8,6 +8,17 @@ namespace SpotAnalysis.Services.Services;
 
 public class AdminService(IDbContextFactory<AnalysisContext> contextFactory, ILogger<AdminService> logger) : IAdminService
 {
+    public async Task<ConfigUserDto> GetUser(Guid userId)
+    {
+        await using var dbContext = await contextFactory.CreateDbContextAsync();
+
+        return await dbContext.Users.AsNoTracking().Where(x => x.UserID == userId).Select(x => new ConfigUserDto
+        {
+            UserName = x.UserName,
+            Roles = x.Roles.ToList()
+        }).SingleAsync();
+    }
+
     public async Task AddRoleToUser(Guid userId, Role role)
     {
         try

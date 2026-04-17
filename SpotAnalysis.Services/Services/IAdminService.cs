@@ -10,6 +10,4 @@ public interface IAdminService
     Task DeleteUser(Guid userId);
     Task<List<UserDto>> GetUsersByRole(Role role);
     Task<List<UserDto>> GetUsersWithoutRole();
-    Task AddUserToGroup(Guid userId, int groupId);
-    Task RemoveUserFromGroup(Guid userId, int groupId);
 }

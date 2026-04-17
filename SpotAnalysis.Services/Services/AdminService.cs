@@ -107,45 +107,4 @@ public class AdminService(IDbContextFactory<AnalysisContext> contextFactory, ILo
             .ToListAsync();
     }
 
-    public async Task AddUserToGroup(Guid userId, int groupId)
-    {
-        try
-        {
-            await using var dbContext = await contextFactory.CreateDbContextAsync();
-
-            var group = await dbContext.Groups.SingleAsync(x => x.GroupID == groupId);
-            var user = await dbContext.Users.SingleAsync(x => x.UserID == userId);
-
-            if (!user.Groups.Contains(group))
-            {
-                user.Groups.Add(group);
-                await dbContext.SaveChangesAsync();
-            }
-        }
-        catch (Exception)
-        {
-            logger.LogError("An error occurred while adding user with id {guid} to group with id {groupId}.", userId, groupId);
-            throw;
-        }
-    }
-
-    public async Task RemoveUserFromGroup(Guid userId, int groupId)
-    {
-        try
-        {
-            await using var dbContext = await contextFactory.CreateDbContextAsync();
-
-            var group = await dbContext.Groups.SingleAsync(x => x.GroupID == groupId);
-            var user = await dbContext.Users.SingleAsync(x => x.UserID == userId);
-
-            user.Groups.Remove(group);
-
-            await dbContext.SaveChangesAsync();
-        }
-        catch (Exception)
-        {
-            logger.LogError("An error occurred while removing user with id {guid} from group with id {groupId}.", userId, groupId);
-            throw;
-        }
-    }
 }

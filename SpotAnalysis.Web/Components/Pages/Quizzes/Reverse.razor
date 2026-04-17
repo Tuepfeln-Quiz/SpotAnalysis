@@ -97,14 +97,14 @@
                     {
                         <div class="alert alert-success">
                             <strong>Richtig!</strong>
-                            <br />@currentReaction.Formula
+                            <br /><ChemFormula Value="@currentReaction.Formula" />
                         </div>
                     }
                     else
                     {
                         <div class="alert alert-danger">
                             Richtige Antwort: <strong>@currentReaction.RelevantProduct</strong>
-                            <br />@currentReaction.Formula
+                            <br /><ChemFormula Value="@currentReaction.Formula" />
                             <br /><em>@currentReaction.ObservationDescription</em>
                         </div>
                     }

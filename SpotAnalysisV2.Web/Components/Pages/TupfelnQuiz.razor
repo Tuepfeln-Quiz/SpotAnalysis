@@ -1,7 +1,10 @@
 @page "/tupfeln/quiz/{QuizId:int}"
 @rendermode InteractiveServer
 @inject NavigationManager Navigation
+@inject SpotAnalysisV2.Web.Services.AufgabeProgressService ProgressService
+@inject SpotAnalysisV2.Web.Services.QuizDataService QuizService
 @using Microsoft.AspNetCore.WebUtilities
+@using SpotAnalysisV2.Web.Models
 
 <div class="size-full flex flex-col bg-gray-50" @onpointermove="HandleGlobalPointerMove" @onpointerup="HandleGlobalPointerUp" @onpointercancel="HandleGlobalPointerUp">
     <header class="bg-white shadow-sm px-6 py-4 flex items-center justify-between">
@@ -17,42 +20,87 @@
             <NavLink href="/uebungen" class="bg-gray-100 text-gray-700 px-6 py-2 rounded-lg font-medium hover:bg-gray-200 transition-colors" style="text-decoration:none;">Übungen</NavLink>
         </div>
 
-        <img src="https://images.unsplash.com/photo-1655249493799-9cee4fe983bb?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxwcm9maWxlJTIwcG9ydHJhaXR8ZW58MXx8fHwxNzczNjY1OTA5fDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral"
+        <img src="https://images.unsplash.com/photo-1655249493799-9cee4fe983bb?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxwcm9maWxlJTIycG9ydHJhaXR8ZW58MXx8fHwxNzczNjY1OTA5fDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral"
              alt="Profil" class="w-10 h-10 rounded-full object-cover ml-auto" />
     </header>
 
-    @if (ShowAufgabenNavigator)
+    <!-- Aufgaben Navigator Toggle Button -->
+    <button @onclick="() => showNavigatorPopup = true"
+            class="fixed bottom-6 right-6 z-20 w-14 h-14 rounded-full bg-rose-500 text-white shadow-lg hover:bg-rose-600 transition-colors flex items-center justify-center"
+            title="Aufgaben anzeigen">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+        </svg>
+    </button>
+
+    @if (showNavigatorPopup)
     {
-        <aside class="fixed right-4 top-24 w-64 bg-white border border-gray-200 rounded-xl shadow-md p-3 z-20">
-            <div class="flex items-center justify-between mb-2">
-                <h3 class="text-sm font-semibold text-gray-800">Aufgaben</h3>
-                <span class="text-[11px] px-2 py-0.5 rounded-full @(IsTupfelnAufgabe(CurrentAufgabeIdSafe) ? "bg-teal-100 text-teal-700" : "bg-yellow-100 text-yellow-700")">
-                    @(IsTupfelnAufgabe(CurrentAufgabeIdSafe) ? "🧪 Tüpfeln" : "🔦 Light")
-                </span>
-            </div>
+        <div class="fixed inset-0 bg-black/40 z-30" @onclick="() => showNavigatorPopup = false"></div>
 
-            <div class="space-y-1.5 mb-3 max-h-64 overflow-y-auto">
-                @for (var i = 1; i <= TotalAufgabenSafe; i++)
-                {
-                    var isCurrent = i == CurrentAufgabeIdSafe;
-                    var isTupfeln = IsTupfelnAufgabe(i);
-                    <button @onclick="(() => NavigateToAufgabe(i))"
-                            class="w-full text-left rounded-lg border p-2.5 transition-colors @(isCurrent ? (isTupfeln ? "border-teal-300 bg-teal-50" : "border-yellow-300 bg-yellow-50") : "border-gray-200 bg-white hover:bg-gray-50")">
-                        <div class="flex items-center justify-between gap-2">
-                            <span class="text-sm font-medium @(isCurrent ? "text-gray-800" : "text-gray-700")">Aufgabe @i</span>
-                            <span class="text-[11px] px-2 py-0.5 rounded-full @(isTupfeln ? "bg-teal-100 text-teal-700" : "bg-yellow-100 text-yellow-700")">
-                                @(isTupfeln ? "🧪 Tüpfeln" : "🔦 Light")
-                            </span>
-                        </div>
+        <div class="fixed inset-0 z-40 flex items-center justify-center pointer-events-none">
+            <div class="pointer-events-auto bg-white rounded-2xl shadow-2xl w-80 max-h-[90vh] flex flex-col overflow-hidden">
+                <div class="flex items-center justify-between px-4 pt-4 pb-2">
+                    <div class="flex items-center gap-2">
+                        <h3 class="text-base font-semibold text-gray-800">Aufgaben</h3>
+                        <span class="text-[11px] px-2 py-0.5 rounded-full @(IsTupfelnAufgabe(CurrentAufgabeIdSafe) ? "bg-teal-100 text-teal-700" : "bg-yellow-100 text-yellow-700")">
+                            @(IsTupfelnAufgabe(CurrentAufgabeIdSafe) ? "🧪 Tüpfeln" : "🔦 Light")
+                        </span>
+                    </div>
+                    <button @onclick="() => showNavigatorPopup = false" class="p-1.5 rounded-lg hover:bg-gray-100 text-gray-500">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
                     </button>
-                }
-            </div>
+                </div>
 
-            <div class="flex gap-2">
-                <button @onclick="NavigateToPreviousAufgabe" class="flex-1 px-2 py-1.5 rounded-lg bg-gray-100 text-gray-700 text-xs hover:bg-gray-200">← Zurück</button>
-                <button @onclick="NavigateToNextAufgabe" class="flex-1 px-2 py-1.5 rounded-lg bg-gray-100 text-gray-700 text-xs hover:bg-gray-200">Überspringen →</button>
+                <div class="overflow-y-auto flex-1 px-4 pb-2 space-y-2">
+                    @for (var i = 1; i <= TotalAufgabenSafe; i++)
+                    {
+                        var isCurrent = i == CurrentAufgabeIdSafe;
+                        var isTupfeln = IsTupfelnAufgabe(i);
+                        var result = ProgressService.GetResult(ResolvedUebungId, i);
+                        <button @onclick="(() => { NavigateToAufgabe(i); showNavigatorPopup = false; })"
+                                class="w-full text-left rounded-xl border p-3 transition-colors @(isCurrent ? (isTupfeln ? "border-teal-400 bg-teal-50 ring-2 ring-teal-200" : "border-yellow-400 bg-yellow-50 ring-2 ring-yellow-200") : result == true ? "border-green-300 bg-green-50 hover:bg-green-100" : result == false ? "border-red-300 bg-red-50 hover:bg-red-100" : "border-gray-200 bg-white hover:bg-gray-50")">
+                            <div class="flex items-center justify-between gap-2">
+                                <div class="flex items-center gap-2">
+                                    @if (isCurrent)
+                                    {
+                                        <span class="w-5 h-5 rounded-full bg-teal-400 flex items-center justify-center flex-shrink-0">
+                                            <svg class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="6"/></svg>
+                                        </span>
+                                    }
+                                    else if (result == true)
+                                    {
+                                        <span class="w-5 h-5 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0">
+                                            <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                                        </span>
+                                    }
+                                    else if (result == false)
+                                    {
+                                        <span class="w-5 h-5 rounded-full bg-red-500 flex items-center justify-center flex-shrink-0">
+                                            <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="w-5 h-5 rounded-full border-2 border-gray-300 flex-shrink-0"></span>
+                                    }
+                                    <span class="text-sm font-medium @(isCurrent ? "text-gray-900" : "text-gray-700")">Aufgabe @i</span>
+                                </div>
+                                <span class="text-[11px] px-2 py-0.5 rounded-full @(isTupfeln ? "bg-teal-100 text-teal-700" : "bg-yellow-100 text-yellow-700")">
+                                    @(isTupfeln ? "🧪 Tüpfeln" : "🔦 Light")
+                                </span>
+                            </div>
+                        </button>
+                    }
+                </div>
+
+                <div class="flex gap-2 px-4 py-3 border-t border-gray-100">
+                    <button @onclick="() => { NavigateToPreviousAufgabe(); showNavigatorPopup = false; }" class="flex-1 px-2 py-2 rounded-xl bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200 transition-colors">← Zurück</button>
+                    <button @onclick="() => { NavigateToNextAufgabe(); showNavigatorPopup = false; }" class="flex-1 px-2 py-2 rounded-xl bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200 transition-colors">Überskippen →</button>
+                </div>
             </div>
-        </aside>
+        </div>
     }
 
     @if (quiz != null)
@@ -238,7 +286,17 @@
                     <div class="w-full bg-gray-200 rounded-full h-3 mb-4 max-w-sm mx-auto">
                         <div class="bg-teal-500 h-3 rounded-full" style="width:@($"{correct * 100.0 / quiz.Unbekannte.Count}%")"></div>
                     </div>
-                    <button @onclick="ResetAll" class="bg-teal-500 text-white px-8 py-3 rounded-lg font-medium hover:bg-teal-600">Nochmal versuchen</button>
+                    <div class="flex gap-3 justify-center">
+                        <button @onclick="ResetAll" class="bg-gray-200 text-gray-700 px-6 py-3 rounded-lg font-medium hover:bg-gray-300">Nochmal versuchen</button>
+                        @if (IsInUebungContext && CurrentAufgabeIdSafe < TotalAufgabenSafe)
+                        {
+                            <button @onclick="NavigateToNextAufgabe" class="bg-teal-500 text-white px-6 py-3 rounded-lg font-medium hover:bg-teal-600">Nächste Aufgabe →</button>
+                        }
+                        else if (IsInUebungContext)
+                        {
+                            <NavLink href="/uebungen" class="bg-teal-500 text-white px-6 py-3 rounded-lg font-medium hover:bg-teal-600 text-center" style="text-decoration:none;">Fertig ✓</NavLink>
+                        }
+                    </div>
                 </div>
             }
         </div>
@@ -278,39 +336,6 @@
         public string Label { get; set; } = "";
     }
 
-    private sealed class Substanz
-    {
-        public string Id { get; set; } = "";
-        public string Formel { get; set; } = "";
-        public string Name { get; set; } = "";
-        public string Farbe { get; set; } = "";
-        public string FarbeBg { get; set; } = "";
-        public string FarbeBorder { get; set; } = "";
-        public string PhFarbe { get; set; } = "";
-        public string Flammenfarbe { get; set; } = "";
-        public string FlammenHex { get; set; } = "";
-        public string MitNaOH { get; set; } = "";
-        public string MitNaOHFarbe { get; set; } = "";
-        public string MitHCl { get; set; } = "";
-        public string MitHClFarbe { get; set; } = "";
-    }
-
-    private sealed class MischErgebnis
-    {
-        public string[] Ids { get; set; } = Array.Empty<string>();
-        public string Farbe { get; set; } = "";
-        public string FarbeHex { get; set; } = "";
-        public string Text { get; set; } = "";
-    }
-
-    private sealed class QuizDaten
-    {
-        public string Title { get; set; } = "";
-        public string Beschreibung { get; set; } = "";
-        public List<Substanz> Unbekannte { get; set; } = new();
-        public List<MischErgebnis> MischErgebnisse { get; set; } = new();
-    }
-
     private readonly List<ToolDef> toolDefs =
     [
         new() { Id = ToolType.Ph, Icon = "📋", Label = "pH-Papier" },
@@ -319,10 +344,9 @@
         new() { Id = ToolType.HCl, Icon = "⚗️", Label = "+ HCl" }
     ];
 
-    private readonly Dictionary<string, Substanz> S = new();
-    private readonly Dictionary<int, QuizDaten> allQuizData = new();
+    private readonly Dictionary<int, TuepfelnQuizData> allQuizData = new();
 
-    private QuizDaten? quiz;
+    private TuepfelnQuizData? quiz;
     private readonly HashSet<string> revealed = new();
     private string[] guesses = [];
     private bool submitted;
@@ -340,22 +364,23 @@
     private int? mixB;
     private bool mixDone;
     private MischErgebnis? mixResult;
+    private bool showNavigatorPopup;
 
     protected override void OnInitialized()
     {
         SeedData();
-        LoadQuizAndInitializeState();
     }
 
     protected override void OnParametersSet()
     {
+        EnsureUebungContext();
         LoadQuizAndInitializeState();
     }
 
     private void LoadQuizAndInitializeState()
     {
-        quiz = allQuizData.TryGetValue(QuizId, out var q) ? q : allQuizData[1];
-        guesses = Enumerable.Repeat("", quiz.Unbekannte.Count).ToArray();
+        quiz = allQuizData.TryGetValue(QuizId, out var q) ? q : null;
+        guesses = Enumerable.Repeat("", quiz?.Unbekannte.Count ?? 0).ToArray();
         submitted = false;
         revealed.Clear();
         selectedTool = null;
@@ -365,33 +390,10 @@
 
     private void SeedData()
     {
-        if (S.Count > 0) return;
-
-        S["HCl"] = new() { Id = "hcl", Formel = "HCl", Name = "Salzsäure", Farbe = "Farblos", FarbeBg = "#f3f4f6", FarbeBorder = "#d1d5db", PhFarbe = "#dc2626", Flammenfarbe = "Keine", FlammenHex = "#888", MitNaOH = "Farblos, warm", MitNaOHFarbe = "#e5e7eb", MitHCl = "—", MitHClFarbe = "#e5e7eb" };
-        S["NaOH"] = new() { Id = "naoh", Formel = "NaOH", Name = "Natronlauge", Farbe = "Farblos", FarbeBg = "#f3f4f6", FarbeBorder = "#d1d5db", PhFarbe = "#7c3aed", Flammenfarbe = "Gelb", FlammenHex = "#eab308", MitNaOH = "—", MitNaOHFarbe = "#e5e7eb", MitHCl = "Farblos, warm", MitHClFarbe = "#e5e7eb" };
-        S["NaCl"] = new() { Id = "nacl", Formel = "NaCl", Name = "Natriumchlorid", Farbe = "Farblos", FarbeBg = "#f3f4f6", FarbeBorder = "#d1d5db", PhFarbe = "#4ade80", Flammenfarbe = "Gelb", FlammenHex = "#eab308", MitNaOH = "Keine Reaktion", MitNaOHFarbe = "#e5e7eb", MitHCl = "Keine Reaktion", MitHClFarbe = "#e5e7eb" };
-        S["CuSO4"] = new() { Id = "cuso4", Formel = "CuSO₄", Name = "Kupfersulfat", Farbe = "Blau", FarbeBg = "#bfdbfe", FarbeBorder = "#60a5fa", PhFarbe = "#fb923c", Flammenfarbe = "Grün", FlammenHex = "#22c55e", MitNaOH = "Hellblauer Niederschlag", MitNaOHFarbe = "#93c5fd", MitHCl = "Keine Reaktion", MitHClFarbe = "#bfdbfe" };
-        S["FeCl3"] = new() { Id = "fecl3", Formel = "FeCl₃", Name = "Eisen(III)-chlorid", Farbe = "Braun-Gelb", FarbeBg = "#fde68a", FarbeBorder = "#d97706", PhFarbe = "#ef4444", Flammenfarbe = "Gelb", FlammenHex = "#eab308", MitNaOH = "Brauner Niederschlag", MitNaOHFarbe = "#92400e", MitHCl = "Keine Reaktion", MitHClFarbe = "#fde68a" };
-        S["AgNO3"] = new() { Id = "agno3", Formel = "AgNO₃", Name = "Silbernitrat", Farbe = "Farblos", FarbeBg = "#f3f4f6", FarbeBorder = "#9ca3af", PhFarbe = "#facc15", Flammenfarbe = "Keine", FlammenHex = "#888", MitNaOH = "Brauner Niederschlag", MitNaOHFarbe = "#92400e", MitHCl = "Weißer Niederschlag", MitHClFarbe = "#f3f4f6" };
-
-        allQuizData[1] = new()
+        foreach (var data in QuizService.GetTuepfelnQuizzes())
         {
-            Title = "Nachweis von Chlorid-Ionen",
-            Beschreibung = "Drei unbekannte Substanzen — finden Sie heraus was sie sind.",
-            Unbekannte = [S["HCl"], S["NaOH"], S["AgNO3"]],
-            MischErgebnisse =
-            [
-                new() { Ids = ["hcl", "naoh"], Farbe = "Farblos, warm", FarbeHex = "#e5e7eb", Text = "Lösung wird warm, bleibt farblos" },
-                new() { Ids = ["hcl", "agno3"], Farbe = "Weißer Niederschlag", FarbeHex = "#f3f4f6", Text = "Sofort weißer, käsiger Niederschlag" },
-                new() { Ids = ["naoh", "agno3"], Farbe = "Brauner Niederschlag", FarbeHex = "#92400e", Text = "Brauner Niederschlag bildet sich" }
-            ]
-        };
-
-        allQuizData[2] = new() { Title = "Quiz 2", Beschreibung = "Organische Verbindungen", Unbekannte = [S["NaOH"], S["NaCl"], S["HCl"]], MischErgebnisse = [] };
-        allQuizData[3] = new() { Title = "Quiz 3", Beschreibung = "Chemische Reaktionen", Unbekannte = [S["CuSO4"], S["FeCl3"], S["NaCl"]], MischErgebnisse = [] };
-        allQuizData[4] = new() { Title = "Quiz 4", Beschreibung = "Laborsicherheit", Unbekannte = [S["HCl"], S["NaOH"], S["NaCl"]], MischErgebnisse = [] };
-        allQuizData[5] = new() { Title = "Quiz 5", Beschreibung = "Molekulare Struktur", Unbekannte = [S["CuSO4"], S["AgNO3"], S["NaCl"]], MischErgebnisse = [] };
-        allQuizData[6] = new() { Title = "Quiz 6", Beschreibung = "Fortgeschrittene Chemie", Unbekannte = [S["FeCl3"], S["NaOH"], S["HCl"]], MischErgebnisse = [] };
+            allQuizData[data.Id] = data;
+        }
     }
 
     private bool IsToolRevealed(int idx, ToolType tool) => revealed.Contains($"{idx}-{tool}");
@@ -422,7 +424,6 @@
             suppressMenuToggle = false;
             return;
         }
-
         toolMenuOpen = !toolMenuOpen;
     }
 
@@ -437,15 +438,10 @@
     private void HandleGlobalPointerMove(PointerEventArgs e)
     {
         if (!isDraggingToolbox) return;
-
         var newX = Math.Max(8, e.ClientX - dragOffsetX);
         var newY = Math.Max(80, e.ClientY - dragOffsetY);
-
         if (Math.Abs(newX - toolboxX) > 2 || Math.Abs(newY - toolboxY) > 2)
-        {
             suppressMenuToggle = true;
-        }
-
         toolboxX = newX;
         toolboxY = newY;
     }
@@ -469,10 +465,7 @@
     private string GetToolMenuItemStyle(int index)
     {
         if (!toolMenuOpen)
-        {
             return "transform: translate(-50%, -50%);";
-        }
-
         return index switch
         {
             0 => "transform: translate(-50%, -165%);",
@@ -508,7 +501,16 @@
         mixResult = null;
     }
 
-    private void SubmitAnswers() => submitted = true;
+    private void SubmitAnswers()
+    {
+        submitted = true;
+        ProgressService.RecordResult(ResolvedUebungId, CurrentAufgabeIdSafe, CountCorrect() == (quiz?.Unbekannte.Count ?? 1));
+
+        if (IsInUebungContext && CurrentAufgabeIdSafe < TotalAufgabenSafe)
+        {
+            NavigateToNextAufgabe();
+        }
+    }
 
     private int CountCorrect()
     {
@@ -528,17 +530,24 @@
 
     private static string Normalize(string s) => (s ?? "").ToLowerInvariant().Replace(" ", "").Replace("₂", "2").Replace("₃", "3").Replace("₄", "4");
 
-    private bool ShowAufgabenNavigator => true;
+    private int TotalAufgabenSafe => Math.Max(1, TotalAufgaben ?? TryGetQueryInt("total") ?? (ProgressService.IsInUebung ? ProgressService.CurrentTotal : 1));
+    private int CurrentAufgabeIdSafe => Math.Clamp(AufgabeContextId ?? TryGetQueryInt("aufgabeId") ?? (ProgressService.IsInUebung ? ProgressService.CurrentAufgabeId : 1), 1, TotalAufgabenSafe);
+    private int ResolvedUebungId => UebungContextId ?? TryGetQueryInt("uebungId") ?? (ProgressService.IsInUebung ? ProgressService.CurrentUebungId : QuizId);
 
-    private int TotalAufgabenSafe => Math.Max(1, TotalAufgaben ?? TryGetQueryInt("total") ?? 4);
-    private int? CurrentUebungId => UebungContextId ?? TryGetQueryInt("uebungId");
-    private int? CurrentAufgabeId => AufgabeContextId ?? TryGetQueryInt("aufgabeId");
-    private int CurrentAufgabeIdSafe => Math.Clamp(CurrentAufgabeId ?? 1, 1, TotalAufgabenSafe);
-    private int ResolvedUebungId => CurrentUebungId ?? QuizId;
+    private void EnsureUebungContext()
+    {
+        var uebungId = UebungContextId ?? TryGetQueryInt("uebungId");
+        if (!uebungId.HasValue) return;
+
+        var total = Math.Max(1, TotalAufgaben ?? TryGetQueryInt("total") ?? QuizService.GetAufgabenCount(uebungId.Value));
+        var aufgabeId = Math.Clamp(AufgabeContextId ?? TryGetQueryInt("aufgabeId") ?? 1, 1, total);
+        ProgressService.SetUebungContext(uebungId.Value, aufgabeId, total);
+    }
 
     private bool IsTupfelnAufgabe(int aufgabeId)
     {
-        return aufgabeId % 2 == 0;
+        if (!IsInUebungContext) return false;
+        return QuizService.GetAufgabe(ResolvedUebungId, aufgabeId)?.Typ == AufgabeTyp.Tuepfeln;
     }
 
     private int? TryGetQueryInt(string key)
@@ -547,6 +556,13 @@
         var query = QueryHelpers.ParseQuery(uri.Query);
         if (!query.TryGetValue(key, out var value)) return null;
         return int.TryParse(value.ToString(), out var parsed) ? parsed : null;
+    }
+
+    private string? TryGetQueryString(string key)
+    {
+        var uri = Navigation.ToAbsoluteUri(Navigation.Uri);
+        var query = QueryHelpers.ParseQuery(uri.Query);
+        return query.TryGetValue(key, out var value) ? value.ToString() : null;
     }
 
     private void NavigateToAufgabe(int targetAufgabe)
@@ -577,4 +593,10 @@
         toolMenuOpen = false;
         ResetMix();
     }
+
+    private bool IsInUebungContext => ProgressService.IsInUebung
+        || string.Equals(From, "uebung", StringComparison.OrdinalIgnoreCase)
+        || string.Equals(TryGetQueryString("from"), "uebung", StringComparison.OrdinalIgnoreCase)
+        || UebungContextId.HasValue
+        || TryGetQueryInt("uebungId").HasValue;
 }

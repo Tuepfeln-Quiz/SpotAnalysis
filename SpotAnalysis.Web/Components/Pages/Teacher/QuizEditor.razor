@@ -155,11 +155,14 @@
     private bool _showGroupDropdown;
     private string? _errorMessage;
 
-    // TODO: Replace with actual teacher ID from auth when login is implemented
-    private Guid _teacherId = Guid.Parse("9c9c2138-f945-41fa-823e-f3bd286c0fa1");
+    [CascadingParameter] private Task<AuthenticationState> AuthState { get; set; } = default!;
+    private Guid _teacherId;
 
     protected override async Task OnInitializedAsync()
     {
+        var auth = await AuthState;
+        _teacherId = Guid.Parse(auth.User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+
         _allQuestions = await QuizService.GetQuestions();
         _availableGroups = await GroupService.GetGroups(_teacherId);
 

@@ -378,11 +378,13 @@
     private List<StudentDto>? _studentCandidates;
     private List<QuizOverviewDto>? _allQuizzes;
 
-    // TODO: Replace with actual teacher ID from auth when login is implemented
-    private readonly Guid _teacherId = Guid.Parse("9c9c2138-f945-41fa-823e-f3bd286c0fa1");
+    [CascadingParameter] private Task<AuthenticationState> AuthState { get; set; } = default!;
+    private Guid _teacherId;
 
     protected override async Task OnParametersSetAsync()
     {
+        var auth = await AuthState;
+        _teacherId = Guid.Parse(auth.User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
         var groups = await GroupService.GetGroups(_teacherId);
         _group = groups.FirstOrDefault(g => g.Id == Id);
         if (_group is null)

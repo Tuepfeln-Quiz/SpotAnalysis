@@ -28,7 +28,7 @@ public class UserService(ILogger<UserService> logger, IDbContextFactory<Analysis
         return user;
     }
 
-    public async Task<User?> Login(string userName, string password)
+    public async Task<User> Login(string userName, string password)
     {
         if (string.IsNullOrEmpty(userName) || string.IsNullOrEmpty(password))
         {
@@ -65,7 +65,7 @@ public class UserService(ILogger<UserService> logger, IDbContextFactory<Analysis
         return user;
     }
     
-    public async Task Register(string userName, string password, string? email = null, Guid? userId = null)
+    public async Task Register(string userName, string password, string? email, Guid? userId)
     {
         var newGuid = userId ?? Guid.NewGuid();
 

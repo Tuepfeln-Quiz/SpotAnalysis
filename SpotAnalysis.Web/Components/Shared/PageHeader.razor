@@ -2,9 +2,6 @@
 
 @{
     var isMainPage = Navigation.ToBaseRelativePath(Navigation.Uri).Trim('/') == "";
-    var isQuestionPage = Navigation.ToBaseRelativePath(Navigation.Uri).Trim('/') == "teacher/questions";
-    var isQuizzPage = Navigation.ToBaseRelativePath(Navigation.Uri).Trim('/') == "teacher/quizzes";
-    var isGroupPage = Navigation.ToBaseRelativePath(Navigation.Uri).Trim('/') == "teacher/groups";
 }
 
 @if (isMainPage)
@@ -41,56 +38,7 @@ else
         </div>
     </header>
 }
-@if (isQuestionPage)
-{
-    @*Als Vorlage zeitweise übernommen*@
-    <header class="main-header">
-        <div class="container py-4">
-            <div class="d-flex align-items-center gap-3">
-                @* <div class="header-icon">
-                    <i class="bi bi-droplet-fill"></i>
-                </div>
-                <div>       Vorraussichtlich weg
-                    <h1 class="mb-0 fw-bold text-white">Tüpfeln Digital</h1>
-                    <p class="mb-0 text-white-50">Chemie interaktiv lernen</p>
-                </div> *@
-            </div>
-        </div>
-    </header>
-}
-@if(isQuizzPage)
-{
-    @*Als Vorlage zeitweise übernommen*@
-    <header class="main-header">
-        <div class="container py-4">
-            <div class="d-flex align-items-center gap-3">
-@*                 <div class="header-icon">
-                    <i class="bi bi-droplet-fill"></i>
-                </div>      Vorraussetzlich weg
-                <div>
-                    <h1 class="mb-0 fw-bold text-white">Tüpfeln Digital</h1>
-                    <p class="mb-0 text-white-50">Chemie interaktiv lernen</p>
-                </div> *@
-            </div>
-        </div>
-    </header>
-}
-@if(isGroupPage)
-{
-    @*Als Vorlage zeitweise übernommen*@
-    <header class="main-header">
-        <div class="container py-4">
-            <div class="d-flex align-items-center gap-3">
-@*                 <div class="header-icon">
-                    <i class="bi bi-droplet-fill"></i>
-                </div>      Vorraussetzlich weg
-                <div>
-                    <h1 class="mb-0 fw-bold text-white">Tüpfeln Digital</h1>
-                    <p class="mb-0 text-white-50">Chemie interaktiv lernen</p>
-                </div>
- *@            </div>
-        </div>
-    </header>
+
 }
 
 @code {
@@ -102,16 +50,4 @@ else
         Navigation.NavigateTo("/");
     }
 
-    private void GoQuestions()
-    {
-        Navigation.NavigateTo("teacher/questions");
-    }
-    private void GoQuizzes()
-    {
-        Navigation.NavigateTo("teacher/quizzes");
-    }
-    private void GoGroups()
-    {
-        Navigation.NavigateTo("teacher/groups");
-    }
 }

@@ -1,4 +1,7 @@
-﻿using SpotAnalysis.Services.Services;
+﻿using System.Security.Authentication;
+using Microsoft.Extensions.Logging;
+using NSubstitute;
+using SpotAnalysis.Services.Services;
 
 namespace SpotAnalysis.Services.Tests;
 
@@ -25,7 +28,8 @@ public class TestUserService : BaseDatabaseTest
     [OneTimeSetUp]
     public void InitStudentService()
     {
-        _userService = new UserService(ContextFactory);
+        var logger = Substitute.For<ILogger<UserService>>();
+        _userService = new UserService(logger, ContextFactory);
     }
 
     [Test]
@@ -51,8 +55,7 @@ public class TestUserService : BaseDatabaseTest
         #region TestStudentFailLogin
 
         {
-            var user = await _userService.Login(StudentName3, "AWrongPassword");
-            Assert.That(user, Is.Null);
+            Assert.ThrowsAsync<AuthenticationException>(async () => await _userService.Login(StudentName3, "AWrongPassword"));
         }
         
         #endregion

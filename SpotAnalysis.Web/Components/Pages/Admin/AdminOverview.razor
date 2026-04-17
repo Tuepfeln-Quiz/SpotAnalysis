@@ -1,6 +1,7 @@
 ﻿@using SpotAnalysis.Services.DTOs;
 
 @page "/admin-overview"
+@inject IAdminService adminservice
 
 <div class="h-100">
     <div class="card card-body h-20 mb-2 border border-2">
@@ -28,30 +29,25 @@
                 </thead>
                 <tbody>
                     <tr>
-                        <td><a class="btn btn-secondary" href="admin-overview/create">Create New Teacher></a></td>
+                        <td colspan="3"><a class="btn btn-secondary" href="admin-overview/create">Create New Teacher</a></td>
                     </tr>
-                    <tr>
-                        @foreach(var a in adminlist)
-                        {
+
+                    @foreach(var a in adminlist)
+                    {
+                        <tr>
                             <td>@a.UserName</td>
-                            <td>@a.Roles</td>
                             <td>
                                 <a class="btn btn-info" href="admin-overview/edit">Edit</a>
-                                <button class="btn btn-danger">Remove</button>
+                                <button class="btn btn-danger" @onclick="() => Delete(a.Id)">Remove</button>
                             </td>
-                        }
-                    </tr>
+                        </tr>
+                    }
+
                 </tbody>
             </table>
             
     </div>
-@*     <div class="h-20">
-        <div class="row col-12">
-            <button class="btn btn-danger col-6">Abandon Class</button>
-            <button class="btn btn-success col-6">Save Class</button>
-        </div>
 
-    </div> *@
 
 </div>
 
@@ -61,4 +57,22 @@
 @code {
 
     List<TeacherAdminDto> adminlist = new List<TeacherAdminDto>();
+
+    
+   
+    public async Task GetUsers()
+    {
+        
+       var teachers = await adminservice.GetUsersByRole(Role.Teacher);
+       var admins = await adminservice.GetUsersByRole(Role.Admin);
+       
+    }
+
+
+    public async Task Delete(Guid userId)
+    {
+        await adminservice.DeleteUser(userId);
+        adminlist.RemoveAll(a => a.Id == userId);
+    }
+
 }

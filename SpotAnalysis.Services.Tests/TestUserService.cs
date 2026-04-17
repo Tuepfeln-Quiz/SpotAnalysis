@@ -1,4 +1,6 @@
-﻿using SpotAnalysis.Data.Enums;
+﻿using System.Security.Authentication;
+using Microsoft.Extensions.Logging;
+using NSubstitute;
 using SpotAnalysis.Services.Services;
 
 namespace SpotAnalysis.Services.Tests;
@@ -38,7 +40,8 @@ public class TestUserService : BaseDatabaseTest
     [OneTimeSetUp]
     public void InitStudentService()
     {
-        _userService = new UserService(ContextFactory);
+        var logger = Substitute.For<ILogger<UserService>>();
+        _userService = new UserService(logger, ContextFactory);
     }
 
     [Test]

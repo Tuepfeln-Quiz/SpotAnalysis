@@ -17,9 +17,16 @@
     </div>
 
     @* Filter Bar *@
-    <div class="d-flex gap-2 mb-3 align-items-center">
-        <input type="text" class="form-control input-custom flex-grow-1" placeholder="Suchen..."
+    <div class="d-flex gap-2 mb-3 align-items-center flex-wrap">
+        <input type="text" class="form-control input-custom flex-grow-1" placeholder="Suchen (Titel oder Beschreibung)..."
                @bind="_searchTerm" @bind:event="oninput" />
+        <select class="form-select input-custom" style="width: auto;" @bind="_teacherFilter">
+            <option value="">Alle Lehrer</option>
+            @foreach (var teacher in AvailableTeachers)
+            {
+                <option value="@teacher.Id">@teacher.Name</option>
+            }
+        </select>
         <button class="btn btn-pill @(_typeFilter is null ? "active" : "")"
                 @onclick="() => _typeFilter = null">Alle</button>
         <button class="btn btn-pill @(_typeFilter == QuestionType.SpotTest ? "active" : "")"
@@ -55,7 +62,8 @@
                                 <small class="text-muted">von @q.CreatedByName</small>
                             }
                         </div>
-                        <div class="fw-semibold">@q.Description</div>
+                        <div class="fw-semibold">@q.Title</div>
+                        <div class="text-muted small mb-1">@q.Description</div>
                         <small class="text-muted">
                             @if (q.Type == QuestionType.SpotTest)
                             {
@@ -97,7 +105,7 @@
                         }
                         else
                         {
-                            <p>Möchtest du die Frage <strong>"@_questionToDelete.Description"</strong> wirklich löschen?</p>
+                            <p>Möchtest du die Frage <strong>"@_questionToDelete.Title"</strong> wirklich löschen?</p>
                         }
                     </div>
                     <div class="modal-footer border-0">
@@ -125,6 +133,7 @@
     private List<QuestionOverviewDto>? _questions;
     private string _searchTerm = "";
     private QuestionType? _typeFilter;
+    private string _teacherFilter = "";
     private QuestionOverviewDto? _questionToDelete;
     private string? _deleteError;
 
@@ -133,10 +142,24 @@
         _questions = await QuizService.GetQuestions();
     }
 
+    private record TeacherOption(string Id, string Name);
+
+    private IEnumerable<TeacherOption> AvailableTeachers =>
+        _questions is null
+            ? []
+            : _questions
+                .Where(q => q.CreatedById.HasValue && !string.IsNullOrEmpty(q.CreatedByName))
+                .Select(q => new TeacherOption(q.CreatedById!.Value.ToString(), q.CreatedByName!))
+                .DistinctBy(t => t.Id)
+                .OrderBy(t => t.Name);
+
     private IEnumerable<QuestionOverviewDto> FilteredQuestions =>
         _questions?.Where(q =>
             (_typeFilter is null || q.Type == _typeFilter) &&
+            (string.IsNullOrEmpty(_teacherFilter) ||
+             q.CreatedById?.ToString() == _teacherFilter) &&
             (string.IsNullOrEmpty(_searchTerm) ||
+             q.Title.Contains(_searchTerm, StringComparison.OrdinalIgnoreCase) ||
              q.Description.Contains(_searchTerm, StringComparison.OrdinalIgnoreCase))
         ) ?? [];
 

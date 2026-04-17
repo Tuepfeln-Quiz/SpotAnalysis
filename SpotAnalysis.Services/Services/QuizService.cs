@@ -327,8 +327,10 @@ public class QuizService(ILogger<QuizService> logger, IDbContextFactory<Analysis
             .Select(q => q.Type == QuestionType.SpotTest ? new QuestionOverviewDto
             {
                 Id = q.QuestionID,
+                Title = q.Title,
                 Description = q.Description,
                 Type = q.Type,
+                CreatedById = q.CreatedBy,
                 CreatedByName = q.Creator.UserName,
                 QuizCount = q.QuizQuestions.Count,
                 ChemicalCount = q.STQuestion!.AvailableChemicals.Count,
@@ -337,8 +339,10 @@ public class QuizService(ILogger<QuizService> logger, IDbContextFactory<Analysis
             } : new QuestionOverviewDto
             {
                 Id = q.QuestionID,
+                Title = q.Title,
                 Description = q.Description,
                 Type = q.Type,
+                CreatedById = q.CreatedBy,
                 CreatedByName = q.Creator.UserName,
                 QuizCount = q.QuizQuestions.Count,
                 ReactionCount = q.STLQuestion!.AvailableReactions.Count,
@@ -361,6 +365,7 @@ public class QuizService(ILogger<QuizService> logger, IDbContextFactory<Analysis
                     .Select(x => new QuestionDetailDto
                     {
                         Id = x.QuestionID,
+                        Title = x.Title,
                         Description = x.Description,
                         Type = x.Type,
                         Chemicals = x.STQuestion.AvailableChemicals.Select(ac => new ChemicalQuestionDto
@@ -384,6 +389,7 @@ public class QuizService(ILogger<QuizService> logger, IDbContextFactory<Analysis
                         .Select(x => new QuestionDetailDto
                         {
                             Id = x.QuestionID,
+                            Title = x.Title,
                             Description = x.Description,
                             Type = x.Type,
                             AvailableReactionIds = x.STLQuestion.AvailableReactions
@@ -407,8 +413,10 @@ public class QuizService(ILogger<QuizService> logger, IDbContextFactory<Analysis
             .Select(q => q.Question.Type == QuestionType.SpotTest ? new QuestionOverviewDto
             {
                 Id = q.QuestionID,
+                Title = q.Question.Title,
                 Description = q.Question.Description,
                 Type = q.Question.Type,
+                CreatedById = q.Question.CreatedBy,
                 CreatedByName = q.Question.Creator.UserName,
                 QuizCount = q.Question.QuizQuestions.Count,
                 ChemicalCount = q.Question.STQuestion!.AvailableChemicals.Count,
@@ -417,8 +425,10 @@ public class QuizService(ILogger<QuizService> logger, IDbContextFactory<Analysis
             } : new QuestionOverviewDto
             {
                 Id = q.QuestionID,
+                Title = q.Question.Title,
                 Description = q.Question.Description,
                 Type = q.Question.Type,
+                CreatedById = q.Question.CreatedBy,
                 CreatedByName = q.Question.Creator.UserName,
                 QuizCount = q.Question.QuizQuestions.Count,
                 ReactionCount = q.Question.STLQuestion!.AvailableReactions.Count,
@@ -516,6 +526,7 @@ public class QuizService(ILogger<QuizService> logger, IDbContextFactory<Analysis
         if (existing?.STQuestion is null)
             throw new KeyNotFoundException($"SpotTest question with id {question.Id} not found.");
 
+        existing.Title = question.Title;
         existing.Description = question.Description;
 
         await dbContext.STAvailableChemicals
@@ -560,6 +571,7 @@ public class QuizService(ILogger<QuizService> logger, IDbContextFactory<Analysis
         if (existing?.STLQuestion is null)
             throw new KeyNotFoundException($"Question with id {question.Id} not found.");
 
+        existing.Title = question.Title;
         existing.Description = question.Description;
         existing.STLQuestion.ReactionID = question.ReactionId;
         existing.STLQuestion.ShownEductID = question.ShowEductId;

@@ -9,6 +9,7 @@ public class Method {
     public int MethodID { get; set; }
 
     [Required]
+    [StringLength(256)]
     public string Name { get; set; } = null!;
 
     public virtual ICollection<MethodOutput> MethodOutputs { get; set; } = [];

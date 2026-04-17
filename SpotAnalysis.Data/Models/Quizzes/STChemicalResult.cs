@@ -11,11 +11,10 @@ public class STChemicalResult {
     public int ChemicalID { get; set; }
 
     [Required]
+    [StringLength(256)]
     public string ChosenFormula { get; set; } = null!;
-
     public bool IsCorrect { get; set; }
-
-
+    
     [ForeignKey(nameof(ResultID))]
     [DeleteBehavior(DeleteBehavior.Restrict)]
     public STResult Result { get; set; } = null!;

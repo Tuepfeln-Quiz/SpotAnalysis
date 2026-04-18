@@ -30,14 +30,14 @@
                         <td colspan="12"><a class="btn btn-secondary" href="admin-overview/create">Create New Teacher</a></td>
                     </tr>
 
-                    @foreach(var teacherAdmin in _teacherAdmins)
+                    @foreach(var users in _users)
                     {
                         <tr>
-                            <td>@teacherAdmin.UserName</td>
-                            <td>@(string.Join(", ", teacherAdmin.Roles))</td>
+                            <td>@users.UserName</td>
+                            <td>@(string.Join(", ", users.Roles))</td>
                             <td>
-                                <a class="btn btn-info" href="/admin/@teacherAdmin.Id/edit">Edit</a>
-                                <button class="btn btn-danger" @onclick="() => Delete(teacherAdmin.Id)">Remove</button>
+                                <a class="btn btn-info" href="/admin/@users.Id/edit">Edit</a>
+                                <button class="btn btn-danger" @onclick="() => Delete(users.Id)">Remove</button>
                             </td>
                         </tr>
                     }
@@ -55,22 +55,26 @@
 
 @code {
 
-    private List<UserDto> _teacherAdmins = [];
+    private List<UserDto> _users = [];
 
     protected override async Task OnInitializedAsync()
     {
         var teachers = await AdminService.GetUsersByRole(Role.Teacher);
+        _users.AddRange(teachers);
         var admins = await AdminService.GetUsersByRole(Role.Admin);
-        
-        _teacherAdmins.AddRange(teachers);
-        _teacherAdmins.AddRange(admins);
+        _users.AddRange(admins);
+        var students = await AdminService.GetUsersByRole(Role.Student);
+        _users.AddRange(students);
+
+        // Filter out users that have multiple roles
+        _users = _users.Distinct().ToList();
     }
 
 
     private async Task Delete(Guid userId)
     {
         await AdminService.DeleteUser(userId);
-        _teacherAdmins.RemoveAll(a => a.Id == userId);
+        _users.RemoveAll(a => a.Id == userId);
     }
 
 }

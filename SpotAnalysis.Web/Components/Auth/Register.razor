@@ -12,19 +12,18 @@
 @inject IHttpContextAccessor HttpContextAccessor;
 @inject IUserService UserService;
 
-<div class="row">
-    <div class="col-lg-4 offset-lg-4 pt-4 pb-4 border">
+<div class="row justify-content-center min-vh-100 align-items-center p-4">
+    <div class="col-lg-4 col-md-6 col-sm-10 pt-4 pb-4 border border-secondary rounded">
         <EditForm Model="@LoginVM" OnValidSubmit="Authenticate" FormName="RegForm">
             <DataAnnotationsValidator />
 
             <div class="mb-3 text-center flex-column">
-                <img src="/images/avatar.png" id="SignPic" class="img-fluid" />
                 <h3>Register</h3>
             </div>
 
             <div class="mb-4">
                     <UsernameGenerator @bind-Value="LoginVM.UserName" />
-                    <label class="username-label text-gray"><b>* generate username</b></label>
+                    <label class="username-label text-gray"><b>* generiere einen Usernamen</b></label>
                 <ValidationMessage For="() => LoginVM.UserName" />
 
             </div>
@@ -77,7 +76,7 @@
 
 .username-label {
     display: flex;
-    justify-content: flex-end;
+    justify-content: flex-start;
     margin-top: 0.25rem;
     font-size: 0.875rem;
 }

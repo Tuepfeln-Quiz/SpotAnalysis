@@ -31,24 +31,27 @@ public class Program
 
         app.UseSerilogRequestLogging();
 
+        using (var scope = app.Services.CreateAsyncScope())
+        {
+            var seeder = scope.ServiceProvider.GetRequiredService<IDatabaseSeeder>();
+            try
+            {
+                if (app.Environment.IsDevelopment())
+                    await seeder.SeedDevUserAsync();
+                else
+                    await seeder.SeedAdminAsync();
+            }
+            catch (Exception ex)
+            {
+                app.Logger.LogError(ex, "Seeding failed");
+            }
+        }
+
         // Configure the HTTP request pipeline.
         if (!app.Environment.IsDevelopment())
         {
             app.UseExceptionHandler("/Error");
             app.UseHsts();
-        }
-        else
-        {
-            await using var scope = app.Services.CreateAsyncScope();
-            var seeder = scope.ServiceProvider.GetRequiredService<IDatabaseSeeder>();
-            try
-            {
-                await seeder.SeedAsync();
-            }
-            catch (Exception ex)
-            {
-                app.Logger.LogError(ex, "Dev data seeding failed (database not migrated yet?)");
-            }
         }
 
         app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);

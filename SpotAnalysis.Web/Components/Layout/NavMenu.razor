@@ -1,4 +1,5 @@
 @using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.AspNetCore.Components.Web
 @inject NavigationManager NavigationManager
 
 <div class="navbar-container">
@@ -9,13 +10,47 @@
         <button class="home-btn" @onclick="NavigateAndCloseMenu">
             <i class="bi bi-house"></i>
         </button>
+
         <div class="user-greeting">
             <AuthorizeView>
                 <Authorized>
-                    <span>Welcome, @context.User.Identity?.Name</span>
+                    <span>Willkommen, <b class="text-warning cursor-pointer" @onclick="ToggleDropdown">@context.User.Identity?.Name</b></span>
                 </Authorized>
                 <NotAuthorized>
-                    <span>Welcome, Guest</span>
+                    <span>Willkommen, <b class="text-warning">Tüpfler</b></span>
+                </NotAuthorized>
+            </AuthorizeView>
+        </div>
+
+        <div class="relative" @onclick:stopPropagation>
+            <AuthorizeView>
+                <Authorized>
+                    <button class="btn-user" type="button" @onclick="ToggleDropdown">
+                        <img src="/images/science.svg" class="user-avatar" />
+                    </button>
+
+                    @if (IsDropdownOpen)
+                    {
+                        <div class="fixed inset-0 z-10" @onclick="CloseAll"></div>
+
+                        <ul class="dropdown-menu show dropdown-menu-end z-20" style="position:absolute; padding: 28px; right:0; top:100%">
+                            <li><span class="dropdown-item-text">@context.User.Identity?.Name</span></li>
+                            <li><hr class="dropdown-divider" /></li>
+                            <li><a class="btn btn-outline-warning mb-2" href="/reset-password">Change Password</a></li>
+                            <li>
+                                <form method="post" action="/api/auth/logout">
+                                   <button type="submit" class="btn btn-outline-danger w-100">
+                                        <i class="bi bi-box-arrow-left"></i> Logout
+                                    </button>
+                                </form>
+                            </li>
+                        </ul>
+                    }
+                </Authorized>
+                <NotAuthorized>
+                    <NavLink href="/login" class="btn btn-primary w-100" @onclick="CloseAll">
+                        <i class="bi bi-box-arrow-in-right"></i> Login
+                    </NavLink>
                 </NotAuthorized>
             </AuthorizeView>
         </div>
@@ -24,10 +59,10 @@
     
     <div class="nav-menu @(IsMenuOpen ? "open" : "")">
         <div class="nav-links">
-            <NavLink class="nav-link-item" href="/" Match="NavLinkMatch.Prefix" @onclick="CloseMenu">
+            <NavLink class="nav-link-item" href="/" Match="NavLinkMatch.Prefix" @onclick="CloseAll">
                 <i class="bi bi-lightbulb"></i> Quizzes
             </NavLink>
-            <NavLink class="nav-link-item" href="/statistics" Match="NavLinkMatch.Prefix" @onclick="CloseMenu">
+            <NavLink class="nav-link-item" href="/statistics" Match="NavLinkMatch.Prefix" @onclick="CloseAll">
                 <i class="bi bi-bar-chart"></i> Statistiken
             </NavLink>
         </div>
@@ -36,12 +71,12 @@
                 <Authorized>
                     <form method="post" action="/api/auth/logout">
                         <button type="submit" class="btn btn-outline-danger w-100">
-                            <i class="bi bi-box-arrow-right"></i> Logout
+                            <i class="bi bi-box-arrow-left"></i> Logout
                         </button>
                     </form>
                 </Authorized>
                 <NotAuthorized>
-                    <NavLink href="/login" class="btn btn-primary w-100" @onclick="CloseMenu">
+                    <NavLink href="/login" class="btn btn-primary w-100" @onclick="CloseAll">
                         <i class="bi bi-box-arrow-in-right"></i> Login
                     </NavLink>
                 </NotAuthorized>
@@ -50,19 +85,23 @@
     </div>
 </div>
 
-@if (IsMenuOpen)
+@if (IsMenuOpen || IsDropdownOpen)
 {
-    <div class="nav-overlay" @onclick="CloseMenu"></div>
+    <div class="nav-overlay" @onclick="CloseAll"></div>
 }
+
+
 @code {
     private bool IsMenuOpen = false;
-    private void ToggleMenu() => IsMenuOpen = !IsMenuOpen;
-    private void CloseMenu() => IsMenuOpen = false;
+    private bool IsDropdownOpen = false;
 
-     private void NavigateAndCloseMenu()
+    private void ToggleMenu() => IsMenuOpen = !IsMenuOpen;
+    private void ToggleDropdown() => IsDropdownOpen = !IsDropdownOpen;
+    private void CloseAll() { IsMenuOpen = false; IsDropdownOpen = false; }
+
+    private void NavigateAndCloseMenu()
     {
-        CloseMenu();
+        CloseAll();
         NavigationManager.NavigateTo("/");
     }
-    
 }

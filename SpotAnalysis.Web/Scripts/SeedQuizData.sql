@@ -11,7 +11,7 @@ BEGIN;
 -- SeedUserID = '9c9c2138-f945-41fa-823e-f3bd286c0fa1' (Lehrer1)
 INSERT INTO "Users" ("UserID", "UserName", "PasswordHash", "Roles") VALUES
     ('9c9c2138-f945-41fa-823e-f3bd286c0fa1', 'Lehrer1',
-     '$argon2id$v=19$m=4096,t=4,p=4$OWM5YzIxMzgtZjk0NS00MWZhLTgyM2UtZjNiZDI4NmMwZmEx$yIGUKh8n1+NddBGL4BbTZq1sxVhZlWh1p4DlYPccmWM',
+     '$argon2id$v=19$m=4096,t=4,p=4$OCGcnEX5+kGCPvO9KGwPoQ==$AMzbYPw2VRHVZS5i90bEAjGpVoT5w8/ketH9oPXosg0=',
      ARRAY[1])
 ON CONFLICT ("UserID") DO NOTHING;
 

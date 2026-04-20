@@ -249,7 +249,7 @@ public class QuizService(ILogger<QuizService> logger, IDbContextFactory<Analysis
             .SelectMany(q => q.STQuestion!.AvailableChemicals)
             .Where(ac => ac.Chemical.Type == ChemicalType.Educt)
             .OrderBy(ac => ac.Order)
-            .Select(ac => ac.Chemical.Formula)
+            .Select(ac => new { ac.ChemicalID, ac.Chemical.Formula })
             .ToListAsync();
 
         var result = new STResult
@@ -261,11 +261,13 @@ public class QuizService(ILogger<QuizService> logger, IDbContextFactory<Analysis
         await context.SaveChangesAsync();
 
         var chemicalResults = answer.ChemicalFormulas
+            .Take(orderedEducts.Count)
             .Select((formula, i) => new STChemicalResult
             {
                 ResultID = result.ResultID,
+                ChemicalID = orderedEducts[i].ChemicalID,
                 ChosenFormula = formula,
-                IsCorrect = i < orderedEducts.Count && orderedEducts[i] == formula
+                IsCorrect = orderedEducts[i].Formula == formula
             }).ToList();
 
         await context.STChemicalResults.AddRangeAsync(chemicalResults);

@@ -7,4 +7,5 @@ public interface IUserService
     public Task Register(string userName, string password, string? email = null, Guid? userId = null);
     public Task<User> Login(string userName, string password);
     public Task<User?> ChangePassword(string userName, string newPassword);
+    public Task<User> UpdateProfile(Guid userId, string userName, string? newPassword = null);
 }

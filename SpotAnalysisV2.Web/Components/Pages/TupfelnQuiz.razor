@@ -6,7 +6,7 @@
 @using Microsoft.AspNetCore.WebUtilities
 @using SpotAnalysisV2.Web.Models
 
-<div class="size-full flex flex-col bg-gray-50" @onpointermove="HandleGlobalPointerMove" @onpointerup="HandleGlobalPointerUp" @onpointercancel="HandleGlobalPointerUp">
+<div class="size-full flex flex-col bg-gray-50">
     <header class="bg-white shadow-sm px-6 py-4 flex items-center justify-between">
         <NavLink href="/uebungen" class="p-2 hover:bg-gray-100 rounded-lg transition-colors" style="display:flex;align-items:center;" aria-label="Zurück">
             <svg class="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -28,20 +28,49 @@
         }
        
 
-        <img src="https://images.unsplash.com/photo-1655249493799-9cee4fe983bb?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxwcm9maWxlJTIycG9ydHJhaXR8ZW58MXx8fHwxNzczNjY1OTA5fDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral"
-             alt="Profil" class="w-10 h-10 rounded-full object-cover ml-auto" />
+        <ProfileMenu ContainerClass="ml-auto" />
     </header>
 
     @if (quiz != null)
     {
         <div class="flex-1 overflow-y-auto p-6">
-            <div class="bg-gradient-to-r from-teal-600 to-teal-700 rounded-xl p-5 mb-6 text-white">
+            <div class="bg-gradient-to-r from-teal-600 to-teal-700 rounded-xl p-5 pr-44 mb-6 text-white relative overflow-visible">
                 <h1 class="text-xl mb-1">TÜPFELN — @quiz.Title</h1>
                 <p class="text-teal-100 text-sm">@quiz.Beschreibung</p>
-            </div>
 
-            <div class="flex gap-4 mb-6 items-start">
-                <div class="grid gap-4 flex-1" style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));">
+                <div class="absolute right-6 top-1/2 -translate-y-1/2 z-20 select-none">
+                    <div class="relative w-36 h-36">
+                        @for (var i = 0; i < toolDefs.Count; i++)
+                        {
+                            var tool = toolDefs[i];
+                            <button draggable="true"
+                                    @ondragstart="@(() => draggedTool = tool.Id)"
+                                    @onclick="@(() => SelectTool(tool.Id))"
+                                    title="@tool.Label"
+                                    class="absolute left-1/2 top-1/2 h-14 w-14 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 text-2xl shadow-md transition-all duration-300 @(toolMenuOpen ? "opacity-100 scale-100" : "opacity-0 scale-50 pointer-events-none") @(selectedTool == tool.Id ? "border-teal-500 bg-teal-50" : "border-gray-200 bg-white hover:border-teal-300")"
+                                    style="@GetToolMenuItemStyle(i)">
+                                @tool.Icon
+                            </button>
+                        }
+
+                        <button @onclick="ToggleToolMenu"
+                                class="absolute left-1/2 top-1/2 h-16 w-16 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 text-3xl shadow-lg transition-all duration-300 @(toolMenuOpen ? "bg-teal-500 text-white border-teal-600" : "bg-white border-gray-200 hover:border-teal-300")"
+                                title="Werkzeug-Menü">
+                            @if (selectedTool != null)
+                            {
+                                <span>@GetToolIcon(selectedTool.Value)</span>
+                            }
+                            else
+                            {
+                                <span>🛠️</span>
+                            }
+                        </button>
+                    </div>
+                </div>
+             </div>
+ 
+             <div class="flex gap-4 mb-6 items-start">
+                 <div class="grid gap-4 flex-1" style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));">
                     @for (var i = 0; i < quiz.Unbekannte.Count; i++)
                     {
                         var sub = quiz.Unbekannte[i];
@@ -60,39 +89,39 @@
                                     <span class="text-[11px] text-gray-600">@sub.Farbe</span>
                                 </div>
 
-                                <div class="space-y-1.5 mb-3">
+                                <div class="grid grid-cols-2 gap-1.5 mb-3">
                                     @foreach (var tool in toolDefs)
                                     {
                                         if (IsToolRevealed(idx, tool.Id))
                                         {
-                                            <div class="flex items-center gap-2 px-2.5 py-1.5 rounded-lg border border-gray-200 bg-white shadow-sm">
+                                            <div class="flex items-center gap-2 px-2.5 py-1.5 rounded-lg border border-gray-200 bg-white shadow-sm min-w-0">
                                                 <span class="text-sm">@tool.Icon</span>
                                                 @if (tool.Id == ToolType.Ph)
                                                 {
                                                     <div class="w-5 h-5 rounded-full border" style="background-color:@sub.PhFarbe"></div>
-                                                    <span class="text-xs">pH</span>
+                                                    <span class="text-xs truncate">pH</span>
                                                 }
                                                 else if (tool.Id == ToolType.Flamme)
                                                 {
                                                     <div class="w-5 h-5 rounded-full border" style="background-color:@sub.FlammenHex"></div>
-                                                    <span class="text-xs">@sub.Flammenfarbe</span>
+                                                    <span class="text-xs truncate">@sub.Flammenfarbe</span>
                                                 }
                                                 else if (tool.Id == ToolType.NaOH)
                                                 {
                                                     <div class="w-5 h-5 rounded-full border" style="background-color:@sub.MitNaOHFarbe"></div>
-                                                    <span class="text-xs">@sub.MitNaOH</span>
+                                                    <span class="text-xs truncate">@sub.MitNaOH</span>
                                                 }
                                                 else if (tool.Id == ToolType.HCl)
                                                 {
                                                     <div class="w-5 h-5 rounded-full border" style="background-color:@sub.MitHClFarbe"></div>
-                                                    <span class="text-xs">@sub.MitHCl</span>
+                                                    <span class="text-xs truncate">@sub.MitHCl</span>
                                                 }
                                             </div>
                                         }
                                     }
                                     @if (!HasAnyToolRevealed(idx))
                                     {
-                                        <div class="flex items-center justify-center gap-1.5 text-gray-300 py-3 border border-dashed border-gray-200 rounded-lg">
+                                        <div class="col-span-2 flex items-center justify-center gap-1.5 text-gray-300 py-3 border border-dashed border-gray-200 rounded-lg">
                                             <span class="text-xs">Werkzeug wählen und Karte klicken</span>
                                         </div>
                                     }
@@ -144,10 +173,16 @@
                         }
 
                         <button @onclick="ToggleToolMenu"
-                                @onpointerdown="StartToolboxDrag"
-                                class="absolute left-1/2 top-1/2 h-16 w-16 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 text-3xl shadow-lg transition-all duration-300 cursor-move @(toolMenuOpen ? "bg-teal-500 text-white border-teal-600" : "bg-white border-gray-200 hover:border-teal-300")"
-                                title="Werkzeug-Menü (ziehen zum verschieben)">
-                            @(selectedTool != null ? GetToolIcon(selectedTool.Value) : "🧰")
+                                class="absolute left-1/2 top-1/2 h-16 w-16 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 text-3xl shadow-lg transition-all duration-300 @(toolMenuOpen ? "bg-teal-500 text-white border-teal-600" : "bg-white border-gray-200 hover:border-teal-300")"
+                                title="Werkzeug-Menü">
+                            @if (selectedTool != null)
+                            {
+                                <span>@GetToolIcon(selectedTool.Value)</span>
+                            }
+                            else
+                            {
+                                <span>🛠️</span>
+                            }
                         </button>
                     </div>
                 </div>
@@ -359,36 +394,7 @@
 
     private void ToggleToolMenu()
     {
-        if (suppressMenuToggle)
-        {
-            suppressMenuToggle = false;
-            return;
-        }
         toolMenuOpen = !toolMenuOpen;
-    }
-
-    private void StartToolboxDrag(PointerEventArgs e)
-    {
-        isDraggingToolbox = true;
-        dragOffsetX = e.ClientX - toolboxX;
-        dragOffsetY = e.ClientY - toolboxY;
-        suppressMenuToggle = false;
-    }
-
-    private void HandleGlobalPointerMove(PointerEventArgs e)
-    {
-        if (!isDraggingToolbox) return;
-        var newX = Math.Max(8, e.ClientX - dragOffsetX);
-        var newY = Math.Max(80, e.ClientY - dragOffsetY);
-        if (Math.Abs(newX - toolboxX) > 2 || Math.Abs(newY - toolboxY) > 2)
-            suppressMenuToggle = true;
-        toolboxX = newX;
-        toolboxY = newY;
-    }
-
-    private void HandleGlobalPointerUp()
-    {
-        isDraggingToolbox = false;
     }
 
     private void SelectTool(ToolType tool)
@@ -401,18 +407,32 @@
     {
         return toolDefs.FirstOrDefault(t => t.Id == tool)?.Icon ?? "🧰";
     }
+    
+    private static string GetToolBadgeClass(ToolType tool) => tool switch
+    {
+        ToolType.Ph => "bg-gradient-to-br from-indigo-100 to-blue-100 text-indigo-600",
+        ToolType.Flamme => "bg-gradient-to-br from-orange-100 to-rose-100 text-orange-600",
+        ToolType.NaOH => "bg-gradient-to-br from-lime-100 to-emerald-100 text-emerald-600",
+        ToolType.HCl => "bg-gradient-to-br from-cyan-100 to-sky-100 text-cyan-700",
+        _ => "bg-gray-100 text-gray-600"
+    };
 
     private string GetToolMenuItemStyle(int index)
     {
         if (!toolMenuOpen)
             return "transform: translate(-50%, -50%);";
-        return index switch
+
+        var total = Math.Max(1, toolDefs.Count);
+        var positions = total switch
         {
-            0 => "transform: translate(-50%, -165%);",
-            1 => "transform: translate(-165%, -120%);",
-            2 => "transform: translate(-190%, -20%);",
-            _ => "transform: translate(-155%, 85%);"
+            1 => new[] { (0d, -62d) },
+            2 => new[] { (-44d, -44d), (-44d, 44d) },
+            3 => new[] { (0d, -62d), (-62d, 0d), (0d, 62d) },
+            _ => new[] { (0d, -62d), (-54d, -31d), (-54d, 31d), (0d, 62d) }
         };
+
+        var p = positions[Math.Clamp(index, 0, positions.Length - 1)];
+        return $"transform: translate(-50%, -50%) translate({p.Item1:0.##}px, {p.Item2:0.##}px);";
     }
 
     private void HandleMixClick(int idx)

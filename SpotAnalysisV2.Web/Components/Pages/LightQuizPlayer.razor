@@ -1,0 +1,672 @@
+@page "/light/player/{QuizId:int}"
+@rendermode InteractiveServer
+@attribute [Authorize]
+@inject NavigationManager Navigation
+@inject IQuizService QuizService
+@inject IChemistryDataService ChemistryData
+
+<div class="size-full flex flex-col bg-gray-50">
+    <header class="bg-white shadow-sm px-6 py-4 flex items-center justify-between">
+        <NavLink href="/uebungen" class="p-2 hover:bg-gray-100 rounded-lg transition-colors" style="display: flex; align-items: center;" aria-label="Zurück">
+            <svg class="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M15 19l-7-7 7-7" />
+            </svg>
+        </NavLink>
+
+        <div class="absolute left-1/2 -translate-x-1/2 flex gap-3 z-10">
+            <NavLink href="/sandbox" class="bg-gray-100 text-gray-700 px-6 py-2 rounded-lg font-medium hover:bg-gray-200 transition-colors" style="text-decoration: none;">Sandbox</NavLink>
+            <NavLink href="/reverse" class="bg-gray-100 text-gray-700 px-6 py-2 rounded-lg font-medium hover:bg-gray-200 transition-colors" style="text-decoration: none;">Reverse</NavLink>
+            <NavLink href="/uebungen" class="bg-gray-100 text-gray-700 px-6 py-2 rounded-lg font-medium hover:bg-gray-200 transition-colors" style="text-decoration: none;">Übungen</NavLink>
+        </div>
+
+        <ProfileMenu ContainerClass="ml-auto" />
+    </header>
+
+    @if (!string.IsNullOrWhiteSpace(_error))
+    {
+        <div class="flex-1 flex items-center justify-center p-4">
+            <div class="bg-white rounded-xl shadow-md p-8 text-center max-w-md w-full">
+                <h2 class="text-xl font-semibold mb-2">Quiz konnte nicht geladen werden</h2>
+                <p class="text-red-600">@_error</p>
+            </div>
+        </div>
+    }
+    else if (finished)
+    {
+        <div class="flex-1 flex items-center justify-center p-4">
+            <div class="bg-white rounded-xl shadow-md p-8 text-center max-w-md w-full">
+                <div class="w-14 h-14 rounded-full bg-yellow-100 flex items-center justify-center mx-auto mb-4">
+                    <svg class="w-7 h-7 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M8 2v8l3 6v6h2v-6l3-6V2H8z" />
+                    </svg>
+                </div>
+                <h2 class="text-xl font-semibold mb-2">Quiz abgeschlossen!</h2>
+                <p class="text-gray-600 mb-4">
+                    Sie haben <span class="font-bold text-yellow-600">@score</span> von <span class="font-bold">@totalQuestions</span> Fragen richtig beantwortet.
+                </p>
+                <div class="w-full bg-gray-200 rounded-full h-3 mb-6">
+                    <div class="bg-yellow-500 h-3 rounded-full transition-all" style="width: @GetProgressWidth()"></div>
+                </div>
+                <div class="flex gap-3">
+                    <button @onclick="HandleRestart" class="flex-1 py-3 rounded-lg font-medium bg-yellow-500 text-white hover:bg-yellow-600 transition-colors">Nochmal</button>
+                    <NavLink href="/uebungen" class="flex-1 py-3 rounded-lg font-medium bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors text-center" style="text-decoration: none;">Zurück</NavLink>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="flex-1 flex overflow-hidden">
+            <div class="flex-1 p-4 flex flex-col gap-4 overflow-y-auto">
+                @if (question != null)
+                {
+                    <div class="bg-white rounded-xl shadow-md p-4">
+                        <div class="flex items-center justify-between mb-3">
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 rounded-full bg-yellow-100 flex items-center justify-center">
+                                    <svg class="w-4 h-4 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M8 2v8l3 6v6h2v-6l3-6V2H8z" />
+                                    </svg>
+                                </div>
+                                <div>
+                                    <h2 class="text-base font-semibold text-gray-800">@_quizName</h2>
+                                    <p class="text-xs text-gray-500">Frage @(CurrentIndexSafe + 1) von @totalQuestions</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-yellow-50 border border-yellow-200 rounded-lg px-4 py-3 mb-4">
+                            <p class="text-sm text-yellow-800 font-medium">@question.Frage</p>
+                        </div>
+
+                        <div class="grid grid-cols-3 gap-4 mb-4 items-stretch">
+                            <div class="flex flex-col">
+                                <h3 class="text-xs font-medium text-gray-600 mb-1">Element 1 (gegeben)</h3>
+                                <div class="@question.Edukt1.Color border-2 rounded-lg p-3 min-h-[120px] flex-1 flex flex-col justify-center">
+                                    <p class="font-bold text-base">@question.Edukt1.Name</p>
+                                    <p class="text-xs text-gray-700 mb-2">@question.Edukt1.Type</p>
+                                    <div class="grid grid-cols-3 gap-1.5">
+                                        <div class="flex-1 flex flex-col gap-0.5 bg-white/75 px-2.5 py-1.5 rounded-md border border-gray-300">
+                                            <div class="flex items-center gap-1">
+                                                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" style="color: @GetPhColorHex(question.Edukt1.PhLevel)">
+                                                    <circle cx="12" cy="12" r="8" />
+                                                </svg>
+                                                <span class="text-[11px] font-medium text-gray-700 leading-tight">pH: @GetPhDisplayText(question.Edukt1.PhLevel)</span>
+                                            </div>
+                                            @if (ShouldShowPhStrip(question.Edukt1.PhLevel))
+                                            {
+                                                <div class="@GetPhColor(question.Edukt1.PhLevel) h-2.5 rounded border border-gray-400"></div>
+                                            }
+                                        </div>
+                                        <div class="flex-1 flex flex-col gap-0.5 bg-white/75 px-2.5 py-1.5 rounded-md border border-gray-300">
+                                            <div class="flex items-center gap-1">
+                                                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" style="color: @GetFlameColorHex(question.Edukt1.FlameColor)">
+                                                    <path d="M12 2C12 2 6 8 6 13c0 3.3 2.7 6 6 6s6-2.7 6-6c0-5-6-11-6-11zm0 16c-1.6 0-3-1.4-3-3 0-1.8 1.5-3.5 3-5.1 1.5 1.6 3 3.3 3 5.1 0 1.6-1.4 3-3 3z"/>
+                                                </svg>
+                                                <span class="text-[11px] font-medium text-gray-700 leading-tight">Flamme: @GetFlameDisplayText(question.Edukt1.FlameColor)</span>
+                                            </div>
+                                            @if (ShouldShowFlameStrip(question.Edukt1.FlameColor))
+                                            {
+                                                <div class="@GetFlameColor(question.Edukt1.FlameColor) h-2.5 rounded border border-gray-400"></div>
+                                            }
+                                        </div>
+                                        <div class="flex-1 flex flex-col gap-0.5 bg-white/75 px-2.5 py-1.5 rounded-md border border-gray-300">
+                                            <div class="flex items-center gap-1">
+                                                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" style="color: @GetElementColorHex(question.Edukt1.ElementColor)">
+                                                    <circle cx="12" cy="12" r="8" />
+                                                </svg>
+                                                <span class="text-[11px] font-medium text-gray-700 leading-tight">Farbe: @GetElementColorDisplayText(question.Edukt1.ElementColor)</span>
+                                            </div>
+                                            @if (ShouldShowElementColorStrip(question.Edukt1.ElementColor))
+                                            {
+                                                <div class="@GetElementColor(question.Edukt1.ElementColor) h-2.5 rounded border border-gray-400"></div>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="flex flex-col">
+                                <h3 class="text-xs font-medium text-gray-600 mb-1">Element 2 (gesucht)</h3>
+                                <div class="@(answered ? "min-h-[120px] flex-1 flex items-stretch" : $"{GetHiddenElementContainerClass()} border-2 border-dashed rounded-lg p-3 min-h-[120px] flex-1 flex items-center justify-center")">
+                                    @if (answered)
+                                    {
+                                        var selectedEdukt = GetSelectedEdukt();
+                                        if (selectedEdukt != null)
+                                        {
+                                            <div class="w-full border-2 rounded-lg p-3 @(selectedOption == correctOptionId ? "border-green-400 bg-green-50" : "border-red-400 bg-red-50")">
+                                                <div class="flex items-start justify-between gap-2">
+                                                    <div>
+                                                        <p class="font-bold text-base">@selectedEdukt.Name</p>
+                                                        <p class="text-xs text-gray-700 mb-2">@selectedEdukt.Type</p>
+                                                    </div>
+                                                </div>
+                                                <div class="grid grid-cols-3 gap-1.5">
+                                                    <div class="flex-1 flex flex-col gap-0.5 bg-white/75 px-2.5 py-1.5 rounded-md border border-gray-300">
+                                                        <div class="flex items-center gap-1">
+                                                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" style="color: @GetPhColorHex(selectedEdukt.PhLevel)">
+                                                                <circle cx="12" cy="12" r="8" />
+                                                            </svg>
+                                                            <span class="text-[11px] font-medium text-gray-700 leading-tight">pH: @GetPhDisplayText(selectedEdukt.PhLevel)</span>
+                                                        </div>
+                                                        @if (ShouldShowPhStrip(selectedEdukt.PhLevel))
+                                                        {
+                                                            <div class="@GetPhColor(selectedEdukt.PhLevel) h-2.5 rounded border border-gray-400"></div>
+                                                        }
+                                                    </div>
+                                                    <div class="flex-1 flex flex-col gap-0.5 bg-white/75 px-2.5 py-1.5 rounded-md border border-gray-300">
+                                                        <div class="flex items-center gap-1">
+                                                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" style="color: @GetFlameColorHex(selectedEdukt.FlameColor)">
+                                                                <path d="M12 2C12 2 6 8 6 13c0 3.3 2.7 6 6 6s6-2.7 6-6c0-5-6-11-6-11zm0 16c-1.6 0-3-1.4-3-3 0-1.8 1.5-3.5 3-5.1 1.5 1.6 3 3.3 3 5.1 0 1.6-1.4 3-3 3z"/>
+                                                            </svg>
+                                                            <span class="text-[11px] font-medium text-gray-700 leading-tight">Flamme: @GetFlameDisplayText(selectedEdukt.FlameColor)</span>
+                                                        </div>
+                                                        @if (ShouldShowFlameStrip(selectedEdukt.FlameColor))
+                                                        {
+                                                            <div class="@GetFlameColor(selectedEdukt.FlameColor) h-2.5 rounded border border-gray-400"></div>
+                                                        }
+                                                    </div>
+                                                    <div class="flex-1 flex flex-col gap-0.5 bg-white/75 px-2.5 py-1.5 rounded-md border border-gray-300">
+                                                        <div class="flex items-center gap-1">
+                                                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" style="color: @GetElementColorHex(selectedEdukt.ElementColor)">
+                                                                <circle cx="12" cy="12" r="8" />
+                                                            </svg>
+                                                            <span class="text-[11px] font-medium text-gray-700 leading-tight">Farbe: @GetElementColorDisplayText(selectedEdukt.ElementColor)</span>
+                                                        </div>
+                                                        @if (ShouldShowElementColorStrip(selectedEdukt.ElementColor))
+                                                        {
+                                                            <div class="@GetElementColor(selectedEdukt.ElementColor) h-2.5 rounded border border-gray-400"></div>
+                                                        }
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <div class="text-center text-yellow-400">
+                                            <svg class="w-10 h-10 mx-auto mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                <circle cx="12" cy="12" r="10"></circle>
+                                                <path d="M12 16h.01M12 8a2.5 2.5 0 0 1 2.5 2.5c0 1.5-1.5 2-2.2 2.7-.2.2-.3.4-.3.8"></path>
+                                            </svg>
+                                            <p class="text-sm">???</p>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+
+                            <div class="flex flex-col">
+                                <h3 class="text-xs font-medium text-gray-600 mb-1 flex items-center gap-1.5">
+                                    <svg class="w-3.5 h-3.5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M12 2C12 2 6 8 6 13c0 3.3 2.7 6 6 6s6-2.7 6-6c0-5-6-11-6-11z" />
+                                        <path d="M9 14c0 1.7 1.3 3 3 3" />
+                                    </svg>
+                                    <span>Beobachtung</span>
+                                </h3>
+                                <div class="@GetResultContainerClass() border-2 border-dashed rounded-lg p-4 min-h-[110px] flex-1 flex items-center justify-center">
+                                    <div class="text-center">
+                                        <svg class="w-7 h-7 text-amber-600 mx-auto mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M12 2C12 2 6 8 6 13c0 3.3 2.7 6 6 6s6-2.7 6-6c0-5-6-11-6-11zm0 16c-1.6 0-3-1.4-3-3 0-1.8 1.5-3.5 3-5.1 1.5 1.6 3 3.3 3 5.1 0 1.6-1.4 3-3 3z" />
+                                            <path d="M9 14c0 1.7 1.3 3 3 3" />
+                                        </svg>
+                                        <p class="font-bold text-base text-amber-800">@question.Produkt</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-3 mb-4">
+                            @foreach (var opt in question.Options)
+                            {
+                                var isCorrectOpt = opt.Id == correctOptionId;
+                                var isSelected = selectedOption == opt.Id;
+
+                                <button @onclick="@(() => HandleSelect(opt.Id))"
+                                        disabled="@answered"
+                                        class="border-2 rounded-lg p-4 text-left transition-all @GetOptionClass(isCorrectOpt, isSelected)">
+                                    <div class="space-y-1">
+                                        <p class="text-xl font-semibold text-slate-600 leading-tight">
+                                            @question.Edukt1.Type + @opt.Edukt2.Type
+                                        </p>
+                                        <p class="text-lg text-slate-500 leading-tight">
+                                            → @opt.Produkt (@opt.Formel)
+                                        </p>
+                                    </div>
+                                </button>
+                            }
+                        </div>
+
+                        @if (!answered)
+                        {
+                            <button @onclick="HandleCheck"
+                                    disabled="@(string.IsNullOrEmpty(selectedOption))"
+                                    class="@(string.IsNullOrEmpty(selectedOption) ? "w-full py-3 rounded-lg font-medium bg-gray-200 text-gray-400 cursor-not-allowed" : "w-full py-3 rounded-lg font-medium bg-yellow-500 text-white hover:bg-yellow-600 transition-colors")">
+                                Überprüfen
+                            </button>
+                        }
+                        else
+                        {
+                            <button @onclick="HandleNext"
+                                    class="w-full py-3 rounded-lg font-medium bg-yellow-500 text-white hover:bg-yellow-600 transition-colors flex items-center justify-center gap-2">
+                                @if (CurrentIndexSafe < totalQuestions - 1)
+                                {
+                                    <span>Nächste Frage</span>
+                                }
+                                else
+                                {
+                                    <span>Ergebnis anzeigen</span>
+                                }
+                            </button>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public int QuizId { get; set; }
+    [SupplyParameterFromQuery(Name = "q")] public int? QuestionIndex { get; set; }
+    [SupplyParameterFromQuery(Name = "score")] public int? ScoreQuery { get; set; }
+    [CascadingParameter] private Task<AuthenticationState> AuthState { get; set; } = default!;
+
+    private QuizPlayDto? _quiz;
+    private string _quizName = "Light Quiz";
+    private List<QuizQuestionPayloadDto> _orderedQuestions = [];
+    private List<LabChemicalDto> _allChemicals = [];
+    private LightFrage? question;
+    private string? selectedOption;
+    private bool answered;
+    private int score;
+    private bool finished;
+    private string? correctOptionId;
+    private string? _error;
+    private Guid _userId;
+    private int totalQuestions;
+
+    private int CurrentIndexSafe => Math.Clamp(QuestionIndex ?? 0, 0, Math.Max(0, _orderedQuestions.Count - 1));
+
+    protected override async Task OnParametersSetAsync()
+    {
+        try
+        {
+            var auth = await AuthState;
+            var userIdClaim = auth.User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? auth.User.FindFirst("sub")?.Value;
+            if (!Guid.TryParse(userIdClaim, out _userId))
+            {
+                _error = "Benutzer konnte nicht ermittelt werden.";
+                return;
+            }
+
+            _allChemicals = await ChemistryData.GetAllChemicalsAsync();
+            _quiz = await QuizService.StartOrResumeQuiz(_userId, QuizId);
+            _quizName = _quiz.Name;
+            _orderedQuestions = _quiz.Questions.OrderBy(q => q.Order).ToList();
+            totalQuestions = _orderedQuestions.Count;
+            score = Math.Max(0, ScoreQuery ?? 0);
+            answered = false;
+            selectedOption = null;
+            finished = false;
+
+            if (_orderedQuestions.Count == 0)
+            {
+                _error = "Dieses Quiz enthält keine Fragen.";
+                return;
+            }
+
+            var current = _orderedQuestions[CurrentIndexSafe];
+            if (current.Type == QuestionType.SpotTest)
+            {
+                Navigation.NavigateTo($"/tupfeln/player/{QuizId}?q={CurrentIndexSafe}&score={score}");
+                return;
+            }
+
+            question = BuildLightQuestion(current);
+            correctOptionId = question.Options.FirstOrDefault(o => o.IsCorrect)?.Id;
+        }
+        catch (Exception ex)
+        {
+            _error = ex.Message;
+        }
+    }
+
+    private LightFrage BuildLightQuestion(QuizQuestionPayloadDto payload)
+    {
+        var light = payload.Light!;
+        var shownChemical = _allChemicals.FirstOrDefault(c => c.ChemicalID == light.ShownEduct.Id);
+
+        var options = light.AvailableReactions.Select((reaction, index) =>
+        {
+            var missingChemicalId = reaction.Chemical1ID == light.ShownEduct.Id ? reaction.Chemical2ID : reaction.Chemical1ID;
+            var missingChemical = _allChemicals.First(c => c.ChemicalID == missingChemicalId);
+
+            return new LightOption
+            {
+                Id = $"opt-{index}-{reaction.ReactionID}",
+                ReactionId = reaction.ReactionID,
+                Produkt = reaction.ObservationDescription,
+                Formel = reaction.Formula,
+                Edukt2 = MapChemical(missingChemical),
+                IsCorrect = reaction.ReactionID == light.CorrectReactionID
+            };
+        }).ToList();
+
+        return new LightFrage
+        {
+            Frage = payload.Description,
+            Produkt = light.Observation,
+            Edukt1 = MapShownChemical(light.ShownEduct, shownChemical),
+            Options = options
+        };
+    }
+
+    private Edukt MapShownChemical(ChemicalDto chemical, LabChemicalDto? detail)
+    {
+        var methodMap = chemical.MethodInfo.ToDictionary(m => m.Name, m => m.Color, StringComparer.OrdinalIgnoreCase);
+        return new Edukt
+        {
+            Id = chemical.Id,
+            Name = chemical.Name,
+            Type = chemical.Formula,
+            Color = BuildCardColorClass(chemical.Color),
+            PhLevel = ExtractPhLevel(methodMap),
+            FlameColor = ExtractFlameColor(methodMap),
+            ElementColor = chemical.Color,
+        };
+    }
+
+    private Edukt MapChemical(LabChemicalDto chemical)
+    {
+        return new Edukt
+        {
+            Id = chemical.ChemicalID,
+            Name = chemical.Name,
+            Type = chemical.Formula,
+            Color = BuildCardColorClass(chemical.Color),
+            PhLevel = ExtractPhLevel(chemical.MethodOutputs),
+            FlameColor = ExtractFlameColor(chemical.MethodOutputs),
+            ElementColor = chemical.Color,
+        };
+    }
+
+    private static string ExtractPhLevel(Dictionary<string, string> outputs)
+    {
+        if (outputs.TryGetValue("pH-Papier", out var ph))
+            return ph;
+        return "-";
+    }
+
+    private static string ExtractFlameColor(Dictionary<string, string> outputs)
+    {
+        if (outputs.TryGetValue("Flammenfärbung", out var flame))
+            return flame;
+        return "Keine";
+    }
+
+    private static string BuildCardColorClass(string color)
+    {
+        return color.ToLowerInvariant() switch
+        {
+            var c when c.Contains("gelb") => "bg-yellow-100 border-yellow-300",
+            var c when c.Contains("grün") => "bg-green-100 border-green-300",
+            var c when c.Contains("blau") => "bg-blue-100 border-blue-300",
+            var c when c.Contains("rot") => "bg-red-100 border-red-300",
+            var c when c.Contains("orange") => "bg-orange-100 border-orange-300",
+            var c when c.Contains("braun") => "bg-amber-100 border-amber-300",
+            _ => "bg-gray-100 border-gray-300"
+        };
+    }
+
+    private void HandleSelect(string optionId)
+    {
+        if (answered) return;
+        selectedOption = optionId;
+    }
+
+    private async Task HandleCheck()
+    {
+        if (answered || string.IsNullOrEmpty(selectedOption) || question == null) return;
+
+        var current = _orderedQuestions[CurrentIndexSafe];
+        var option = question.Options.FirstOrDefault(o => o.Id == selectedOption);
+        if (option is null) return;
+
+        var result = await QuizService.ValidateAndSaveStlQuestion(new ValidateStlQuestionDto
+        {
+            UserId = _userId,
+            QuizId = QuizId,
+            QuestionId = current.QuestionID,
+            ReactionId = option.ReactionId
+        });
+
+        answered = true;
+        if (result.IsCorrect)
+            score++;
+    }
+
+    private async Task HandleNext()
+    {
+        var nextIndex = CurrentIndexSafe + 1;
+        if (nextIndex < _orderedQuestions.Count)
+        {
+            var next = _orderedQuestions[nextIndex];
+            var url = next.Type == QuestionType.SpotTest
+                ? $"/tupfeln/player/{QuizId}?q={nextIndex}&score={score}"
+                : $"/light/player/{QuizId}?q={nextIndex}&score={score}";
+            Navigation.NavigateTo(url);
+            return;
+        }
+
+        if (_quiz is not null)
+            await QuizService.CompleteAttempt(_quiz.AttemptID);
+
+        finished = true;
+    }
+
+    private void HandleRestart() => Navigation.NavigateTo($"/quiz/{QuizId}");
+
+    private string GetOptionClass(bool isCorrectOpt, bool isSelected)
+    {
+        if (answered)
+        {
+            if (isCorrectOpt) return "border-green-400 bg-green-50";
+            if (isSelected) return "border-red-400 bg-red-50";
+            return "border-gray-200 bg-gray-50 opacity-60";
+        }
+
+        return isSelected
+            ? "border-yellow-500 bg-yellow-50 ring-2 ring-yellow-300 cursor-pointer"
+            : "border-gray-200 bg-white hover:border-yellow-400 hover:bg-yellow-50 cursor-pointer";
+    }
+
+    private string GetHiddenElementContainerClass()
+    {
+        if (!answered) return "border-yellow-300 bg-yellow-50";
+        return selectedOption == correctOptionId ? "border-green-400 bg-green-50" : "border-red-400 bg-red-50";
+    }
+
+    private string GetResultContainerClass() => "border-yellow-400 bg-yellow-50 border-solid";
+
+    private string GetProgressWidth()
+    {
+        if (totalQuestions == 0) return "0%";
+        return $"{(score * 100.0 / totalQuestions):0.##}%";
+    }
+
+    private Edukt? GetSelectedEdukt() => question?.Options.FirstOrDefault(o => o.Id == selectedOption)?.Edukt2;
+
+    private string GetPhColor(string phLevel)
+    {
+        return phLevel switch
+        {
+            "-" => "bg-gray-200",
+            "1" => "bg-red-600",
+            "2" => "bg-red-500",
+            "3" => "bg-red-400",
+            "4" => "bg-red-300",
+            "5" => "bg-orange-300",
+            "6" => "bg-yellow-300",
+            "7" => "bg-green-300",
+            "8" => "bg-green-400",
+            "9" => "bg-green-500",
+            "10" => "bg-green-600",
+            "11" => "bg-blue-300",
+            "12" => "bg-blue-400",
+            _ => "bg-gray-200",
+        };
+    }
+
+    private string GetFlameColor(string flameColor)
+    {
+        return flameColor switch
+        {
+            "Keine" => "bg-gray-200",
+            "Blassblau" => "bg-blue-200",
+            "Gelb" => "bg-yellow-300",
+            "Orangefunken" => "bg-orange-400",
+            "Grün" => "bg-green-400",
+            "Rot-Orange" => "bg-orange-500",
+            "Blau" => "bg-blue-400",
+            _ => "bg-gray-300",
+        };
+    }
+
+    private string GetElementColor(string elementColor)
+    {
+        var normalized = (elementColor ?? string.Empty).ToLowerInvariant();
+        return normalized switch
+        {
+            var v when v.Contains("weiß") => "bg-gray-100",
+            var v when v.Contains("schwarz") => "bg-black",
+            var v when v.Contains("gelbgrün") => "bg-lime-300",
+            var v when v.Contains("gelb") => "bg-yellow-300",
+            var v when v.Contains("grau") => "bg-gray-400",
+            var v when v.Contains("rotbraun") => "bg-orange-700",
+            var v when v.Contains("grün") => "bg-green-400",
+            var v when v.Contains("blau") => "bg-blue-400",
+            var v when v.Contains("rot") => "bg-red-400",
+            var v when v.Contains("orange") => "bg-orange-400",
+            var v when v.Contains("farblos") => "bg-white",
+            _ => "bg-white",
+        };
+    }
+
+    private string GetPhColorHex(string phLevel)
+    {
+        return phLevel switch
+        {
+            "-" => "#000000",
+            "1" => "#dc2626",
+            "2" => "#ef4444",
+            "3" => "#f87171",
+            "4" => "#fca5a5",
+            "5" => "#fed7aa",
+            "6" => "#fef08a",
+            "7" => "#bbf7d0",
+            "8" => "#86efac",
+            "9" => "#4ade80",
+            "10" => "#16a34a",
+            "11" => "#bfdbfe",
+            "12" => "#93c5fd",
+            _ => "#e5e7eb",
+        };
+    }
+
+    private string GetFlameColorHex(string flameColor)
+    {
+        return flameColor switch
+        {
+            "Keine" => "#000000",
+            "Blassblau" => "#bfdbfe",
+            "Gelb" => "#fcd34d",
+            "Orangefunken" => "#fb923c",
+            "Grün" => "#4ade80",
+            "Rot-Orange" => "#f97316",
+            "Blau" => "#60a5fa",
+            _ => "#d1d5db",
+        };
+    }
+
+    private string GetElementColorHex(string elementColor)
+    {
+        var normalized = (elementColor ?? string.Empty).ToLowerInvariant();
+        return normalized switch
+        {
+            var v when v.Contains("weiß") => "#f3f4f6",
+            var v when v.Contains("schwarz") => "#111827",
+            var v when v.Contains("gelbgrün") => "#bef264",
+            var v when v.Contains("gelb") => "#fde047",
+            var v when v.Contains("grau") => "#9ca3af",
+            var v when v.Contains("rotbraun") => "#c2410c",
+            var v when v.Contains("grün") => "#4ade80",
+            var v when v.Contains("blau") => "#60a5fa",
+            var v when v.Contains("rot") => "#f87171",
+            var v when v.Contains("orange") => "#fb923c",
+            var v when v.Contains("farblos") => "#000000",
+            _ => "#000000",
+        };
+    }
+
+    private bool ShouldShowPhStrip(string phLevel) => !string.IsNullOrWhiteSpace(phLevel);
+    private bool ShouldShowFlameStrip(string flameColor) => !string.IsNullOrWhiteSpace(flameColor);
+    private bool ShouldShowElementColorStrip(string elementColor) => !string.IsNullOrWhiteSpace(elementColor);
+
+    private string GetPhDisplayText(string phLevel)
+    {
+        return phLevel switch
+        {
+            "1" or "2" or "3" or "4" => "Rot",
+            "5" => "Orange",
+            "6" => "Gelb",
+            "7" or "8" or "9" or "10" => "Grün",
+            "11" or "12" => "Blau",
+            _ => "Keine"
+        };
+    }
+
+    private string GetFlameDisplayText(string flameColor)
+    {
+        return string.Equals(flameColor, "None", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(flameColor, "Keine", StringComparison.OrdinalIgnoreCase)
+            ? "Keine"
+            : flameColor;
+    }
+
+    private string GetElementColorDisplayText(string elementColor)
+    {
+        return string.IsNullOrWhiteSpace(elementColor)
+            || string.Equals(elementColor, "Farblos", StringComparison.OrdinalIgnoreCase)
+            ? "Keine"
+            : elementColor;
+    }
+
+    private sealed class LightFrage
+    {
+        public string Frage { get; set; } = string.Empty;
+        public Edukt Edukt1 { get; set; } = new();
+        public string Produkt { get; set; } = string.Empty;
+        public List<LightOption> Options { get; set; } = [];
+    }
+
+    private sealed class LightOption
+    {
+        public string Id { get; set; } = string.Empty;
+        public int ReactionId { get; set; }
+        public Edukt Edukt2 { get; set; } = new();
+        public string Produkt { get; set; } = string.Empty;
+        public string Formel { get; set; } = string.Empty;
+        public bool IsCorrect { get; set; }
+    }
+
+    private sealed class Edukt
+    {
+        public int Id { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public string Type { get; set; } = string.Empty;
+        public string Color { get; set; } = string.Empty;
+        public string PhLevel { get; set; } = "-";
+        public string FlameColor { get; set; } = "Keine";
+        public string ElementColor { get; set; } = "Farblos";
+    }
+}

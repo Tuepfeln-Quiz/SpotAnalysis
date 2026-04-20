@@ -1,0 +1,420 @@
+@page "/teacher/groups/{Id:int}"
+@rendermode InteractiveServer
+@attribute [Authorize(Roles = "Admin,Teacher")]
+@implements IDisposable
+@inject IGroupService GroupService
+@inject IQuizService QuizService
+@inject IGroupInviteTokenService InviteTokens
+@inject NavigationManager Navigation
+@inject IJSRuntime JS
+
+<PageTitle>@(_group?.Name ?? "Gruppe") – SpotAnalysis</PageTitle>
+
+<div class="min-h-screen bg-gradient-to-br from-gray-50 via-white to-amber-50 p-8">
+    <div class="mx-auto max-w-6xl space-y-5">
+        @if (_group is null)
+        {
+            <div class="rounded-3xl bg-white p-10 text-center shadow-lg text-gray-500">Laden…</div>
+        }
+        else
+        {
+            <div>
+                <h1 class="text-3xl font-bold text-gray-800">@_group.Name</h1>
+                <p class="mt-1 text-gray-500">@(string.IsNullOrWhiteSpace(_group.Description) ? "Keine Beschreibung." : _group.Description)</p>
+                <div class="mt-4 flex gap-3">
+                    <button type="button" @onclick="Edit" class="rounded-2xl bg-purple-100 px-4 py-2 text-sm font-medium text-purple-700 hover:bg-purple-200">Bearbeiten</button>
+                    <button type="button" @onclick="BackToList" class="rounded-2xl bg-white px-4 py-2 text-sm font-medium text-gray-700 border border-gray-200 hover:bg-gray-50">← Zurück</button>
+                </div>
+            </div>
+
+            <section class="rounded-3xl bg-white p-6 shadow-lg">
+                <div class="flex items-center gap-2 text-xl font-semibold text-gray-800">
+                    <span>🔗</span>
+                    <span>Einladungslink</span>
+                </div>
+                @if (_inviteLink is null)
+                {
+                    <p class="mt-3 text-sm text-gray-500">Erzeuge einen Einladungslink und teile ihn mit deinen Schülern. Der Link ist 15 Minuten gültig.</p>
+                    <button type="button" @onclick="GenerateInvite" class="mt-4 rounded-2xl bg-purple-100 px-4 py-2 text-sm font-medium text-purple-700 hover:bg-purple-200">Neuen Link erstellen</button>
+                }
+                else
+                {
+                    <div class="mt-4 flex gap-2">
+                        <input type="text" readonly value="@_inviteLink" class="w-full rounded-2xl border border-gray-300 px-4 py-3 text-sm text-gray-700" />
+                        <button type="button" @onclick="CopyLink" class="rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50">📋</button>
+                    </div>
+                    <p class="mt-2 text-sm text-gray-500">Gültig noch: <span class="font-semibold text-gray-700">@_remainingDisplay</span></p>
+                    <button type="button" @onclick="GenerateInvite" class="mt-3 rounded-2xl bg-purple-100 px-4 py-2 text-sm font-medium text-purple-700 hover:bg-purple-200">Neuen Link erstellen</button>
+                }
+            </section>
+
+            <section class="rounded-3xl bg-white p-6 shadow-lg">
+                <div class="mb-4 flex items-center justify-between">
+                    <h2 class="text-2xl font-semibold text-gray-800">Lehrkräfte (@(_teachers?.Count ?? 0))</h2>
+                    <button type="button" @onclick="OpenAddTeacherModal" class="rounded-2xl bg-purple-700 px-4 py-2 text-sm font-semibold text-white hover:bg-purple-800">+ Hinzufügen</button>
+                </div>
+                @if (_teachers is not null && _teachers.Count > 0)
+                {
+                    @foreach (var t in _teachers)
+                    {
+                        <div class="flex items-center justify-between rounded-2xl border border-gray-100 px-4 py-3 not-last:mb-3">
+                            <span class="text-gray-800">@t.UserName</span>
+                            @if (t.Id == _teacherId)
+                            {
+                                <span class="rounded-full bg-purple-100 px-3 py-1 text-xs font-semibold text-purple-700">Du</span>
+                            }
+                            else
+                            {
+                                <button type="button" @onclick='() => ConfirmRemoveTeacher(t)' class="rounded-2xl bg-red-50 px-3 py-2 text-sm font-medium text-red-700 hover:bg-red-100">Entfernen</button>
+                            }
+                        </div>
+                    }
+                }
+                else
+                {
+                    <p class="text-gray-500">Noch keine Lehrkräfte zugeordnet.</p>
+                }
+            </section>
+
+            <section class="rounded-3xl bg-white p-6 shadow-lg">
+                <div class="mb-4 flex items-center justify-between">
+                    <h2 class="text-2xl font-semibold text-gray-800">Schüler (@(_students?.Count ?? 0))</h2>
+                    <button type="button" @onclick="OpenAddStudentModal" class="rounded-2xl bg-purple-700 px-4 py-2 text-sm font-semibold text-white hover:bg-purple-800">+ Hinzufügen</button>
+                </div>
+                @if (_students is not null && _students.Count > 0)
+                {
+                    @foreach (var s in _students)
+                    {
+                        <div class="flex items-center justify-between rounded-2xl border border-gray-100 px-4 py-3 not-last:mb-3">
+                            <span class="text-gray-800">@s.UserName</span>
+                            <button type="button" @onclick='() => ConfirmRemoveStudent(s)' class="rounded-2xl bg-red-50 px-3 py-2 text-sm font-medium text-red-700 hover:bg-red-100">Entfernen</button>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <p class="text-gray-500">Noch keine Schüler in dieser Gruppe.</p>
+                }
+            </section>
+
+            <section class="rounded-3xl bg-white p-6 shadow-lg">
+                <div class="mb-4 flex items-center justify-between">
+                    <h2 class="text-2xl font-semibold text-gray-800">Quizzes (@(_quizzes?.Count ?? 0))</h2>
+                    <button type="button" @onclick="OpenAddQuizModal" class="rounded-2xl bg-purple-700 px-4 py-2 text-sm font-semibold text-white hover:bg-purple-800">+ Hinzufügen</button>
+                </div>
+                @if (_quizzes is not null && _quizzes.Count > 0)
+                {
+                    @foreach (var quiz in _quizzes)
+                    {
+                        <div class="flex items-center justify-between rounded-2xl border border-gray-100 px-4 py-4 not-last:mb-3">
+                            <div>
+                                <div class="font-semibold text-gray-800">@quiz.Name</div>
+                                <div class="text-sm text-gray-500">@quiz.STCount SpotTest · @quiz.STLCount Light · @quiz.GroupCount Gruppen</div>
+                            </div>
+                            <div class="flex gap-2">
+                                <button type="button" @onclick='() => EditQuiz(quiz.Id)' class="rounded-2xl bg-purple-100 px-3 py-2 text-sm font-medium text-purple-700 hover:bg-purple-200">Bearbeiten</button>
+                                <button type="button" @onclick='() => RemoveQuizFromGroup(quiz.Id)' class="rounded-2xl bg-red-50 px-3 py-2 text-sm font-medium text-red-700 hover:bg-red-100">Entfernen</button>
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <p class="text-gray-500">Noch keine Quizzes zugeordnet.</p>
+                }
+            </section>
+        }
+    </div>
+</div>
+
+@if (_showAddTeacherModal)
+{
+    <div class="fixed inset-0 z-40 flex items-center justify-center bg-black/30 p-4">
+        <div class="w-full max-w-2xl rounded-3xl bg-white p-6 shadow-2xl">
+            <div class="mb-4 flex items-center justify-between">
+                <h3 class="text-xl font-semibold text-gray-800">Lehrkraft hinzufügen</h3>
+                <button type="button" @onclick="CloseAddModal" class="text-gray-400 hover:text-gray-700">✕</button>
+            </div>
+            <input type="text" @bind="_addModalSearchQuery" @bind:event="oninput" placeholder="Suchen..." class="mb-4 w-full rounded-2xl border border-gray-300 px-4 py-3" />
+            <div class="max-h-[420px] space-y-2 overflow-y-auto">
+                @if (_allTeachers is not null)
+                {
+                    foreach (var candidate in FilteredTeachers)
+                    {
+                        var alreadyMember = _teachers?.Any(t => t.Id == candidate.Id) ?? false;
+                        <button type="button" @onclick='async () => { if (!alreadyMember) await AddTeacher(candidate); }' class="flex w-full items-center justify-between rounded-2xl border border-gray-100 px-4 py-3 text-left hover:bg-gray-50">
+                            <span>@candidate.UserName</span>
+                            <span class="text-sm @(alreadyMember ? "text-gray-400" : "text-purple-600")">@(alreadyMember ? "Bereits Mitglied" : "+ Hinzufügen")</span>
+                        </button>
+                    }
+                }
+            </div>
+        </div>
+    </div>
+}
+
+@if (_showAddStudentModal)
+{
+    <div class="fixed inset-0 z-40 flex items-center justify-center bg-black/30 p-4">
+        <div class="w-full max-w-2xl rounded-3xl bg-white p-6 shadow-2xl">
+            <div class="mb-4 flex items-center justify-between">
+                <h3 class="text-xl font-semibold text-gray-800">Schüler hinzufügen</h3>
+                <button type="button" @onclick="CloseAddModal" class="text-gray-400 hover:text-gray-700">✕</button>
+            </div>
+            <input type="text" value="@_addModalSearchQuery" @oninput="OnStudentSearchInput" placeholder="Suchen..." class="mb-4 w-full rounded-2xl border border-gray-300 px-4 py-3" />
+            <div class="max-h-[420px] space-y-2 overflow-y-auto">
+                @if (_studentCandidates is not null)
+                {
+                    foreach (var candidate in _studentCandidates)
+                    {
+                        var alreadyMember = _students?.Any(s => s.Id == candidate.Id) ?? false;
+                        <button type="button" @onclick='async () => { if (!alreadyMember) await AddStudent(candidate); }' class="flex w-full items-center justify-between rounded-2xl border border-gray-100 px-4 py-3 text-left hover:bg-gray-50">
+                            <span>@candidate.UserName</span>
+                            <span class="text-sm @(alreadyMember ? "text-gray-400" : "text-purple-600")">@(alreadyMember ? "Bereits Mitglied" : "+ Hinzufügen")</span>
+                        </button>
+                    }
+                }
+                else
+                {
+                    <p class="text-center text-sm text-gray-400">Suchbegriff eingeben…</p>
+                }
+            </div>
+        </div>
+    </div>
+}
+
+@if (_showAddQuizModal)
+{
+    <div class="fixed inset-0 z-40 flex items-center justify-center bg-black/30 p-4">
+        <div class="w-full max-w-2xl rounded-3xl bg-white p-6 shadow-2xl">
+            <div class="mb-4 flex items-center justify-between">
+                <h3 class="text-xl font-semibold text-gray-800">Quiz hinzufügen</h3>
+                <button type="button" @onclick="CloseAddModal" class="text-gray-400 hover:text-gray-700">✕</button>
+            </div>
+            <input type="text" @bind="_addModalSearchQuery" @bind:event="oninput" placeholder="Suchen..." class="mb-4 w-full rounded-2xl border border-gray-300 px-4 py-3" />
+            <div class="max-h-[420px] space-y-2 overflow-y-auto">
+                @if (_allQuizzes is not null)
+                {
+                    foreach (var quiz in FilteredQuizzes)
+                    {
+                        var alreadyAssigned = _quizzes?.Any(q => q.Id == quiz.Id) ?? false;
+                        <button type="button" @onclick='async () => { if (!alreadyAssigned) await AddQuizToGroup(quiz.Id); }' class="flex w-full items-center justify-between rounded-2xl border border-gray-100 px-4 py-3 text-left hover:bg-gray-50">
+                            <div>
+                                <div class="font-medium text-gray-800">@quiz.Name</div>
+                                <div class="text-sm text-gray-500">@quiz.STCount SpotTest · @quiz.STLCount Light</div>
+                            </div>
+                            <span class="text-sm @(alreadyAssigned ? "text-gray-400" : "text-purple-600")">@(alreadyAssigned ? "Bereits zugeordnet" : "+ Hinzufügen")</span>
+                        </button>
+                    }
+                }
+            </div>
+        </div>
+    </div>
+}
+
+@if (_userToRemove is not null)
+{
+    <div class="fixed inset-0 z-40 flex items-center justify-center bg-black/30 p-4">
+        <div class="w-full max-w-md rounded-3xl bg-white p-6 shadow-2xl">
+            <h3 class="text-xl font-semibold text-gray-800">@_removeTitle</h3>
+            <p class="mt-3 text-sm text-gray-500">@_removeMessage</p>
+            <div class="mt-6 flex justify-end gap-3">
+                <button type="button" @onclick="CancelRemove" class="rounded-2xl border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">Abbrechen</button>
+                <button type="button" @onclick="ExecuteRemove" class="rounded-2xl bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700">Entfernen</button>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public int Id { get; set; }
+    [CascadingParameter] private Task<AuthenticationState> AuthState { get; set; } = default!;
+
+    private GroupDto? _group;
+    private List<StudentDto>? _students;
+    private List<StudentDto>? _teachers;
+    private List<QuizOverviewDto>? _quizzes;
+    private StudentDto? _userToRemove;
+    private string _removeTitle = string.Empty;
+    private string _removeMessage = string.Empty;
+    private string? _inviteLink;
+    private DateTime _inviteExpiresAt;
+    private string _remainingDisplay = string.Empty;
+    private System.Threading.Timer? _countdownTimer;
+    private bool _showAddTeacherModal;
+    private bool _showAddStudentModal;
+    private bool _showAddQuizModal;
+    private string _addModalSearchQuery = string.Empty;
+    private List<StudentDto>? _allTeachers;
+    private List<StudentDto>? _studentCandidates;
+    private List<QuizOverviewDto>? _allQuizzes;
+    private Guid _teacherId;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        var auth = await AuthState;
+        _teacherId = Guid.Parse(auth.User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+        var groups = await GroupService.GetGroups(_teacherId);
+        _group = groups.FirstOrDefault(g => g.Id == Id);
+        if (_group is null)
+        {
+            Navigation.NavigateTo("/teacher/groups");
+            return;
+        }
+
+        await ReloadMembers();
+    }
+
+    private IEnumerable<StudentDto> FilteredTeachers =>
+        _allTeachers is null
+            ? []
+            : string.IsNullOrWhiteSpace(_addModalSearchQuery)
+                ? _allTeachers
+                : _allTeachers.Where(t => t.UserName.Contains(_addModalSearchQuery, StringComparison.OrdinalIgnoreCase));
+
+    private IEnumerable<QuizOverviewDto> FilteredQuizzes =>
+        _allQuizzes is null
+            ? []
+            : string.IsNullOrWhiteSpace(_addModalSearchQuery)
+                ? _allQuizzes
+                : _allQuizzes.Where(q => q.Name.Contains(_addModalSearchQuery, StringComparison.OrdinalIgnoreCase));
+
+    private async Task ReloadMembers()
+    {
+        _students = await GroupService.GetStudentsByGroup(_teacherId, Id);
+        _teachers = await GroupService.GetTeachersByGroup(_teacherId, Id);
+        _allTeachers = await GroupService.SearchTeachers(string.Empty);
+        _quizzes = await GroupService.GetQuizzesByGroup(Id);
+    }
+
+    private void Edit() => Navigation.NavigateTo($"/teacher/groups/{Id}/edit");
+    private void BackToList() => Navigation.NavigateTo("/teacher/groups");
+
+    private void GenerateInvite()
+    {
+        var token = InviteTokens.CreateToken(Id);
+        var baseUrl = Navigation.BaseUri.TrimEnd('/');
+        _inviteLink = $"{baseUrl}/join/{token}";
+        _inviteExpiresAt = DateTime.UtcNow.AddMinutes(15);
+        UpdateRemaining();
+        _countdownTimer?.Dispose();
+        _countdownTimer = new System.Threading.Timer(_ =>
+        {
+            InvokeAsync(() =>
+            {
+                UpdateRemaining();
+                StateHasChanged();
+            });
+        }, null, 1000, 1000);
+    }
+
+    private void UpdateRemaining()
+    {
+        var left = _inviteExpiresAt - DateTime.UtcNow;
+        if (left <= TimeSpan.Zero)
+        {
+            _inviteLink = null;
+            _remainingDisplay = string.Empty;
+            _countdownTimer?.Dispose();
+            _countdownTimer = null;
+            return;
+        }
+
+        _remainingDisplay = $"{(int)left.TotalMinutes:D2}:{left.Seconds:D2}";
+    }
+
+    private async Task CopyLink()
+    {
+        if (_inviteLink is null) return;
+        await JS.InvokeVoidAsync("navigator.clipboard.writeText", _inviteLink);
+    }
+
+    private void OpenAddTeacherModal()
+    {
+        _addModalSearchQuery = string.Empty;
+        _showAddTeacherModal = true;
+    }
+
+    private async Task OpenAddStudentModal()
+    {
+        _addModalSearchQuery = string.Empty;
+        _studentCandidates = await GroupService.SearchStudents(string.Empty);
+        _showAddStudentModal = true;
+    }
+
+    private async Task OpenAddQuizModal()
+    {
+        _addModalSearchQuery = string.Empty;
+        _allQuizzes = await QuizService.GetAllQuizzes();
+        _showAddQuizModal = true;
+    }
+
+    private void CloseAddModal()
+    {
+        _showAddTeacherModal = false;
+        _showAddStudentModal = false;
+        _showAddQuizModal = false;
+        _addModalSearchQuery = string.Empty;
+        _studentCandidates = null;
+        _allQuizzes = null;
+    }
+
+    private async Task OnStudentSearchInput(ChangeEventArgs args)
+    {
+        _addModalSearchQuery = args.Value?.ToString() ?? string.Empty;
+        _studentCandidates = await GroupService.SearchStudents(_addModalSearchQuery);
+    }
+
+    private async Task AddTeacher(StudentDto teacher)
+    {
+        await GroupService.AssignUserToGroup(_teacherId, teacher.Id, Id);
+        await ReloadMembers();
+    }
+
+    private async Task AddStudent(StudentDto student)
+    {
+        await GroupService.AssignUserToGroup(_teacherId, student.Id, Id);
+        _studentCandidates = await GroupService.SearchStudents(_addModalSearchQuery);
+        await ReloadMembers();
+    }
+
+    private async Task AddQuizToGroup(int quizId)
+    {
+        await QuizService.AssignGroupToQuiz(quizId, Id);
+        _quizzes = await GroupService.GetQuizzesByGroup(Id);
+    }
+
+    private async Task RemoveQuizFromGroup(int quizId)
+    {
+        await QuizService.RemoveGroupFromQuiz(quizId, Id);
+        await ReloadMembers();
+    }
+
+    private void EditQuiz(int quizId) => Navigation.NavigateTo($"/teacher/quizzes/{quizId}/edit");
+
+    private void ConfirmRemoveStudent(StudentDto s)
+    {
+        _userToRemove = s;
+        _removeTitle = "Schüler entfernen?";
+        _removeMessage = $"Schüler {s.UserName} aus der Gruppe entfernen?";
+    }
+
+    private void ConfirmRemoveTeacher(StudentDto t)
+    {
+        _userToRemove = t;
+        _removeTitle = "Lehrkraft entfernen?";
+        _removeMessage = $"Lehrkraft {t.UserName} aus der Gruppe entfernen?";
+    }
+
+    private void CancelRemove() => _userToRemove = null;
+
+    private async Task ExecuteRemove()
+    {
+        if (_userToRemove is null) return;
+        await GroupService.RemoveUserFromGroup(_teacherId, _userToRemove.Id, Id);
+        _userToRemove = null;
+        await ReloadMembers();
+    }
+
+    public void Dispose() => _countdownTimer?.Dispose();
+}

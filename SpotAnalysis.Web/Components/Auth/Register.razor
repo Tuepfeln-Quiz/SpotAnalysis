@@ -7,14 +7,13 @@
 
 @attribute [AllowAnonymous]
 
-<div class="row">
-    <div class="col-lg-4 offset-lg-4 pt-4 pb-4 border">
+<div class="row justify-content-center min-vh-100 align-items-center p-4">
+    <div class="col-lg-4 col-md-6 col-sm-10 pt-4 pb-4 border border-secondary rounded">
         <form action="/api/auth/register" method="post" @onsubmit="ValidateBeforeSubmit" @onsubmit:preventDefault="_preventSubmit">
             <AntiforgeryToken />
             <input type="hidden" name="returnUrl" value="@ReturnUrl" />
 
             <div class="mb-3 text-center flex-column">
-                <img src="/images/avatar.png" id="SignPic" class="img-fluid" alt="Avatar" />
                 <h3>Register</h3>
             </div>
 

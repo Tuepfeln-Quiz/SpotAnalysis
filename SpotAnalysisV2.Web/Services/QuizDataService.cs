@@ -82,6 +82,19 @@ public class QuizDataService
         }
     }
 
+    public bool DeleteUebung(int uebungId)
+    {
+        lock (_sync)
+        {
+            _cachedUebungen ??= LoadUebungen();
+            var uebung = _cachedUebungen.FirstOrDefault(u => u.Id == uebungId);
+            if (uebung == null) return false;
+            _cachedUebungen.Remove(uebung);
+            SaveUebungen(_cachedUebungen);
+            return true;
+        }
+    }
+
     private List<UebungItem> LoadUebungen()
     {
         if (!File.Exists(_uebungenPath))

@@ -12,24 +12,40 @@
     [Parameter] public int UebungId { get; set; }
     [Parameter] public int AufgabeId { get; set; }
 
+    private int _total;
+    private int _clamped;
+    private SpotAnalysisV2.Web.Models.AufgabeInfo? _aufgabe;
+
     protected override void OnParametersSet()
     {
-        var total = QuizService.GetAufgabenCount(UebungId);
-        var clamped = Math.Clamp(AufgabeId, 1, total);
-
-        var aufgabe = QuizService.GetAufgabe(UebungId, clamped);
-        if (aufgabe == null)
+        _total = QuizService.GetAufgabenCount(UebungId);
+        _clamped = Math.Clamp(AufgabeId, 1, _total);
+        _aufgabe = QuizService.GetAufgabe(UebungId, _clamped);
+        if (_aufgabe == null)
         {
             Navigation.NavigateTo("/uebungen", replace: true);
             return;
         }
+        ProgressService.SetUebungContext(UebungId, _clamped, _total);
+        var target = _aufgabe.Typ == SpotAnalysisV2.Web.Models.AufgabeTyp.Tuepfeln
+            ? $"/tupfeln/quiz/{_aufgabe.QuizId}"
+            : $"/light/quiz/{_aufgabe.QuizId}";
+        Navigation.NavigateTo($"{target}?from=uebung&uebungId={UebungId}&aufgabeId={_clamped}&total={_total}", replace: true);
+    }
 
-        ProgressService.SetUebungContext(UebungId, clamped, total);
+    private void GoToNext()
+    {
+        if (_clamped < _total)
+        {
+            Navigation.NavigateTo($"/uebungen/{UebungId}/aufgabe/{_clamped + 1}");
+        }
+    }
 
-        var target = aufgabe.Typ == SpotAnalysisV2.Web.Models.AufgabeTyp.Tuepfeln
-            ? $"/tupfeln/quiz/{aufgabe.QuizId}"
-            : $"/light/quiz/{aufgabe.QuizId}";
-
-        Navigation.NavigateTo($"{target}?from=uebung&uebungId={UebungId}&aufgabeId={clamped}&total={total}", replace: true);
+    private void GoToPrevious()
+    {
+        if (_clamped > 1)
+        {
+            Navigation.NavigateTo($"/uebungen/{UebungId}/aufgabe/{_clamped - 1}");
+        }
     }
 }

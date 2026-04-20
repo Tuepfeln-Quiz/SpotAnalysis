@@ -1,0 +1,209 @@
+@page "/quiz/{QuizId:int}"
+@rendermode InteractiveServer
+@attribute [Microsoft.AspNetCore.Authorization.Authorize]
+@using SpotAnalysis.Data.Enums
+@using SpotAnalysis.Services.DTOs
+@using SpotAnalysis.Services.Services
+@using SpotAnalysis.Web.Components.Shared
+
+<PageTitle>@(_quiz?.Name ?? "Quiz") – Tüpfeln Digital</PageTitle>
+
+@if (_errorMessage != null)
+{
+    <div class="container py-4">
+        <div class="alert alert-danger">@_errorMessage</div>
+        <a class="btn btn-outline-secondary" href="/my-quizzes">Zurück zu meinen Quizzes</a>
+    </div>
+}
+else if (_quiz is null)
+{
+    <div class="container py-4"><p class="text-muted">Lädt …</p></div>
+}
+else if (_isCompleted)
+{
+    <div class="container py-4 flex-grow-1">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body p-5 text-center">
+                <i class="bi bi-trophy-fill text-warning" style="font-size: 3rem;"></i>
+                <h3 class="fw-bold mt-3">Quiz abgeschlossen!</h3>
+                <p class="text-muted fs-5 mb-4">
+                    @_results.Count(r => r.IsCorrect) von @_results.Count Fragen korrekt
+                </p>
+                <div class="d-flex flex-column gap-2 mb-4" style="max-width: 480px; margin: 0 auto;">
+                    @for (int i = 0; i < _results.Count; i++)
+                    {
+                        var r = _results[i];
+                        <div class="d-flex justify-content-between align-items-center p-2 rounded" style="background: #f8f9fa;">
+                            <span>
+                                <span class="badge @(r.Type == QuestionType.SpotTest ? "bg-purple" : "")"
+                                      style="@(r.Type == QuestionType.SpotTestLight ? "background-color: #2563eb; color: white;" : "")">
+                                    @(r.Type == QuestionType.SpotTest ? "Tüpfeln" : "Light")
+                                </span>
+                                Frage @(i + 1)
+                            </span>
+                            <span class="fw-bold @(r.IsCorrect ? "text-success" : "text-danger")">
+                                @(r.IsCorrect ? "✔" : "✘")
+                            </span>
+                        </div>
+                    }
+                </div>
+                <div class="d-flex gap-3 justify-content-center">
+                    <button class="btn btn-primary" @onclick="Replay">
+                        <i class="bi bi-arrow-counterclockwise me-1"></i> Nochmal
+                    </button>
+                    <button class="btn btn-outline-secondary" @onclick='() => Navigation.NavigateTo("/my-quizzes")'>
+                        <i class="bi bi-arrow-left me-1"></i> Zurück zu meinen Quizzes
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    var current = _quiz.Questions[_currentIndex];
+    <div class="container py-4 flex-grow-1">
+        <div class="mb-4">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <h5 class="fw-bold mb-0">@_quiz.Name</h5>
+                <span class="text-muted">Frage @(_currentIndex + 1) / @_quiz.Questions.Count</span>
+            </div>
+            <div class="progress" style="height: 8px;">
+                <div class="progress-bar bg-purple" style="width: @ProgressPercent%"></div>
+            </div>
+        </div>
+
+        @if (current.Type == QuestionType.SpotTest && current.SpotTest is not null)
+        {
+            <SpotTestQuestionView
+                Question="current.SpotTest"
+                Description="@current.Description"
+                AllReactions="_allReactions"
+                OnAnswered="HandleSpotTestAnswer" />
+        }
+        else if (current.Type == QuestionType.SpotTestLight && current.Light is not null)
+        {
+            <LightQuestionView
+                Question="current.Light"
+                Description="@current.Description"
+                OnAnswered="HandleLightAnswer" />
+        }
+    </div>
+}
+
+@code {
+    [Parameter] public int QuizId { get; set; }
+    [Inject] private IQuizService QuizService { get; set; } = default!;
+    [Inject] private IChemistryDataService ChemistryService { get; set; } = default!;
+    [Inject] private NavigationManager Navigation { get; set; } = default!;
+    [CascadingParameter] private Task<AuthenticationState> AuthState { get; set; } = default!;
+
+    private Guid _userId;
+    private QuizPlayDto? _quiz;
+    private List<LabReactionDto> _allReactions = new();
+    private int _currentIndex;
+    private bool _isCompleted;
+    private readonly List<QuestionResult> _results = new();
+    private string? _errorMessage;
+
+    private int ProgressPercent => _quiz!.Questions.Count > 0
+        ? (int)((double)_currentIndex / _quiz.Questions.Count * 100)
+        : 0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (!RendererInfo.IsInteractive) return;
+
+        var auth = await AuthState;
+        var userIdClaim = auth.User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                        ?? auth.User.FindFirst("sub")?.Value;
+        if (!Guid.TryParse(userIdClaim, out _userId))
+        {
+            _errorMessage = "Benutzerprofil konnte nicht gelesen werden.";
+            return;
+        }
+
+        try
+        {
+            _quiz = await QuizService.StartOrResumeQuiz(_userId, QuizId);
+        }
+        catch (UnauthorizedAccessException)
+        {
+            Navigation.NavigateTo("/my-quizzes");
+            return;
+        }
+
+        _allReactions = await ChemistryService.GetAllReactionsAsync();
+    }
+
+    private async Task HandleSpotTestAnswer(SpotTestQuestionView.SpotTestAnswered answer)
+    {
+        var current = _quiz!.Questions[_currentIndex];
+        await QuizService.ValidateAndSaveStQuestion(new ValidateStQuestionDto
+        {
+            UserId = _userId,
+            QuizId = _quiz.QuizID,
+            QuestionId = current.QuestionID,
+            ChemicalFormulas = answer.ChemicalFormulas
+        });
+
+        _results.Add(new QuestionResult
+        {
+            QuestionID = current.QuestionID,
+            Type = QuestionType.SpotTest,
+            IsCorrect = answer.AllCorrect
+        });
+
+        await AdvanceOrComplete();
+    }
+
+    private async Task HandleLightAnswer(LightQuestionView.LightAnswered answer)
+    {
+        var current = _quiz!.Questions[_currentIndex];
+        await QuizService.ValidateAndSaveStlQuestion(new ValidateStlQuestionDto
+        {
+            UserId = _userId,
+            QuizId = _quiz.QuizID,
+            QuestionId = current.QuestionID,
+            ReactionId = answer.ChosenReactionId
+        });
+
+        _results.Add(new QuestionResult
+        {
+            QuestionID = current.QuestionID,
+            Type = QuestionType.SpotTestLight,
+            IsCorrect = answer.IsCorrect
+        });
+
+        await AdvanceOrComplete();
+    }
+
+    private async Task AdvanceOrComplete()
+    {
+        if (_currentIndex + 1 < _quiz!.Questions.Count)
+        {
+            _currentIndex++;
+        }
+        else
+        {
+            await QuizService.CompleteAttempt(_quiz.AttemptID);
+            _isCompleted = true;
+        }
+        StateHasChanged();
+    }
+
+    private async Task Replay()
+    {
+        _quiz = await QuizService.StartNewAttempt(_userId, QuizId);
+        _currentIndex = 0;
+        _results.Clear();
+        _isCompleted = false;
+    }
+
+    private class QuestionResult
+    {
+        public int QuestionID { get; init; }
+        public QuestionType Type { get; init; }
+        public bool IsCorrect { get; init; }
+    }
+}

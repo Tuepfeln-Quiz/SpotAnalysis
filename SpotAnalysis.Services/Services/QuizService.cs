@@ -173,113 +173,64 @@ public class QuizService(ILogger<QuizService> logger, IDbContextFactory<Analysis
     public async Task<List<QuizOverviewDto>> GetQuizzes(Guid studentId)
     {
         await using var context = await factory.CreateDbContextAsync();
-        return context.Quizzes
-            .Where(q => q.CreatedBy == studentId || 
-                        q.Groups.Any(g => 
-                            g.Users.Any(u => u.UserID == studentId)))
-            .Select(q => new QuizOverviewDto
+
+        return await context.Quizzes
+            .Where(q => q.CreatedBy == studentId ||
+                        q.Groups.Any(g => g.Users.Any(u => u.UserID == studentId)))
+            .Select(q => new
             {
-                Id = q.QuizID,
-                Name = q.Name,
-                STCount = q.QuizQuestions.Count(qq => qq.Question.Type == QuestionType.SpotTest),
-                STLCount = q.QuizQuestions.Count(qq => qq.Question.Type == QuestionType.SpotTestLight),
+                Quiz = q,
+                LatestAttempt = q.Attempts
+                    .Where(a => a.UserID == studentId)
+                    .OrderByDescending(a => a.AttemptID)
+                    .FirstOrDefault()
             })
-            .ToList();
-    }
-
-    public async Task<QuizDto> OpenQuiz(Guid studentId, int quizId)
-    {
-        await using var context = await factory.CreateDbContextAsync();
-
-        var attempt = await context.QuizAttempts.Where(qa => qa.UserID == studentId && qa.QuizID == quizId)
-            .FirstOrDefaultAsync();
-
-        if (attempt == null)
-        {
-            context.QuizAttempts.Add(new QuizAttempt
+            .Select(x => new QuizOverviewDto
             {
-                QuizID = quizId,
-                UserID = studentId,
-                Started = DateTime.Now
-            });
-        }
-
-        await context.SaveChangesAsync();
-
-        return await context.Quizzes.Where(q => q.QuizID == quizId)
-            .Select(q => new QuizDto
-            {
-                Name = q.Name,
-                STLQuestions = q.QuizQuestions.Where(qq => qq.Question.Type == QuestionType.SpotTestLight)
-                    .Select(question => new STLQuestionDto
-                    {
-                        Id = question.QuestionID,
-                        Description = question.Question.Description,
-                        Order = question.Order,
-                        Educt = new ChemicalDto
-                        {
-                            Id = question.Question.STLQuestion!.ShownEductID,
-                            Color = question.Question.STLQuestion.ShownEduct.Color,
-                            Name = question.Question.STLQuestion.ShownEduct.Name,
-                            Formula = question.Question.STLQuestion.ShownEduct.Formula,
-                            MethodInfo = question.Question.STLQuestion.ShownEduct.MethodOutputs.Select(mo => new MethodInfoDto
-                            {
-                                Name = mo.Method.Name,
-                                Color = mo.Color,
-                            }).ToList(),
-                        },
-                        Observation = question.Question.STLQuestion.Reaction.Observation.Description
-                    }).ToList(),
-                STQuestions = q.QuizQuestions.Where(qq => qq.Question.Type == QuestionType.SpotTest)
-                    .Select(question => new STQuestionDto
-                    {
-                        Id = question.QuestionID,
-                        Description = question.Question.Description,
-                        Order = question.Order,
-                        Chemicals = question.Question.STQuestion!.AvailableChemicals.Select(sta => new ChemicalQuestionDto
-                        {
-                            Id = sta.ChemicalID,
-                            Color = sta.Chemical.Color,
-                            Name = sta.Chemical.Name,
-                            Formula = sta.Chemical.Formula,
-                            IsAdditive = sta.Chemical.Type == ChemicalType.Additive,
-                        }).ToList(),
-                        Methods = question.Question.STQuestion.AvailableMethods.Select(am => new MethodQuestionDto
-                        {
-                            Name = am.Method.Name,
-                            Id = am.MethodID,
-                        }).ToList(),
-                    }).ToList(),
-            }).SingleAsync();
+                Id = x.Quiz.QuizID,
+                Name = x.Quiz.Name,
+                STCount = x.Quiz.QuizQuestions.Count(qq => qq.Question.Type == QuestionType.SpotTest),
+                STLCount = x.Quiz.QuizQuestions.Count(qq => qq.Question.Type == QuestionType.SpotTestLight),
+                QuestionCount = x.Quiz.QuizQuestions.Count,
+                GroupCount = x.Quiz.Groups.Count,
+                LastAttemptStatus =
+                    x.LatestAttempt == null
+                        ? LastAttemptStatus.NotStarted
+                        : x.LatestAttempt.Completed == default
+                            ? LastAttemptStatus.InProgress
+                            : LastAttemptStatus.Completed,
+                LastCompletedAt =
+                    x.LatestAttempt != null && x.LatestAttempt.Completed != default
+                        ? x.LatestAttempt.Completed
+                        : (DateTime?)null
+            })
+            .ToListAsync();
     }
 
     public async Task<STLResult> ValidateAndSaveStlQuestion(ValidateStlQuestionDto answer)
     {
         await using var context = await factory.CreateDbContextAsync();
-        
-        var quiz = await context.Users.Where(u => u.UserID == answer.UserId).SelectMany(u => u.Quizzes)
-            .Where(q => q.QuizID == answer.QuizId)
-            .Select(x => new StlQuestionData
-            {
-                StlAvailableReactions = x.Questions.Single(qq => qq.QuestionID == answer.QuestionId).STLQuestion.AvailableReactions.ToList(),
-                Question = x.Questions.Single(qq => qq.QuestionID == answer.QuestionId),
-                Attempt = x.Attempts.Single(a => a.UserID == answer.UserId),
-                StlInput = x.Questions.Single(qq => qq.QuestionID == answer.QuestionId).STLQuestion.Reaction
-            })
+
+        var attempt = await GetOpenAttempt(context, answer.UserId, answer.QuizId);
+
+        var correctObservationId = await context.Questions
+            .Where(q => q.QuestionID == answer.QuestionId)
+            .Select(q => q.STLQuestion!.Reaction.ObservationID)
             .SingleAsync();
 
-        var reaction = await context.Reactions.Where(r => r.ReactionID == answer.ReactionId)
-            .Include(reaction => reaction.Observation)
+        var chosenObservationId = await context.Reactions
+            .Where(r => r.ReactionID == answer.ReactionId)
+            .Select(r => r.ObservationID)
             .SingleAsync();
-                
+
         var newResult = new STLResult
         {
-            AttemptID = quiz.Attempt.AttemptID,
-            QuestionID = quiz.Question.QuestionID,
-            ChosenReactionID = reaction.ReactionID,
-            IsCorrect = quiz.StlInput!.Observation == reaction.Observation
+            AttemptID = attempt.AttemptID,
+            QuestionID = answer.QuestionId,
+            ChosenReactionID = answer.ReactionId,
+            IsCorrect = correctObservationId == chosenObservationId
         };
-        
+
         await context.STLResults.AddAsync(newResult);
         await context.SaveChangesAsync();
 
@@ -289,46 +240,53 @@ public class QuizService(ILogger<QuizService> logger, IDbContextFactory<Analysis
     public async Task<STResult> ValidateAndSaveStQuestion(ValidateStQuestionDto answer)
     {
         await using var context = await factory.CreateDbContextAsync();
+        await using var transaction = await context.Database.BeginTransactionAsync();
 
-        await context.Database.BeginTransactionAsync();
-        
-        var quiz = await context.Users.Where(u => u.UserID == answer.UserId).SelectMany(u => u.Quizzes)
-            .Where(q => q.QuizID == answer.QuizId)
-            .Select(x => new StQuestionData
-            {
-                Attempt = x.Attempts.Single(a => a.UserID == answer.UserId),
-                Question = x.Questions.Single(qq => qq.QuestionID == answer.QuestionId),
-                StAvailableChemicals = x.Questions.Single(qq => qq.QuestionID == answer.QuestionId).STQuestion.AvailableChemicals.ToList()
-            })
-            .SingleAsync();
-        
+        var attempt = await GetOpenAttempt(context, answer.UserId, answer.QuizId);
+
+        var orderedEducts = await context.Questions
+            .Where(q => q.QuestionID == answer.QuestionId)
+            .SelectMany(q => q.STQuestion!.AvailableChemicals)
+            .Where(ac => ac.Chemical.Type == ChemicalType.Educt)
+            .OrderBy(ac => ac.Order)
+            .Select(ac => ac.Chemical.Formula)
+            .ToListAsync();
+
         var result = new STResult
         {
-            QuestionID = quiz.Question.QuestionID,
-            AttemptID = quiz.Attempt.AttemptID
+            QuestionID = answer.QuestionId,
+            AttemptID = attempt.AttemptID
         };
-
         context.STResults.Add(result);
-
         await context.SaveChangesAsync();
 
-        var orderedAvailableChemicals = quiz.Question.STQuestion.AvailableChemicals.OrderBy(sta => sta.Order).ToList();
-
         var chemicalResults = answer.ChemicalFormulas
-            .Select((_, i) => new STChemicalResult
+            .Select((formula, i) => new STChemicalResult
             {
-                ResultID = result.ResultID, 
-                ChosenFormula = answer.ChemicalFormulas.ElementAt(i), 
-                IsCorrect = orderedAvailableChemicals.ElementAt(i).Chemical.Formula == answer.ChemicalFormulas.ElementAt(i),
+                ResultID = result.ResultID,
+                ChosenFormula = formula,
+                IsCorrect = i < orderedEducts.Count && orderedEducts[i] == formula
             }).ToList();
 
         await context.STChemicalResults.AddRangeAsync(chemicalResults);
-
         await context.SaveChangesAsync();
-
-        await context.Database.CommitTransactionAsync();
+        await transaction.CommitAsync();
 
         return result;
+    }
+
+    private static async Task<QuizAttempt> GetOpenAttempt(AnalysisContext context, Guid userId, int quizId)
+    {
+        var attempt = await context.QuizAttempts
+            .Where(a => a.UserID == userId && a.QuizID == quizId && a.Completed == default)
+            .OrderByDescending(a => a.AttemptID)
+            .FirstOrDefaultAsync();
+
+        if (attempt is null)
+            throw new InvalidOperationException(
+                $"No open attempt for user {userId} on quiz {quizId}.");
+
+        return attempt;
     }
 
     public async Task<QuizAttempt?> GetQuizAttempt(Guid studentId, int quizId)
@@ -647,19 +605,195 @@ public class QuizService(ILogger<QuizService> logger, IDbContextFactory<Analysis
         await transaction.CommitAsync();
     }
 
-    private class StlQuestionData
+    public async Task<QuizPlayDto> StartOrResumeQuiz(Guid userId, int quizId)
     {
-        public List<STLAvailableReaction> StlAvailableReactions { get; set; } = [];
-        public required Question Question { get; set; }
-        public required QuizAttempt Attempt  { get; set; }
-        public Reaction? StlInput { get; set; }
+        await using var db = await factory.CreateDbContextAsync();
+
+        var hasAccess = await db.Quizzes.AnyAsync(q =>
+            q.QuizID == quizId &&
+            (q.CreatedBy == userId || q.Groups.Any(g => g.Users.Any(u => u.UserID == userId))));
+        if (!hasAccess)
+            throw new UnauthorizedAccessException("User has no access to this quiz.");
+
+        var openAttempt = await db.QuizAttempts
+            .Where(a => a.UserID == userId && a.QuizID == quizId && a.Completed == default)
+            .OrderByDescending(a => a.AttemptID)
+            .FirstOrDefaultAsync();
+
+        if (openAttempt is null)
+        {
+            openAttempt = new QuizAttempt
+            {
+                UserID = userId,
+                QuizID = quizId,
+                Started = DateTime.Now
+            };
+            db.QuizAttempts.Add(openAttempt);
+            await db.SaveChangesAsync();
+        }
+
+        return await BuildQuizPlayDto(db, quizId, openAttempt.AttemptID);
     }
 
-    private class StQuestionData
+    private static async Task<QuizPlayDto> BuildQuizPlayDto(AnalysisContext db, int quizId, int attemptId)
     {
-        public required QuizAttempt Attempt  { get; set; }
-        public required Question Question { get; set; }
-        public List<STAvailableChemical> StAvailableChemicals { get; set; } = [];
-        public List<STAvailableMethod> StAvailableMethods { get; set; } = [];
+        var quiz = await db.Quizzes
+            .Where(q => q.QuizID == quizId)
+            .Include(q => q.QuizQuestions).ThenInclude(qq => qq.Question)
+                .ThenInclude(question => question.STQuestion!)
+                    .ThenInclude(st => st.AvailableChemicals)
+                        .ThenInclude(ac => ac.Chemical)
+                            .ThenInclude(c => c.MethodOutputs).ThenInclude(mo => mo.Method)
+            .Include(q => q.QuizQuestions).ThenInclude(qq => qq.Question)
+                .ThenInclude(question => question.STQuestion!)
+                    .ThenInclude(st => st.AvailableMethods).ThenInclude(am => am.Method)
+            .Include(q => q.QuizQuestions).ThenInclude(qq => qq.Question)
+                .ThenInclude(question => question.STLQuestion!)
+                    .ThenInclude(stl => stl.ShownEduct)
+                        .ThenInclude(c => c.MethodOutputs).ThenInclude(mo => mo.Method)
+            .Include(q => q.QuizQuestions).ThenInclude(qq => qq.Question)
+                .ThenInclude(question => question.STLQuestion!)
+                    .ThenInclude(stl => stl.Reaction).ThenInclude(r => r.Observation)
+            .Include(q => q.QuizQuestions).ThenInclude(qq => qq.Question)
+                .ThenInclude(question => question.STLQuestion!)
+                    .ThenInclude(stl => stl.AvailableReactions).ThenInclude(ar => ar.Reaction).ThenInclude(r => r.Chemical1)
+            .Include(q => q.QuizQuestions).ThenInclude(qq => qq.Question)
+                .ThenInclude(question => question.STLQuestion!)
+                    .ThenInclude(stl => stl.AvailableReactions).ThenInclude(ar => ar.Reaction).ThenInclude(r => r.Chemical2)
+            .Include(q => q.QuizQuestions).ThenInclude(qq => qq.Question)
+                .ThenInclude(question => question.STLQuestion!)
+                    .ThenInclude(stl => stl.AvailableReactions).ThenInclude(ar => ar.Reaction).ThenInclude(r => r.Observation)
+            .AsNoTracking()
+            .SingleAsync();
+
+        var questions = quiz.QuizQuestions
+            .OrderBy(qq => qq.Order)
+            .Select(qq => MapQuestionPayload(qq))
+            .ToList();
+
+        return new QuizPlayDto
+        {
+            QuizID = quiz.QuizID,
+            Name = quiz.Name,
+            AttemptID = attemptId,
+            Questions = questions
+        };
     }
+
+    private static QuizQuestionPayloadDto MapQuestionPayload(QuizQuestion qq) => qq.Question.Type switch
+    {
+        QuestionType.SpotTest => new QuizQuestionPayloadDto
+        {
+            QuestionID = qq.QuestionID,
+            Order = qq.Order,
+            Description = qq.Question.Description,
+            Type = QuestionType.SpotTest,
+            SpotTest = new SpotTestPayloadDto
+            {
+                UnknownEducts = qq.Question.STQuestion!.AvailableChemicals
+                    .Where(ac => ac.Chemical.Type == ChemicalType.Educt)
+                    .OrderBy(ac => ac.Order)
+                    .Select(ac => MapLabChemical(ac.Chemical)).ToList(),
+                AvailableAdditives = qq.Question.STQuestion.AvailableChemicals
+                    .Where(ac => ac.Chemical.Type == ChemicalType.Additive)
+                    .OrderBy(ac => ac.Order)
+                    .Select(ac => MapLabChemical(ac.Chemical)).ToList(),
+                AvailableMethods = qq.Question.STQuestion.AvailableMethods
+                    .Select(am => am.Method.Name).ToList()
+            }
+        },
+        QuestionType.SpotTestLight => new QuizQuestionPayloadDto
+        {
+            QuestionID = qq.QuestionID,
+            Order = qq.Order,
+            Description = qq.Question.Description,
+            Type = QuestionType.SpotTestLight,
+            Light = new LightPayloadDto
+            {
+                ShownEduct = MapChemicalToChemicalDto(qq.Question.STLQuestion!.ShownEduct),
+                Observation = qq.Question.STLQuestion.Reaction.Observation.Description,
+                CorrectReactionID = qq.Question.STLQuestion.ReactionID,
+                AvailableReactions = qq.Question.STLQuestion.AvailableReactions
+                    .Select(ar => new LabReactionDto
+                    {
+                        ReactionID = ar.Reaction.ReactionID,
+                        Chemical1ID = ar.Reaction.Chemical1ID,
+                        Chemical2ID = ar.Reaction.Chemical2ID,
+                        Chemical1Name = ar.Reaction.Chemical1.Name,
+                        Chemical2Name = ar.Reaction.Chemical2.Name,
+                        RelevantProduct = ar.Reaction.RelevantProduct,
+                        Formula = ar.Reaction.Formula,
+                        ObservationDescription = ar.Reaction.Observation.Description,
+                        ImagePath = ar.Reaction.ImagePath
+                    }).ToList()
+            }
+        },
+        _ => throw new InvalidOperationException($"Unknown QuestionType {qq.Question.Type}")
+    };
+
+    private static LabChemicalDto MapLabChemical(Chemical c) => new()
+    {
+        ChemicalID = c.ChemicalID,
+        Name = c.Name,
+        Formula = c.Formula,
+        ImagePath = c.ImagePath,
+        Type = c.Type,
+        ChemicalTypeID = (int)c.Type,
+        ChemicalTypeName = c.Type == ChemicalType.Educt ? "Edukt" : "Zusatzstoff",
+        Color = c.Color,
+        MethodOutputs = c.MethodOutputs.ToDictionary(mo => mo.Method.Name, mo => mo.Color)
+    };
+
+    private static ChemicalDto MapChemicalToChemicalDto(Chemical c) => new()
+    {
+        Id = c.ChemicalID,
+        Name = c.Name,
+        Formula = c.Formula,
+        Color = c.Color,
+        MethodInfo = c.MethodOutputs.Select(mo => new MethodInfoDto
+        {
+            Name = mo.Method.Name,
+            Color = mo.Color
+        }).ToList()
+    };
+
+    public async Task<QuizPlayDto> StartNewAttempt(Guid userId, int quizId)
+    {
+        await using var db = await factory.CreateDbContextAsync();
+
+        var hasAccess = await db.Quizzes.AnyAsync(q =>
+            q.QuizID == quizId &&
+            (q.CreatedBy == userId || q.Groups.Any(g => g.Users.Any(u => u.UserID == userId))));
+        if (!hasAccess)
+            throw new UnauthorizedAccessException("User has no access to this quiz.");
+
+        var openAttempt = await db.QuizAttempts
+            .Where(a => a.UserID == userId && a.QuizID == quizId && a.Completed == default)
+            .OrderByDescending(a => a.AttemptID)
+            .FirstOrDefaultAsync();
+        if (openAttempt is not null)
+        {
+            openAttempt.Completed = DateTime.Now;
+        }
+
+        var fresh = new QuizAttempt
+        {
+            UserID = userId,
+            QuizID = quizId,
+            Started = DateTime.Now
+        };
+        db.QuizAttempts.Add(fresh);
+        await db.SaveChangesAsync();
+
+        return await BuildQuizPlayDto(db, quizId, fresh.AttemptID);
+    }
+
+    public async Task CompleteAttempt(int attemptId)
+    {
+        await using var db = await factory.CreateDbContextAsync();
+        var attempt = await db.QuizAttempts.SingleAsync(a => a.AttemptID == attemptId);
+        attempt.Completed = DateTime.Now;
+        await db.SaveChangesAsync();
+    }
+
 }

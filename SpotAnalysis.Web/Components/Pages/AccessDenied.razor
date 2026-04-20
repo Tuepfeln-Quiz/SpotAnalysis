@@ -1,0 +1,36 @@
+﻿@page "/access-denied"
+
+<PageTitle>Zugriff verweigert</PageTitle>
+
+<div class="container text-center mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <h2 class="mb-4">Zugriff verweigert</h2>
+            
+            <p class="lead mb-5 text-muted">
+                Sie haben keinen Zugriff auf diesen Bereich.
+                Melden Sie sich mit einem anderen Account an oder wechseln Sie auf eine andere Seite.
+            </p>
+
+            <div class="d-flex justify-content-center gap-3 flex-wrap">
+                <a href="/" class="btn btn-primary px-3">
+                    Zu den Quizzes
+                </a>
+                <AuthorizeView>
+                    <NotAuthorized>
+                        <a href="/login" class="btn btn-outline-secondary px-3">
+                            Zum Login
+                        </a>
+                    </NotAuthorized>
+                    <Authorized>
+                        <form method="post" action="/api/auth/logout">
+                            <button type="submit" class="btn btn-outline-danger px-3">
+                                <i class="bi bi-box-arrow-left"></i> Logout
+                            </button>
+                        </form>
+                    </Authorized>
+                </AuthorizeView>
+            </div>
+        </div>
+    </div>
+</div>

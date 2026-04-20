@@ -69,7 +69,7 @@ public static class EndpointExtensions {
 
         app.MapPost("/api/auth/logout", async (HttpContext context) => {
             await context.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-            return Results.Redirect("/login");
+            return Results.Redirect("/");
         });
 
         return app;

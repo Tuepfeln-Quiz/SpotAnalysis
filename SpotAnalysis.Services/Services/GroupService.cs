@@ -73,7 +73,8 @@ public class GroupService : IGroupService
         return teacher.SelectMany(u => u.Groups)
             .Where(g => g.GroupID == groupId)
             .SelectMany(g => g.Users)
-            .Where(u => u.Roles.Any(r => r == Role.Student))
+            .Where(u => u.Roles.Any(r => r == Role.Student)
+                     && !u.Roles.Any(r => r == Role.Teacher || r == Role.Admin))
             .Select(u => new StudentDto
             {
                 Id = u.UserID,
@@ -135,8 +136,11 @@ public class GroupService : IGroupService
     {
         await using var ctx = await _factory.CreateDbContextAsync();
 
+        // Ein Lehrer hat konventionsgemaess auch die Student-Rolle; hier sollen
+        // nur "echte" Schueler erscheinen, daher Teacher/Admin ausschliessen.
         var q = ctx.Users
-            .Where(u => u.Roles.Any(r => r == Role.Student));
+            .Where(u => u.Roles.Any(r => r == Role.Student)
+                     && !u.Roles.Any(r => r == Role.Teacher || r == Role.Admin));
 
         if (!string.IsNullOrWhiteSpace(query))
             q = q.Where(u => u.UserName.Contains(query));

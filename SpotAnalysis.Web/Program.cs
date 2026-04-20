@@ -1,5 +1,6 @@
 using Serilog;
 using SpotAnalysis.Services;
+using SpotAnalysis.Services.Services;
 using SpotAnalysis.Web.Components;
 using SpotAnalysis.Web.Extensions;
 
@@ -7,7 +8,7 @@ namespace SpotAnalysis.Web;
 
 public class Program
 {
-    public static void Main(string[] args)
+    public static async Task Main(string[] args)
     {
         var builder = WebApplication.CreateBuilder(args);
 
@@ -35,6 +36,19 @@ public class Program
         {
             app.UseExceptionHandler("/Error");
             app.UseHsts();
+        }
+        else
+        {
+            await using var scope = app.Services.CreateAsyncScope();
+            var seeder = scope.ServiceProvider.GetRequiredService<IDatabaseSeeder>();
+            try
+            {
+                await seeder.SeedAsync();
+            }
+            catch (Exception ex)
+            {
+                app.Logger.LogError(ex, "Dev data seeding failed (database not migrated yet?)");
+            }
         }
 
         app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);

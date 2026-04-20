@@ -1,5 +1,283 @@
 @page "/statistics"
 @attribute [Authorize]
+@rendermode InteractiveServer
+@using System.Globalization
+
 <PageTitle>Statistiken</PageTitle>
-<h1>Statistiken</h1>
-<p>Coming soon...</p>
+
+<div class="container py-4">
+	@if (_isLoading)
+	{
+		<p class="text-muted">Lade Statistiken...</p>
+	}
+	else
+	{
+		<h2 class="fw-bold mb-4">Statistik-Dashboard</h2>
+
+		<div class="section-card mb-4">
+			<div class="d-flex align-items-center justify-content-between mb-3">
+				<h5 class="fw-bold mb-0"><i class="bi bi-person-badge me-2"></i>Meine Statistik</h5>
+				@if (_myStats is not null)
+				{
+					<span class="badge text-bg-light">@_myStats.TotalAttempts Versuche</span>
+				}
+			</div>
+
+			@if (_myStats is null)
+			{
+				<p class="text-muted mb-0">Keine Statistikdaten vorhanden.</p>
+			}
+			else
+			{
+				<div class="row g-3 mb-3">
+					<div class="col-6 col-lg-3">
+						<div class="stat-tile">
+							<div class="stat-value">@_myStats.TotalAttempts</div>
+							<div class="stat-label">Abgeschlossene Quizzes</div>
+						</div>
+					</div>
+					<div class="col-6 col-lg-3">
+						<div class="stat-tile">
+							<div class="stat-value">@_myStats.LightAttempts</div>
+							<div class="stat-label">Light-Versuche</div>
+						</div>
+					</div>
+					<div class="col-6 col-lg-3">
+						<div class="stat-tile">
+							<div class="stat-value">@_myStats.TuepfelnAttempts</div>
+							<div class="stat-label">Tüpfeln-Versuche</div>
+						</div>
+					</div>
+					<div class="col-6 col-lg-3">
+						<div class="stat-tile">
+							<div class="stat-value">@_myStats.AveragePercent.ToString("F1", CultureInfo.InvariantCulture)%</div>
+							<div class="stat-label">Erfolgsquote</div>
+						</div>
+					</div>
+				</div>
+
+				@if (_myHistory.Count == 0)
+				{
+					<p class="text-muted mb-0">Noch keine abgeschlossenen Quiz-Versuche.</p>
+				}
+				else
+				{
+					<div class="table-responsive">
+						<table class="table table-striped align-middle mb-0">
+							<thead>
+								<tr>
+									<th>Quiz</th>
+									<th>Typ</th>
+									<th>Richtig</th>
+									<th>Gesamt</th>
+									<th>Datum</th>
+								</tr>
+							</thead>
+							<tbody>
+								@foreach (var attempt in _myHistory)
+								{
+									<tr>
+										<td>@attempt.QuizName</td>
+										<td>@attempt.QuizType</td>
+										<td>@attempt.CorrectAnswers</td>
+										<td>@attempt.TotalQuestions</td>
+										<td>@attempt.Started.ToString("dd.MM.yyyy HH:mm")</td>
+									</tr>
+								}
+							</tbody>
+						</table>
+					</div>
+				}
+			}
+		</div>
+
+		@if (_isTeacherOrAdmin)
+		{
+			<div class="section-card mb-4">
+				<div class="d-flex align-items-center justify-content-between mb-3">
+					<h5 class="fw-bold mb-0"><i class="bi bi-people me-2"></i>Schülerstatistik</h5>
+				</div>
+
+				@if (_groups.Count == 0)
+				{
+					<p class="text-muted mb-0">Keine Gruppen verfügbar.</p>
+				}
+				else
+				{
+					<div class="row g-3 mb-3">
+						<div class="col-12 col-lg-5">
+							<label class="form-label">Gruppe</label>
+							<select class="form-select" @bind="_selectedGroupId" @bind:after="LoadGroupStatisticsAsync">
+								@foreach (var group in _groups)
+								{
+									<option value="@group.Id">@group.Name</option>
+								}
+							</select>
+						</div>
+						<div class="col-12 col-lg-7 d-flex align-items-end">
+							<button class="btn btn-outline-secondary" @onclick="LoadGroupStatisticsAsync">
+								<i class="bi bi-arrow-clockwise me-1"></i> Aktualisieren
+							</button>
+						</div>
+					</div>
+
+					@if (_groupStudentStatistics.Count == 0)
+					{
+						<p class="text-muted mb-0">Keine Schülerdaten in dieser Gruppe.</p>
+					}
+					else
+					{
+						<div class="table-responsive mb-3">
+							<table class="table table-hover align-middle mb-0">
+								<thead>
+									<tr>
+										<th>Schüler</th>
+										<th>Versuche</th>
+										<th>Richtig/Gesamt</th>
+										<th>Quote</th>
+										<th>Letzter Versuch</th>
+										<th></th>
+									</tr>
+								</thead>
+								<tbody>
+									@foreach (var row in _groupStudentStatistics)
+									{
+										<tr class="@GetStudentRowClass(row)">
+											<td>@row.UserName</td>
+											<td>@row.TotalAttempts</td>
+											<td>@row.TotalCorrect / @row.TotalQuestions</td>
+											<td>@row.AveragePercent.ToString("F1", CultureInfo.InvariantCulture)%</td>
+											<td>@(row.LastAttemptAt?.ToString("dd.MM.yyyy HH:mm") ?? "-")</td>
+											<td class="text-end">
+												<button class="btn btn-sm btn-outline-primary" @onclick="() => LoadStudentHistoryAsync(row.StudentId)">
+													Verlauf
+												</button>
+											</td>
+										</tr>
+									}
+								</tbody>
+							</table>
+						</div>
+
+						@if (_selectedStudentName is not null)
+						{
+							<div class="student-history-block">
+								<h6 class="fw-bold mb-3">Verlauf: @_selectedStudentName</h6>
+								@if (_selectedStudentHistory.Count == 0)
+								{
+									<p class="text-muted mb-0">Keine abgeschlossenen Versuche.</p>
+								}
+								else
+								{
+									<div class="table-responsive">
+										<table class="table table-sm table-striped mb-0">
+											<thead>
+												<tr>
+													<th>Quiz</th>
+													<th>Typ</th>
+													<th>Richtig</th>
+													<th>Gesamt</th>
+													<th>Beginn</th>
+												</tr>
+											</thead>
+											<tbody>
+												@foreach (var attempt in _selectedStudentHistory)
+												{
+													<tr>
+														<td>@attempt.QuizName</td>
+														<td>@attempt.QuizType</td>
+														<td>@attempt.CorrectAnswers</td>
+														<td>@attempt.TotalQuestions</td>
+														<td>@attempt.Started.ToString("dd.MM.yyyy HH:mm")</td>
+													</tr>
+												}
+											</tbody>
+										</table>
+									</div>
+								}
+							</div>
+						}
+					}
+				}
+			</div>
+		}
+	}
+</div>
+
+@code {
+	[Inject] private IStatisticsService StatisticsService { get; set; } = default!;
+	[Inject] private IGroupService GroupService { get; set; } = default!;
+	[CascadingParameter] private Task<AuthenticationState> AuthState { get; set; } = default!;
+
+	private bool _isLoading = true;
+	private bool _isTeacherOrAdmin;
+	private Guid _userId;
+
+	private UserStatisticsDto? _myStats;
+	private List<QuizHistoryDto> _myHistory = [];
+
+	private List<GroupDto> _groups = [];
+	private int _selectedGroupId;
+	private List<StudentStatisticsDto> _groupStudentStatistics = [];
+	private Guid? _selectedStudentId;
+	private string? _selectedStudentName;
+	private List<QuizHistoryDto> _selectedStudentHistory = [];
+
+	protected override async Task OnInitializedAsync()
+	{
+		var auth = await AuthState;
+		_userId = Guid.Parse(auth.User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+		_isTeacherOrAdmin = auth.User.IsInRole("Teacher") || auth.User.IsInRole("Admin");
+
+		_myStats = await StatisticsService.GetUserStatisticsAsync(_userId);
+		_myHistory = await StatisticsService.GetUserHistoryAsync(_userId);
+
+		if (_isTeacherOrAdmin)
+		{
+			_groups = await GroupService.GetGroups(_userId);
+			if (_groups.Count > 0)
+			{
+				_selectedGroupId = _groups[0].Id;
+				await LoadGroupStatisticsAsync();
+			}
+		}
+
+		_isLoading = false;
+	}
+
+	private async Task LoadGroupStatisticsAsync()
+	{
+		if (_selectedGroupId <= 0)
+		{
+			_groupStudentStatistics = [];
+			_selectedStudentId = null;
+			_selectedStudentName = null;
+			_selectedStudentHistory = [];
+			return;
+		}
+
+		_groupStudentStatistics = await StatisticsService.GetGroupStudentStatisticsAsync(_userId, _selectedGroupId);
+
+		if (_selectedStudentId is not null && _groupStudentStatistics.All(x => x.StudentId != _selectedStudentId.Value))
+		{
+			_selectedStudentId = null;
+			_selectedStudentName = null;
+			_selectedStudentHistory = [];
+		}
+		else if (_selectedStudentId is null && _groupStudentStatistics.Count > 0)
+		{
+			await LoadStudentHistoryAsync(_groupStudentStatistics[0].StudentId);
+		}
+	}
+
+	private async Task LoadStudentHistoryAsync(Guid studentId)
+	{
+		_selectedStudentId = studentId;
+		_selectedStudentName = _groupStudentStatistics.FirstOrDefault(x => x.StudentId == studentId)?.UserName;
+
+		_selectedStudentHistory = await StatisticsService.GetGroupStudentHistoryAsync(_userId, _selectedGroupId, studentId);
+	}
+
+	private string GetStudentRowClass(StudentStatisticsDto row)
+		=> _selectedStudentId == row.StudentId ? "table-active" : string.Empty;
+}

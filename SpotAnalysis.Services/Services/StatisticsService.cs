@@ -138,6 +138,119 @@ public class StatisticsService(IDbContextFactory<AnalysisContext> factory) : ISt
             TotalQuestions = CalculateTotal(a)
         }).ToList();
     }
+
+    public async Task<List<StudentStatisticsDto>> GetGroupStudentStatisticsAsync(Guid requesterId, int groupId)
+    {
+        await using var context = await factory.CreateDbContextAsync();
+
+        var authorizedStudentIds = await GetAuthorizedStudentIdsAsync(context, requesterId, groupId);
+        if (authorizedStudentIds.Count == 0)
+        {
+            return [];
+        }
+
+        var students = await context.Users
+            .Where(u => authorizedStudentIds.Contains(u.UserID))
+            .Select(u => new
+            {
+                u.UserID,
+                u.UserName
+            })
+            .ToListAsync();
+
+        var attempts = await context.QuizAttempts
+            .Where(a => authorizedStudentIds.Contains(a.UserID) && a.Completed != DateTime.MinValue)
+            .Include(a => a.STResults).ThenInclude(r => r.ChemicalResults)
+            .Include(a => a.STLResults)
+            .ToListAsync();
+
+        var attemptsByStudent = attempts
+            .GroupBy(a => a.UserID)
+            .ToDictionary(g => g.Key, g => g.ToList());
+
+        return students
+            .Select(student =>
+            {
+                var studentAttempts = attemptsByStudent.GetValueOrDefault(student.UserID, []);
+                var totalCorrect = studentAttempts.Sum(CalculateCorrect);
+                var totalQuestions = studentAttempts.Sum(CalculateTotal);
+                var lastAttemptAt = studentAttempts
+                    .Where(a => a.Completed != DateTime.MinValue)
+                    .OrderByDescending(a => a.Completed)
+                    .Select(a => (DateTime?)a.Completed)
+                    .FirstOrDefault();
+
+                return new StudentStatisticsDto
+                {
+                    StudentId = student.UserID,
+                    UserName = student.UserName,
+                    TotalAttempts = studentAttempts.Count,
+                    TotalCorrect = totalCorrect,
+                    TotalQuestions = totalQuestions,
+                    LastAttemptAt = lastAttemptAt
+                };
+            })
+            .OrderByDescending(x => x.LastAttemptAt)
+            .ThenBy(x => x.UserName)
+            .ToList();
+    }
+
+    public async Task<List<QuizHistoryDto>> GetGroupStudentHistoryAsync(Guid requesterId, int groupId, Guid studentId)
+    {
+        await using var context = await factory.CreateDbContextAsync();
+
+        var authorizedStudentIds = await GetAuthorizedStudentIdsAsync(context, requesterId, groupId);
+        if (!authorizedStudentIds.Contains(studentId))
+        {
+            return [];
+        }
+
+        var attempts = await context.QuizAttempts
+            .Where(a => a.UserID == studentId && a.Completed != DateTime.MinValue)
+            .Include(a => a.STResults).ThenInclude(r => r.ChemicalResults)
+            .Include(a => a.STLResults)
+            .Include(a => a.Quiz).ThenInclude(q => q.QuizQuestions).ThenInclude(qq => qq.Question)
+            .OrderByDescending(a => a.Started)
+            .ToListAsync();
+
+        return attempts.Select(a => new QuizHistoryDto
+        {
+            AttemptId = a.AttemptID,
+            QuizId = a.QuizID,
+            QuizName = a.Quiz.Name,
+            QuizType = DetermineQuizType(a),
+            Started = a.Started,
+            Completed = a.Completed == DateTime.MinValue ? null : a.Completed,
+            CorrectAnswers = CalculateCorrect(a),
+            TotalQuestions = CalculateTotal(a)
+        }).ToList();
+    }
+
+    private static async Task<List<Guid>> GetAuthorizedStudentIdsAsync(AnalysisContext context, Guid requesterId, int groupId)
+    {
+        var requester = await context.Users
+            .Where(u => u.UserID == requesterId)
+            .Select(u => new
+            {
+                IsAdmin = u.Roles.Any(r => r == Role.Admin),
+                IsTeacherInGroup = u.Roles.Any(r => r == Role.Teacher) && u.Groups.Any(g => g.GroupID == groupId)
+            })
+            .SingleOrDefaultAsync();
+
+        if (requester is null || (!requester.IsAdmin && !requester.IsTeacherInGroup))
+        {
+            return [];
+        }
+
+        return await context.Groups
+            .Where(g => g.GroupID == groupId)
+            .SelectMany(g => g.Users)
+            .Where(u => u.Roles.Any(r => r == Role.Student))
+            .Select(u => u.UserID)
+            .Distinct()
+            .ToListAsync();
+    }
+
     private static QuestionType DetermineQuizType(QuizAttempt attempt)
     {
         

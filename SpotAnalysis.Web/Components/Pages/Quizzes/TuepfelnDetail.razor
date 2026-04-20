@@ -1,6 +1,7 @@
 @page "/tuepfeln/quiz/{QuizId:int}"
 @inject NavigationManager Navigation
 @inject IChemistryDataService ChemistryData
+@inject IStatisticsService StatisticsService
 
 <PageTitle>@(quiz?.Name ?? "Quiz") – Tüpfeln Digital</PageTitle>
 
@@ -348,6 +349,8 @@ else
 }
 
 @code {
+    [CascadingParameter] private Task<AuthenticationState> AuthState { get; set; } = default!;
+
     [Parameter]
     public int QuizId { get; set; }
 
@@ -397,6 +400,12 @@ else
     // Tracking enthüllter Methoden pro Edukt
     private Dictionary<int, HashSet<string>> revealedMethods = new();
 
+    private bool canPersistResults;
+    private Guid currentUserId;
+    private int? currentAttemptId;
+    private bool attemptCompleted;
+    private HashSet<int> savedQuestionIds = new();
+
     private SpotTestQuestionDto CurrentQuestion => quiz!.Questions[currentQuestionIndex];
 
     private int ProgressPercent => quiz!.Questions.Count > 0
@@ -405,9 +414,19 @@ else
 
     protected override async Task OnInitializedAsync()
     {
+        var auth = await AuthState;
+        if (auth.User.Identity?.IsAuthenticated == true)
+        {
+            canPersistResults = Guid.TryParse(auth.User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out currentUserId);
+        }
+
         quiz = await ChemistryData.GetSpotTestQuizAsync(QuizId);
         allReactions = await ChemistryData.GetAllReactionsAsync();
-        if (quiz != null) InitQuestion();
+        if (quiz != null)
+        {
+            InitQuestion();
+            await StartAttemptIfNeededAsync();
+        }
     }
 
     private void InitQuestion()
@@ -669,7 +688,7 @@ else
         return "";
     }
 
-    private void CheckAnswers()
+    private async Task CheckAnswers()
     {
         var q = CurrentQuestion;
         int correctCount = 0;
@@ -685,6 +704,19 @@ else
 
         hasChecked = true;
         questionScores[currentQuestionIndex] = (correctCount, q.UnknownEducts.Count);
+
+        if (canPersistResults && currentAttemptId.HasValue && savedQuestionIds.Add(q.QuestionID))
+        {
+            var answersToSave = Enumerable
+                .Range(0, q.UnknownEducts.Count)
+                .Select(i => (
+                    chemicalID: q.UnknownEducts[i].ChemicalID,
+                    formula: answers.GetValueOrDefault(i, string.Empty).Trim(),
+                    isCorrect: answerResults.GetValueOrDefault(i) == true))
+                .ToList();
+
+            await StatisticsService.SaveTuepfelnResultAsync(currentAttemptId.Value, q.QuestionID, answersToSave);
+        }
     }
 
     private void ShowSolution()
@@ -701,7 +733,7 @@ else
 
     // ── Navigation ───────────────────────────────────────────────────
 
-    private void NextQuestion()
+    private async Task NextQuestion()
     {
         if (currentQuestionIndex + 1 < quiz!.Questions.Count)
         {
@@ -711,6 +743,7 @@ else
         else
         {
             quizCompleted = true;
+            await CompleteAttemptIfNeededAsync();
         }
     }
 
@@ -721,12 +754,38 @@ else
         InitQuestion();
     }
 
-    private void RestartQuiz()
+    private async Task RestartQuiz()
     {
         currentQuestionIndex = 0;
         quizCompleted = false;
         questionScores.Clear();
+        savedQuestionIds.Clear();
+        attemptCompleted = false;
+
+        await StartAttemptIfNeededAsync();
         InitQuestion();
+    }
+
+    private async Task StartAttemptIfNeededAsync()
+    {
+        if (!canPersistResults || quiz is null)
+        {
+            currentAttemptId = null;
+            return;
+        }
+
+        currentAttemptId = await StatisticsService.CreateAttemptAsync(currentUserId, quiz.QuizID);
+    }
+
+    private async Task CompleteAttemptIfNeededAsync()
+    {
+        if (!canPersistResults || !currentAttemptId.HasValue || attemptCompleted)
+        {
+            return;
+        }
+
+        await StatisticsService.CompleteAttemptAsync(currentAttemptId.Value);
+        attemptCompleted = true;
     }
 
     // ── Helpers ──────────────────────────────────────────────────────

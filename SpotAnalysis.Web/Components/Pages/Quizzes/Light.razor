@@ -1,6 +1,7 @@
 @page "/light"
 @inject NavigationManager Navigation
 @inject IChemistryDataService ChemistryData
+@inject IStatisticsService StatisticsService
 
 <PageTitle>Light – Tüpfeln Digital</PageTitle>
 
@@ -175,6 +176,8 @@
 </div>
 
 @code {
+    [CascadingParameter] private Task<AuthenticationState> AuthState { get; set; } = default!;
+
     private List<LightQuizDto> lightQuizzes = new();
     private List<LabChemicalDto> allChemicals = new();
 
@@ -186,11 +189,22 @@
     private int selectedReactionId;
     private bool hasChecked;
     private bool lastCorrect;
+    private bool canPersistResults;
+    private Guid currentUserId;
+    private int? currentAttemptId;
+    private bool attemptCompleted;
+    private HashSet<int> savedQuestionIds = new();
 
     private LightQuestionDto CurrentQuestion => selectedQuiz!.Questions[currentQuestionIndex];
 
     protected override async Task OnInitializedAsync()
     {
+        var auth = await AuthState;
+        if (auth.User.Identity?.IsAuthenticated == true)
+        {
+            canPersistResults = Guid.TryParse(auth.User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out currentUserId);
+        }
+
         lightQuizzes = await ChemistryData.GetLightQuizzesAsync();
         allChemicals = await ChemistryData.GetAllChemicalsAsync();
     }
@@ -198,12 +212,20 @@
         ? (int)((double)currentQuestionIndex / selectedQuiz.Questions.Count * 100)
         : 0;
 
-    private void SelectQuiz(LightQuizDto quiz)
+    private async Task SelectQuiz(LightQuizDto quiz)
     {
         selectedQuiz = quiz;
         currentQuestionIndex = 0;
         quizCompleted = false;
         correctCount = 0;
+        savedQuestionIds.Clear();
+        attemptCompleted = false;
+
+        if (canPersistResults)
+        {
+            currentAttemptId = await StatisticsService.CreateAttemptAsync(currentUserId, quiz.QuizID);
+        }
+
         ResetSelection();
     }
 
@@ -213,16 +235,25 @@
             selectedReactionId = reactionId;
     }
 
-    private void Check()
+    private async Task Check()
     {
         if (selectedReactionId == 0 || selectedQuiz == null) return;
 
         hasChecked = true;
         lastCorrect = selectedReactionId == CurrentQuestion.CorrectReactionID;
         if (lastCorrect) correctCount++;
+
+        if (canPersistResults && currentAttemptId.HasValue && savedQuestionIds.Add(CurrentQuestion.QuestionID))
+        {
+            await StatisticsService.SaveLightResultAsync(
+                currentAttemptId.Value,
+                CurrentQuestion.QuestionID,
+                selectedReactionId,
+                lastCorrect);
+        }
     }
 
-    private void NextQuestion()
+    private async Task NextQuestion()
     {
         ResetSelection();
         if (currentQuestionIndex + 1 < selectedQuiz!.Questions.Count)
@@ -232,6 +263,7 @@
         else
         {
             quizCompleted = true;
+            await CompleteAttemptIfNeededAsync();
         }
     }
 
@@ -242,17 +274,39 @@
         lastCorrect = false;
     }
 
-    private void RestartQuiz()
+    private async Task RestartQuiz()
     {
         currentQuestionIndex = 0;
         quizCompleted = false;
         correctCount = 0;
+        savedQuestionIds.Clear();
+        attemptCompleted = false;
+
+        if (canPersistResults && selectedQuiz is not null)
+        {
+            currentAttemptId = await StatisticsService.CreateAttemptAsync(currentUserId, selectedQuiz.QuizID);
+        }
+
         ResetSelection();
     }
 
     private void BackToList()
     {
         selectedQuiz = null;
+        currentAttemptId = null;
+        savedQuestionIds.Clear();
+        attemptCompleted = false;
         ResetSelection();
+    }
+
+    private async Task CompleteAttemptIfNeededAsync()
+    {
+        if (!canPersistResults || !currentAttemptId.HasValue || attemptCompleted)
+        {
+            return;
+        }
+
+        await StatisticsService.CompleteAttemptAsync(currentAttemptId.Value);
+        attemptCompleted = true;
     }
 }

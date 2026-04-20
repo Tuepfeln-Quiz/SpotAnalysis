@@ -48,7 +48,12 @@
 
     protected override async Task OnInitializedAsync()
     {
-        if (_state != State.Loading) return; // guard against prerender double-execution
+        // Waehrend des statischen Prerenders NICHT beitreten: sonst laeuft
+        // JoinGroupByToken zweimal (Prerender + Interactive-Start), und der
+        // zweite Aufruf liefert faelschlich AlreadyMember zurueck.
+        if (!RendererInfo.IsInteractive) return;
+
+        if (_state != State.Loading) return; // guard against double-execution within instance
 
         var auth = await AuthState;
         var userIdClaim = auth.User.FindFirst(ClaimTypes.NameIdentifier)?.Value

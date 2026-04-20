@@ -1,85 +1,174 @@
-﻿@page "/admin/overview"
-@inject IAdminService AdminService
+@page "/admin/overview"
+@rendermode InteractiveServer
+@using SpotAnalysis.Data.Enums
+@using SpotAnalysis.Services.DTOs
+@using SpotAnalysis.Services.Services
 
-<div class="h-100">
-    <div class="card card-body h-20 mb-2 border border-2">
-            <form class="row" method="get" asp-page="/Search">
-                <div class="search-container col-12">
-                    <div class="row">
-                        <button class="btn btn-primary col-2">Add</button>
-                        <input type="text"
-                               asp-for="SearchQuery"
-                               placeholder="Search..."
-                               class="search-input col-8" />
-                        <button type="submit" class="search-btn col-2">&#128269</button>
+<AuthorizeView Roles="Admin">
+    <NotAuthorized>
+        <PageTitle>Zugriff verweigert</PageTitle>
+
+        <div class="container py-4 flex-grow-1">
+            <div class="alert alert-danger text-center" role="alert">
+                <i class="bi bi-x-circle me-2"></i>
+                Sie haben keinen Zugriff auf diesen Bereich.
+            </div>
+        </div>
+    </NotAuthorized>
+    <Authorized>
+        <PageTitle>Nutzerverwaltung – Tüpfeln Digital</PageTitle>
+
+        <div class="container py-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h4 class="fw-bold mb-0">Nutzerverwaltung</h4>
+            </div>
+
+            @* Filter Bar *@
+            <div class="d-flex gap-2 mb-3 align-items-center flex-wrap">
+                <input type="text" class="form-control input-custom flex-grow-1"
+                       placeholder="Suchen (Nutzername)..."
+                       @bind="_searchTerm" @bind:event="oninput" />
+                <button class="btn btn-pill @(_roleFilter is null ? "active" : "")"
+                        @onclick="() => _roleFilter = null">Alle</button>
+                <button class="btn btn-pill @(_roleFilter == Role.Admin ? "active" : "")"
+                        @onclick="() => _roleFilter = Role.Admin">Admin</button>
+                <button class="btn btn-pill @(_roleFilter == Role.Teacher ? "active" : "")"
+                        @onclick="() => _roleFilter = Role.Teacher">Teacher</button>
+                <button class="btn btn-pill @(_roleFilter == Role.Student ? "active" : "")"
+                        @onclick="() => _roleFilter = Role.Student">Student</button>
+            </div>
+
+            @if (_users is null)
+            {
+                <p class="text-muted">Laden...</p>
+            }
+            else if (_users.Count == 0)
+            {
+                <div class="text-center text-muted py-5">
+                    <i class="bi bi-people" style="font-size: 2.5rem;"></i>
+                    <p class="mt-2">Keine Nutzer gefunden.</p>
+                </div>
+            }
+            else
+            {
+                <div class="d-flex flex-column gap-2">
+                    @foreach (var u in FilteredUsers)
+                    {
+                        <div class="list-row">
+                            <div class="flex-grow-1">
+                                <div class="fw-semibold">@u.UserName</div>
+                                <div class="d-flex gap-1 flex-wrap mt-1">
+                                    @foreach (var role in u.Roles)
+                                    {
+                                        <span class="badge-role @RoleBadgeClass(role)">@role</span>
+                                    }
+                                </div>
+                            </div>
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-sm btn-edit"
+                                        @onclick="() => EditUser(u.Id)">Bearbeiten</button>
+                                <button class="btn btn-sm btn-delete"
+                                        @onclick="() => ConfirmDelete(u)">Löschen</button>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+
+            @* Delete Confirmation Modal *@
+            @if (_userToDelete is not null)
+            {
+                <div class="modal-backdrop show"></div>
+                <div class="modal d-block" tabindex="-1">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content" style="border-radius: var(--card-radius);">
+                            <div class="modal-header border-0">
+                                <h5 class="modal-title fw-bold">Nutzer löschen?</h5>
+                            </div>
+                            <div class="modal-body">
+                                <p>
+                                    Möchtest du den Nutzer <strong>"@_userToDelete.UserName"</strong> wirklich löschen?
+                                </p>
+                                <p class="text-danger small mb-0">
+                                    <i class="bi bi-exclamation-triangle me-1"></i>
+                                    Dabei werden auch alle Quiz-Versuche dieses Nutzers gelöscht.
+                                </p>
+                            </div>
+                            <div class="modal-footer border-0">
+                                <button class="btn btn-secondary" @onclick="CancelDelete">Abbrechen</button>
+                                <button class="btn btn-danger" @onclick="DeleteUser">Löschen</button>
+                            </div>
+                        </div>
                     </div>
                 </div>
-            </form>
-    </div>
-    <div class="card card-body h-50 mb-2 border border-2">
-            <table class="table table-dark table-striped table-hover">
-                <thead>
-                    <tr>
-                        <th>Username</th>
-                        <th>Rolle</th>
-                        <th>Aktionen</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td colspan="12"><a class="btn btn-secondary" href="admin-overview/create">Create New Teacher</a></td>
-                    </tr>
+            }
 
-                    @foreach(var users in _users)
-                    {
-                        <tr>
-                            <td>@users.UserName</td>
-                            <td>@(string.Join(", ", users.Roles))</td>
-                            <td>
-                                <a class="btn btn-info" href="/admin/@users.Id/edit">Edit</a>
-                                <button class="btn btn-danger" @onclick="() => Delete(users.Id)">Remove</button>
-                            </td>
-                        </tr>
-                    }
-
-                </tbody>
-            </table>
-    </div>
-</div>
-
-
-
+            @if (_errorMessage is not null)
+            {
+                <div class="alert alert-danger mt-3">@_errorMessage</div>
+            }
+        </div>
+    </Authorized>
+</AuthorizeView>
 
 @code {
+    [Inject] private IAdminService AdminService { get; set; } = default!;
+    [Inject] private NavigationManager Navigation { get; set; } = default!;
 
-    private readonly List<UserDto> _users = [];
+    private List<UserDto>? _users;
+    private string _searchTerm = "";
+    private Role? _roleFilter;
+    private UserDto? _userToDelete;
+    private string? _errorMessage;
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
+    protected override async Task OnInitializedAsync()
     {
-        // Only load user list on first load. After that db loading is not needed anymore.
-        if (!firstRender)
+        var perRole = await Task.WhenAll(
+            AdminService.GetUsersByRole(Role.Admin),
+            AdminService.GetUsersByRole(Role.Teacher),
+            AdminService.GetUsersByRole(Role.Student));
+
+        _users = perRole.SelectMany(x => x)
+            .DistinctBy(u => u.Id)
+            .OrderBy(u => u.UserName, StringComparer.OrdinalIgnoreCase)
+            .ToList();
+    }
+
+    private IEnumerable<UserDto> FilteredUsers =>
+        _users?.Where(u =>
+            (_roleFilter is null || u.Roles.Contains(_roleFilter.Value.ToString())) &&
+            (string.IsNullOrEmpty(_searchTerm) ||
+             u.UserName.Contains(_searchTerm, StringComparison.OrdinalIgnoreCase))
+        ) ?? [];
+
+    private static string RoleBadgeClass(string role) => role switch
+    {
+        nameof(Role.Admin) => "badge-admin",
+        nameof(Role.Teacher) => "badge-teacher",
+        nameof(Role.Student) => "badge-student",
+        _ => ""
+    };
+
+    private void EditUser(Guid userId) =>
+        Navigation.NavigateTo($"/admin/{userId}/edit");
+
+    private void ConfirmDelete(UserDto u) => _userToDelete = u;
+    private void CancelDelete() => _userToDelete = null;
+
+    private async Task DeleteUser()
+    {
+        if (_userToDelete is null) return;
+        _errorMessage = null;
+        try
         {
-            return;
+            await AdminService.DeleteUser(_userToDelete.Id);
+            _users?.RemoveAll(x => x.Id == _userToDelete.Id);
+            _userToDelete = null;
         }
-        
-        var admins = await AdminService.GetUsersByRole(Role.Admin);
-        _users.AddRange(admins);
-        await InvokeAsync(StateHasChanged);
-        
-        var teachers = await AdminService.GetUsersByRole(Role.Teacher);
-        _users.AddRange(teachers.ExceptBy(_users.Select(x => x.Id), x => x.Id));
-        await InvokeAsync(StateHasChanged);
-        
-        var students = await AdminService.GetUsersByRole(Role.Student);
-        _users.AddRange(students.ExceptBy(_users.Select(x => x.Id), x => x.Id));
-        await InvokeAsync(StateHasChanged);
+        catch (Exception ex)
+        {
+            _errorMessage = ex.Message;
+            _userToDelete = null;
+        }
     }
-
-
-    private async Task Delete(Guid userId)
-    {
-        await AdminService.DeleteUser(userId);
-        _users.RemoveAll(a => a.Id == userId);
-    }
-
 }

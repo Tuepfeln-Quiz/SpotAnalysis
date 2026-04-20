@@ -30,24 +30,21 @@
                         <td colspan="12"><a class="btn btn-secondary" href="admin-overview/create">Create New Teacher</a></td>
                     </tr>
 
-                    @foreach(var teacherAdmin in _teacherAdmins)
+                    @foreach(var users in _users)
                     {
                         <tr>
-                            <td>@teacherAdmin.UserName</td>
-                            <td>@(string.Join(", ", teacherAdmin.Roles))</td>
+                            <td>@users.UserName</td>
+                            <td>@(string.Join(", ", users.Roles))</td>
                             <td>
-                                <a class="btn btn-info" href="/admin/@teacherAdmin.Id/edit">Edit</a>
-                                <button class="btn btn-danger" @onclick="() => Delete(teacherAdmin.Id)">Remove</button>
+                                <a class="btn btn-info" href="/admin/@users.Id/edit">Edit</a>
+                                <button class="btn btn-danger" @onclick="() => Delete(users.Id)">Remove</button>
                             </td>
                         </tr>
                     }
 
                 </tbody>
             </table>
-            
     </div>
-
-
 </div>
 
 
@@ -55,22 +52,34 @@
 
 @code {
 
-    private List<UserDto> _teacherAdmins = [];
+    private readonly List<UserDto> _users = [];
 
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        var teachers = await AdminService.GetUsersByRole(Role.Teacher);
-        var admins = await AdminService.GetUsersByRole(Role.Admin);
+        // Only load user list on first load. After that db loading is not needed anymore.
+        if (!firstRender)
+        {
+            return;
+        }
         
-        _teacherAdmins.AddRange(teachers);
-        _teacherAdmins.AddRange(admins);
+        var admins = await AdminService.GetUsersByRole(Role.Admin);
+        _users.AddRange(admins);
+        await InvokeAsync(StateHasChanged);
+        
+        var teachers = await AdminService.GetUsersByRole(Role.Teacher);
+        _users.AddRange(teachers.ExceptBy(_users.Select(x => x.Id), x => x.Id));
+        await InvokeAsync(StateHasChanged);
+        
+        var students = await AdminService.GetUsersByRole(Role.Student);
+        _users.AddRange(students.ExceptBy(_users.Select(x => x.Id), x => x.Id));
+        await InvokeAsync(StateHasChanged);
     }
 
 
     private async Task Delete(Guid userId)
     {
         await AdminService.DeleteUser(userId);
-        _teacherAdmins.RemoveAll(a => a.Id == userId);
+        _users.RemoveAll(a => a.Id == userId);
     }
 
 }

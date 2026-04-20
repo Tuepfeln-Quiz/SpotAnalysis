@@ -1,8 +1,8 @@
 using ExcelImportExport;
-using ExcelImportExport.Helper;
 using ExcelImportExport.Models;
 using Microsoft.EntityFrameworkCore;
-using SpotAnalysis.Data;
+using Microsoft.Extensions.Caching.Hybrid;
+using NSubstitute;
 using SpotAnalysis.Data.Enums;
 using SpotAnalysis.Data.Models;
 using SpotAnalysis.Services.Services;
@@ -17,6 +17,8 @@ public class TestXlsImportExportService : BaseDatabaseTest
 
     private static readonly string ImportFile = Path.Combine(TestSheetDir, "Tuepfel_Import_Export.xlsx");
     private static readonly string ExportFile = Path.Combine(TestSheetDir, "Tuepfel_Service_Export.xlsx");
+    
+    private readonly HybridCache _cache = Substitute.For<HybridCache>();
 
     // ── Import ──────────────────────────────────────────────────────
 
@@ -24,7 +26,7 @@ public class TestXlsImportExportService : BaseDatabaseTest
     public async Task Import_CreatesChemicals()
     {
         var context = ContextFactory.CreateDbContext();
-        var service = new XlsImportExportService(context);
+        var service = new XlsImportExportService(context, _cache);
 
         using var reader = ExcelImporter.Open(ImportFile);
         var expectedEductNames = reader.ReadSheet<Educt>()
@@ -101,7 +103,7 @@ public class TestXlsImportExportService : BaseDatabaseTest
     public async Task Import_Upsert_DoesNotDuplicate()
     {
         var context = ContextFactory.CreateDbContext();
-        var service = new XlsImportExportService(context);
+        var service = new XlsImportExportService(context, _cache);
 
         var countBefore = await context.Chemicals.CountAsync();
         await service.ImportFromFileAsync(ImportFile);
@@ -116,7 +118,7 @@ public class TestXlsImportExportService : BaseDatabaseTest
     public async Task Export_CreatesFileWithAllSheets()
     {
         var context = ContextFactory.CreateDbContext();
-        var service = new XlsImportExportService(context);
+        var service = new XlsImportExportService(context, _cache);
 
         await service.ExportToFileAsync(ExportFile);
 

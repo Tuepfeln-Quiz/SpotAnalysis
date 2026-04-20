@@ -4,19 +4,23 @@ using ExcelImportExport.Attributes;
 using ExcelImportExport.Helper;
 using ExcelImportExport.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Hybrid;
 using SpotAnalysis.Data;
 using SpotAnalysis.Data.Enums;
 using SpotAnalysis.Data.Models;
+using SpotAnalysis.Services.Helpers;
 
 namespace SpotAnalysis.Services.Services;
 
 public class XlsImportExportService : IXlsImportExportService
 {
     private readonly AnalysisContext _context;
+    private HybridCache _cache;
 
-    public XlsImportExportService(AnalysisContext context)
+    public XlsImportExportService(AnalysisContext context, HybridCache cache)
     {
         _context = context;
+        _cache = cache;
     }
 
     // ── Import ──────────────────────────────────────────────────────────
@@ -79,6 +83,8 @@ public class XlsImportExportService : IXlsImportExportService
             .Include(c => c.MethodOutputs)
             .Where(c => names.Contains(c.Name))
             .ToDictionaryAsync(c => c.Name);
+        
+        var clearChemicalsCache = false;
 
         foreach (var educt in educts)
         {
@@ -95,12 +101,16 @@ public class XlsImportExportService : IXlsImportExportService
                 };
                 _context.Chemicals.Add(chemical);
                 existing[educt.Substance] = chemical;
+
+                clearChemicalsCache = true;
             }
             else
             {
                 chemical.Formula = educt.Formula ?? "";
                 chemical.Color = educt.InherentColor ?? "keine";
                 chemical.Type = ChemicalType.Educt;
+
+                clearChemicalsCache = true;
             }
 
             await _context.SaveChangesAsync();
@@ -111,8 +121,14 @@ public class XlsImportExportService : IXlsImportExportService
                     UpsertMethodOutput(chemical, method, value);
             }
         }
-
+        
         await _context.SaveChangesAsync();
+
+        if (clearChemicalsCache)
+        {
+            await _cache.RemoveAsync(CacheHelper.AllChemicalsKey);
+        }
+        
         return existing;
     }
 
@@ -122,6 +138,8 @@ public class XlsImportExportService : IXlsImportExportService
         var existing = await _context.Chemicals
             .Where(c => names.Contains(c.Name))
             .ToDictionaryAsync(c => c.Name);
+
+        var clearChemicalsCache = false;
 
         foreach (var additive in additives)
         {
@@ -138,15 +156,25 @@ public class XlsImportExportService : IXlsImportExportService
                 };
                 _context.Chemicals.Add(chemical);
                 existing[additive.Name] = chemical;
+
+                clearChemicalsCache = true;
             }
             else
             {
                 chemical.Formula = additive.Formula ?? "";
                 chemical.Type = ChemicalType.Additive;
+
+                clearChemicalsCache = true;
             }
         }
 
         await _context.SaveChangesAsync();
+
+        if (clearChemicalsCache)
+        {
+            await _cache.RemoveAsync(CacheHelper.AllChemicalsKey);
+        }
+        
         return existing;
     }
 
@@ -213,6 +241,8 @@ public class XlsImportExportService : IXlsImportExportService
         var existingReactions = await _context.Reactions
             .ToDictionaryAsync(r => (r.Chemical1ID, r.Chemical2ID));
 
+        var clearReactionCache = false;
+
         foreach (var combo in combinations)
         {
             if (string.IsNullOrWhiteSpace(combo.FirstEductName)) continue;
@@ -241,6 +271,7 @@ public class XlsImportExportService : IXlsImportExportService
                 reaction.Formula = combo.Formula ?? "";
                 if (observation != null)
                     reaction.ObservationID = observation.ObservationID;
+                clearReactionCache = true;
             }
             else
             {
@@ -252,10 +283,17 @@ public class XlsImportExportService : IXlsImportExportService
                 };
                 _context.Reactions.Add(reaction);
                 existingReactions[key] = reaction;
+
+                clearReactionCache = true;
             }
         }
 
         await _context.SaveChangesAsync();
+        
+        if (clearReactionCache)
+        {
+            await _cache.RemoveAsync(CacheHelper.AllReactionsKey);
+        }
     }
 
     // ── Export ──────────────────────────────────────────────────────────

@@ -1,4 +1,6 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Hybrid;
+using NSubstitute;
 using SpotAnalysis.Data;
 using SpotAnalysis.Services.Services;
 
@@ -16,6 +18,8 @@ public class ManualImportExport
 
     private static readonly string ImportFile = Path.Combine(TestSheetDir, "Tuepfel_Import_Export.xlsx");
 
+    private readonly HybridCache _cache = Substitute.For<HybridCache>();
+
     private AnalysisContext CreateContext()
     {
         var options = new DbContextOptionsBuilder<AnalysisContext>()
@@ -28,7 +32,7 @@ public class ManualImportExport
     public async Task Import_IntoSpotAnalysisDb()
     {
         await using var context = CreateContext();
-        var service = new XlsImportExportService(context);
+        var service = new XlsImportExportService(context, _cache);
 
         await service.ImportFromFileAsync(ImportFile);
 
@@ -78,7 +82,7 @@ public class ManualImportExport
             "SpotAnalysis_Export.xlsx");
 
         await using var context = CreateContext();
-        var service = new XlsImportExportService(context);
+        var service = new XlsImportExportService(context, _cache);
 
         await service.ExportToFileAsync(exportPath);
 

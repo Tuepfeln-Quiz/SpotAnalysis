@@ -20,6 +20,8 @@ public class Program
 
         builder.Services.AddWebAuthentication();
 
+        builder.Services.AddHybridCache();
+
         builder.Host.UseSerilog((context, services, loggerConfig) =>
         {
             loggerConfig

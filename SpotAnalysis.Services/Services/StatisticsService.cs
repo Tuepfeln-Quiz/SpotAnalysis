@@ -170,6 +170,186 @@ public class StatisticsService(IDbContextFactory<AnalysisContext> factory) : ISt
         
         return correct;
     }
+    public async Task<List<DetailedQuizHistoryDto>> GetDetailedUserHistoryAsync(Guid userId)
+    {
+        await using var context = await factory.CreateDbContextAsync();
+        
+        var attempts = await context.QuizAttempts
+            .Where(a => a.UserID == userId && a.Completed != DateTime.MinValue)
+            .Include(a => a.STResults).ThenInclude(r => r.ChemicalResults)
+            .Include(a => a.STLResults)
+            .Include(a => a.Quiz).ThenInclude(q => q.QuizQuestions).ThenInclude(qq => qq.Question)
+            .OrderByDescending(a => a.Started)
+            .ToListAsync();
+        
+        var result = new List<DetailedQuizHistoryDto>();
+        
+        foreach (var a in attempts)
+        {
+            var dto = new DetailedQuizHistoryDto
+            {
+                AttemptId = a.AttemptID,
+                QuizId = a.QuizID,
+                QuizName = a.Quiz.Name,
+                QuizType = DetermineQuizType(a),
+                Started = a.Started,
+                Completed = a.Completed == DateTime.MinValue ? null : a.Completed,
+                CorrectAnswers = CalculateCorrect(a),
+                TotalQuestions = CalculateTotal(a)
+            };
+            
+            // Add question results
+            foreach (var stl in a.STLResults)
+            {
+                dto.QuestionResults.Add(new QuestionResultDto
+                {
+                    QuestionId = stl.QuestionID,
+                    QuestionTitle = "STL Question", // TODO: Get actual title if available
+                    QuestionType = QuestionType.SpotTestLight,
+                    TotalSubQuestions = 1,
+                    CorrectSubQuestions = stl.IsCorrect ? 1 : 0
+                });
+            }
+            
+            foreach (var st in a.STResults)
+            {
+                dto.QuestionResults.Add(new QuestionResultDto
+                {
+                    QuestionId = st.QuestionID,
+                    QuestionTitle = "ST Question", // TODO: Get actual title
+                    QuestionType = QuestionType.SpotTest,
+                    TotalSubQuestions = st.ChemicalResults.Count,
+                    CorrectSubQuestions = st.ChemicalResults.Count(c => c.IsCorrect)
+                });
+            }
+            
+            result.Add(dto);
+        }
+        
+        return result;
+    }
+    
+    public async Task<GlobalStatisticsDto> GetGlobalStatisticsAsync()
+    {
+        await using var context = await factory.CreateDbContextAsync();
+        
+        var users = await context.Users.Include(u => u.Roles).ToListAsync();
+        var totalUsers = users.Count;
+        var totalTeachers = users.Count(u => u.Roles.Contains(Role.Teacher));
+        var totalStudents = users.Count(u => u.Roles.Contains(Role.Student));
+        
+        var totalGroups = await context.Groups.CountAsync();
+        var totalQuizzes = await context.Quizzes.CountAsync();
+        
+        var attempts = await context.QuizAttempts
+            .Where(a => a.Completed != DateTime.MinValue)
+            .Include(a => a.STResults).ThenInclude(r => r.ChemicalResults)
+            .Include(a => a.STLResults)
+            .ToListAsync();
+        
+        var totalAttempts = attempts.Count;
+        var totalCompletedAttempts = attempts.Count(a => a.Completed != DateTime.MinValue);
+        
+        var totalCorrect = 0;
+        var totalQuestions = 0;
+        
+        foreach (var attempt in attempts)
+        {
+            totalCorrect += CalculateCorrect(attempt);
+            totalQuestions += CalculateTotal(attempt);
+        }
+        
+        return new GlobalStatisticsDto
+        {
+            TotalUsers = totalUsers,
+            TotalTeachers = totalTeachers,
+            TotalStudents = totalStudents,
+            TotalGroups = totalGroups,
+            TotalQuizzes = totalQuizzes,
+            TotalAttempts = totalAttempts,
+            TotalCompletedAttempts = totalCompletedAttempts,
+            AverageScorePercent = totalQuestions > 0 ? (totalCorrect * 100.0 / totalQuestions) : 0,
+            TotalQuestionsAnswered = totalQuestions,
+            TotalCorrectAnswers = totalCorrect
+        };
+    }
+    
+    public async Task<List<GroupStatisticsDto>> GetAllGroupStatisticsAsync()
+    {
+        await using var context = await factory.CreateDbContextAsync();
+        
+        var groups = await context.Groups.Include(g => g.Users).ToListAsync();
+        var result = new List<GroupStatisticsDto>();
+        
+        foreach (var group in groups)
+        {
+            var groupDto = await GetGroupStatisticsAsync(group.GroupID);
+            result.Add(groupDto);
+        }
+        
+        return result;
+    }
+    
+    public async Task<GroupStatisticsDto> GetGroupStatisticsAsync(int groupId)
+    {
+        await using var context = await factory.CreateDbContextAsync();
+        
+        var group = await context.Groups
+            .Include(g => g.Users)
+            .Include(g => g.Quizzes).ThenInclude(q => q.Attempts)
+            .FirstOrDefaultAsync(g => g.GroupID == groupId);
+        
+        if (group == null) throw new ArgumentException("Group not found");
+        
+        var userIds = group.Users.Select(u => u.UserID).ToList();
+        
+        var attempts = await context.QuizAttempts
+            .Where(a => userIds.Contains(a.UserID) && a.Completed != DateTime.MinValue)
+            .Include(a => a.STResults).ThenInclude(r => r.ChemicalResults)
+            .Include(a => a.STLResults)
+            .Include(a => a.User)
+            .ToListAsync();
+        
+        var totalCorrect = 0;
+        var totalQuestions = 0;
+        
+        foreach (var attempt in attempts)
+        {
+            totalCorrect += CalculateCorrect(attempt);
+            totalQuestions += CalculateTotal(attempt);
+        }
+        
+        var userStats = new List<UserInGroupStatisticsDto>();
+        foreach (var user in group.Users)
+        {
+            var userAttempts = attempts.Where(a => a.UserID == user.UserID).ToList();
+            var userCorrect = userAttempts.Sum(a => CalculateCorrect(a));
+            var userQuestions = userAttempts.Sum(a => CalculateTotal(a));
+            
+            userStats.Add(new UserInGroupStatisticsDto
+            {
+                UserId = user.UserID,
+                UserName = user.UserName,
+                TotalAttempts = userAttempts.Count,
+                TotalCompletedAttempts = userAttempts.Count(a => a.Completed != DateTime.MinValue),
+                AverageScorePercent = userQuestions > 0 ? (userCorrect * 100.0 / userQuestions) : 0
+            });
+        }
+        
+        return new GroupStatisticsDto
+        {
+            GroupId = group.GroupID,
+            GroupName = group.Name,
+            Description = group.Description,
+            TotalUsers = group.Users.Count,
+            TotalQuizzes = group.Quizzes.Count,
+            TotalAttempts = attempts.Count,
+            TotalCompletedAttempts = attempts.Count(a => a.Completed != DateTime.MinValue),
+            AverageScorePercent = totalQuestions > 0 ? (totalCorrect * 100.0 / totalQuestions) : 0,
+            UserStatistics = userStats
+        };
+    }
+    
     private static int CalculateTotal(QuizAttempt attempt)
     {
         var total = 0;

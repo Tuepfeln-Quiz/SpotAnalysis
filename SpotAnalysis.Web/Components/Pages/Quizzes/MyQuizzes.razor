@@ -43,6 +43,13 @@
                                 <span class="text-muted small">@quiz.QuestionCount Aufgaben</span>
                             </div>
                             <h5 class="card-title fw-bold mb-2">@quiz.Name</h5>
+                            <div class="mb-2">
+                                <small class="text-muted">
+                                    Versuche: @quiz.TotalAttempts | 
+                                    Beste Punktzahl: @quiz.BestScorePercent.ToString("F1")% | 
+                                    Durchschnitt: @quiz.AverageScorePercent.ToString("F1")%
+                                </small>
+                            </div>
                             <p class="card-text text-muted small mb-0">
                                 @switch (quiz.LastAttemptStatus)
                                 {

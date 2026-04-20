@@ -59,6 +59,16 @@ else if (_isCompleted)
         </div>
     </div>
 }
+else if (_quiz.Questions.Count == 0)
+{
+    <div class="container py-4">
+        <div class="alert alert-warning">
+            <i class="bi bi-exclamation-triangle me-2"></i>
+            Dieses Quiz hat keine Fragen.
+        </div>
+        <a class="btn btn-outline-secondary" href="/my-quizzes">Zurück zu meinen Quizzes</a>
+    </div>
+}
 else
 {
     var current = _quiz.Questions[_currentIndex];

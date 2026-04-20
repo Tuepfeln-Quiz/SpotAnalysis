@@ -180,6 +180,7 @@ public class QuizService(ILogger<QuizService> logger, IDbContextFactory<Analysis
             .Select(q => new
             {
                 Quiz = q,
+                Attempts = q.Attempts.Where(a => a.UserID == studentId && a.Completed != DateTime.MinValue),
                 LatestAttempt = q.Attempts
                     .Where(a => a.UserID == studentId)
                     .OrderByDescending(a => a.AttemptID)
@@ -189,9 +190,9 @@ public class QuizService(ILogger<QuizService> logger, IDbContextFactory<Analysis
             {
                 Id = x.Quiz.QuizID,
                 Name = x.Quiz.Name,
-                STCount = x.Quiz.QuizQuestions.Count(qq => qq.Question.Type == QuestionType.SpotTest),
-                STLCount = x.Quiz.QuizQuestions.Count(qq => qq.Question.Type == QuestionType.SpotTestLight),
-                QuestionCount = x.Quiz.QuizQuestions.Count,
+                STCount = x.Quiz.QuizQuestions.Count(qq => qq.Question != null && qq.Question.Type == QuestionType.SpotTest),
+                STLCount = x.Quiz.QuizQuestions.Count(qq => qq.Question != null && qq.Question.Type == QuestionType.SpotTestLight),
+                QuestionCount = x.Quiz.QuizQuestions.Count(qq => qq.Question != null),
                 GroupCount = x.Quiz.Groups.Count,
                 LastAttemptStatus =
                     x.LatestAttempt == null
@@ -202,7 +203,14 @@ public class QuizService(ILogger<QuizService> logger, IDbContextFactory<Analysis
                 LastCompletedAt =
                     x.LatestAttempt != null && x.LatestAttempt.Completed != default
                         ? x.LatestAttempt.Completed
-                        : (DateTime?)null
+                        : (DateTime?)null,
+                TotalAttempts = x.Attempts.Count(),
+                BestScorePercent = x.Attempts.Any() ? x.Attempts.Max(a => 
+                    (a.STLResults.Count(r => r.IsCorrect) + a.STResults.Sum(r => r.ChemicalResults.Count(c => c.IsCorrect))) * 100.0 /
+                    (a.STLResults.Count + a.STResults.Sum(r => r.ChemicalResults.Count))) : 0,
+                AverageScorePercent = x.Attempts.Any() ? x.Attempts.Average(a => 
+                    (a.STLResults.Count(r => r.IsCorrect) + a.STResults.Sum(r => r.ChemicalResults.Count(c => c.IsCorrect))) * 100.0 /
+                    (a.STLResults.Count + a.STResults.Sum(r => r.ChemicalResults.Count))) : 0
             })
             .ToListAsync();
     }

@@ -10,6 +10,10 @@ public interface IStatisticsService
     Task CompleteAttemptAsync(int attemptID);
     Task<UserStatisticsDto> GetUserStatisticsAsync(Guid userID);
     Task<List<QuizHistoryDto>> GetUserHistoryAsync(Guid userID);
+    Task<List<DetailedQuizHistoryDto>> GetDetailedUserHistoryAsync(Guid userID);
+    Task<GlobalStatisticsDto> GetGlobalStatisticsAsync();
+    Task<List<GroupStatisticsDto>> GetAllGroupStatisticsAsync();
+    Task<GroupStatisticsDto> GetGroupStatisticsAsync(int groupId);
 
     // Task<List<QuizHistoryDto>> GetGroupHistoryAsync(Guid userID, int groupID);
 }

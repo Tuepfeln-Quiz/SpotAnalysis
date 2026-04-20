@@ -10,4 +10,7 @@ public class QuizOverviewDto
     public int QuestionCount { get; init; }
     public LastAttemptStatus LastAttemptStatus { get; init; } = LastAttemptStatus.NotStarted;
     public DateTime? LastCompletedAt { get; init; }
+    public int TotalAttempts { get; init; }
+    public double BestScorePercent { get; init; }
+    public double AverageScorePercent { get; init; }
 }

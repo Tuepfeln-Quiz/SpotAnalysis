@@ -1,5 +1,222 @@
 @page "/statistics"
 @attribute [Authorize]
 <PageTitle>Statistiken</PageTitle>
-<h1>Statistiken</h1>
-<p>Coming soon...</p>
+
+<div class="container py-4">
+    <h1 class="mb-4">Statistiken</h1>
+
+    <div class="row">
+        <div class="col-12">
+            <ul class="nav nav-tabs" id="statsTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="global-tab" data-bs-toggle="tab" data-bs-target="#global" type="button" role="tab" aria-controls="global" aria-selected="true">Global</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="groups-tab" data-bs-toggle="tab" data-bs-target="#groups" type="button" role="tab" aria-controls="groups" aria-selected="false">Gruppen</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="history-tab" data-bs-toggle="tab" data-bs-target="#history" type="button" role="tab" aria-controls="history" aria-selected="false">Meine Historie</button>
+                </li>
+            </ul>
+            <div class="tab-content mt-4" id="statsTabsContent">
+                <div class="tab-pane fade show active" id="global" role="tabpanel" aria-labelledby="global-tab">
+                    @if (_globalStats == null)
+                    {
+                        <p>Lädt...</p>
+                    }
+                    else
+                    {
+                        <div class="row g-4">
+                            <div class="col-md-3">
+                                <div class="card text-center">
+                                    <div class="card-body">
+                                        <h5 class="card-title">@_globalStats.TotalUsers</h5>
+                                        <p class="card-text">Benutzer insgesamt</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card text-center">
+                                    <div class="card-body">
+                                        <h5 class="card-title">@_globalStats.TotalTeachers</h5>
+                                        <p class="card-text">Lehrer</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card text-center">
+                                    <div class="card-body">
+                                        <h5 class="card-title">@_globalStats.TotalStudents</h5>
+                                        <p class="card-text">Schüler</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card text-center">
+                                    <div class="card-body">
+                                        <h5 class="card-title">@_globalStats.TotalGroups</h5>
+                                        <p class="card-text">Gruppen</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card text-center">
+                                    <div class="card-body">
+                                        <h5 class="card-title">@_globalStats.TotalQuizzes</h5>
+                                        <p class="card-text">Quizzes</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card text-center">
+                                    <div class="card-body">
+                                        <h5 class="card-title">@_globalStats.TotalCompletedAttempts</h5>
+                                        <p class="card-text">Abgeschlossene Versuche</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card text-center">
+                                    <div class="card-body">
+                                        <h5 class="card-title">@_globalStats.AverageScorePercent.ToString("F1")%</h5>
+                                        <p class="card-text">Durchschnittliche Punktzahl</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card text-center">
+                                    <div class="card-body">
+                                        <h5 class="card-title">@_globalStats.TotalCorrectAnswers / @_globalStats.TotalQuestionsAnswered</h5>
+                                        <p class="card-text">Korrekte Antworten</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+                <div class="tab-pane fade" id="groups" role="tabpanel" aria-labelledby="groups-tab">
+                    @if (_groupStats == null)
+                    {
+                        <p>Lädt...</p>
+                    }
+                    else if (_groupStats.Count == 0)
+                    {
+                        <p>Keine Gruppen verfügbar.</p>
+                    }
+                    else
+                    {
+                        <div class="row g-4">
+                            @foreach (var group in _groupStats)
+                            {
+                                <div class="col-md-6 col-lg-4">
+                                    <div class="card">
+                                        <div class="card-header">
+                                            <h5 class="card-title mb-0">@group.GroupName</h5>
+                                            @if (!string.IsNullOrEmpty(group.Description))
+                                            {
+                                                <small class="text-muted">@group.Description</small>
+                                            }
+                                        </div>
+                                        <div class="card-body">
+                                            <p><strong>Benutzer:</strong> @group.TotalUsers</p>
+                                            <p><strong>Quizzes:</strong> @group.TotalQuizzes</p>
+                                            <p><strong>Versuche:</strong> @group.TotalCompletedAttempts</p>
+                                            <p><strong>Durchschnitt:</strong> @group.AverageScorePercent.ToString("F1")%</p>
+                                            <button class="btn btn-sm btn-outline-primary" @onclick="() => ShowGroupDetails(group.GroupId)">Details</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+                <div class="tab-pane fade" id="history" role="tabpanel" aria-labelledby="history-tab">
+                    @if (_userHistory == null)
+                    {
+                        <p>Lädt...</p>
+                    }
+                    else if (_userHistory.Count == 0)
+                    {
+                        <p>Noch keine abgeschlossenen Quizzes.</p>
+                    }
+                    else
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Quiz</th>
+                                        <th>Typ</th>
+                                        <th>Gestartet</th>
+                                        <th>Beendet</th>
+                                        <th>Korrekte Antworten</th>
+                                        <th>Gesamt Fragen</th>
+                                        <th>Punktzahl</th>
+                                        <th>Details</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var attempt in _userHistory)
+                                    {
+                                        <tr>
+                                            <td>@attempt.QuizName</td>
+                                            <td>@attempt.QuizType</td>
+                                            <td>@attempt.Started.ToString("dd.MM.yyyy HH:mm")</td>
+                                            <td>@(attempt.Completed?.ToString("dd.MM.yyyy HH:mm") ?? "Unvollständig")</td>
+                                            <td>@attempt.CorrectAnswers</td>
+                                            <td>@attempt.TotalQuestions</td>
+                                            <td>@((attempt.TotalQuestions > 0 ? (attempt.CorrectAnswers * 100.0 / attempt.TotalQuestions).ToString("F1") : "0") + "%")</td>
+                                            <td><button class="btn btn-sm btn-outline-info" @onclick="() => ShowAttemptDetails(attempt)">Details</button></td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Inject] private IStatisticsService StatisticsService { get; set; } = default!;
+    [Inject] private NavigationManager Navigation { get; set; } = default!;
+    [CascadingParameter] private Task<AuthenticationState> AuthState { get; set; } = default!;
+
+    private GlobalStatisticsDto? _globalStats;
+    private List<GroupStatisticsDto>? _groupStats;
+    private List<DetailedQuizHistoryDto>? _userHistory;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (!RendererInfo.IsInteractive) return;
+
+        var auth = await AuthState;
+        var userIdClaim = auth.User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                        ?? auth.User.FindFirst("sub")?.Value;
+        if (!Guid.TryParse(userIdClaim, out var userId)) return;
+
+        // Load data in parallel
+        var globalTask = StatisticsService.GetGlobalStatisticsAsync();
+        var groupsTask = StatisticsService.GetAllGroupStatisticsAsync();
+        var historyTask = StatisticsService.GetDetailedUserHistoryAsync(userId);
+
+        await Task.WhenAll(globalTask, groupsTask, historyTask);
+
+        _globalStats = await globalTask;
+        _groupStats = await groupsTask;
+        _userHistory = await historyTask;
+    }
+
+    private void ShowGroupDetails(int groupId)
+    {
+        // TODO: Navigate to group details or show modal
+        Navigation.NavigateTo($"/group/{groupId}/stats");
+    }
+
+    private void ShowAttemptDetails(DetailedQuizHistoryDto attempt)
+    {
+        // TODO: Show modal with question details
+    }
+}

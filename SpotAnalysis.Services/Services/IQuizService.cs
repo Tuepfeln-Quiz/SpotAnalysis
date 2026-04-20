@@ -1,4 +1,4 @@
-﻿using SpotAnalysis.Data.Models.Quizzes;
+using SpotAnalysis.Data.Models.Quizzes;
 using SpotAnalysis.Services.DTOs;
 
 namespace SpotAnalysis.Services.Services;
@@ -9,18 +9,17 @@ public interface IQuizService
     public Task<int> CreateQuiz(Guid teacherId, CreateQuizDto quiz);
     public Task UpdateQuiz(Guid teacherId, UpdateQuizDto quiz);
     public Task DeleteQuiz(Guid teacherId, int quizId);
-    public Task AssignGroupToQuiz(int quizId, int groupId);
-    public Task RemoveGroupFromQuiz(int quizId, int groupId);
-    public Task<List<GroupDto>> GetGroupsByQuiz(int quizId);
-    
+    public Task AssignGroupToQuiz(Guid teacherId, int quizId, int groupId);
+    public Task RemoveGroupFromQuiz(Guid teacherId, int quizId, int groupId);
+    public Task<List<GroupDto>> GetGroupsByQuiz(Guid teacherId, int quizId);
+
     public Task<List<QuizOverviewDto>> GetQuizzes(Guid studentId);
     public Task<QuizPlayDto> StartOrResumeQuiz(Guid userId, int quizId);
     public Task<QuizPlayDto> StartNewAttempt(Guid userId, int quizId);
-    public Task CompleteAttempt(int attemptId);
+    public Task CompleteAttempt(Guid userId, int attemptId);
     public Task<STLResult> ValidateAndSaveStlQuestion(ValidateStlQuestionDto answer);
     public Task<STResult> ValidateAndSaveStQuestion(ValidateStQuestionDto answer);
-    public Task<QuizAttempt?> GetQuizAttempt(Guid studentId, int quizId);
-    
+
     public Task<List<QuestionOverviewDto>> GetQuestions();
     public Task<List<QuestionOverviewDto>> GetQuestionsOfQuiz(int quizId);
     public Task<QuestionDetailDto> GetQuestionDetail(int questionId);
@@ -28,5 +27,5 @@ public interface IQuizService
     public Task CreateSTLQuestion(Guid teacherId, ConfigSTLQuestionDto question);
     public Task UpdateSTQuestion(Guid teacherId, ConfigSTQuestionDto question);
     public Task UpdateSTLQuestion(Guid teacherId, ConfigSTLQuestionDto question);
-    public Task DeleteQuestion(int questionId);
+    public Task DeleteQuestion(Guid teacherId, int questionId);
 }

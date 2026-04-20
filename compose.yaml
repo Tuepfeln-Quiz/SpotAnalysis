@@ -39,7 +39,7 @@
     image: adminer:5
     restart: always
     ports:
-      - 8081:8080
+      - 8080:8081
 
 volumes:
   spot_analysis_pgdata:

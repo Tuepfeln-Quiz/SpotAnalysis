@@ -7,23 +7,43 @@
 
 BEGIN;
 
--- ── Lehrer1 als Ersteller sicherstellen (idempotent) ────────────────────────
--- SeedUserID = '9c9c2138-f945-41fa-823e-f3bd286c0fa1' (Lehrer1)
-INSERT INTO "Users" ("UserID", "UserName", "PasswordHash", "Roles") VALUES
-    ('9c9c2138-f945-41fa-823e-f3bd286c0fa1', 'Lehrer1',
-     '$argon2id$v=19$m=4096,t=4,p=4$OCGcnEX5+kGCPvO9KGwPoQ==$AMzbYPw2VRHVZS5i90bEAjGpVoT5w8/ketH9oPXosg0=',
-     ARRAY[1])
-ON CONFLICT ("UserID") DO NOTHING;
+-- ── Lehrer1 als Ersteller verwenden ──────────────────────────────────────────
+-- Voraussetzung: User muss existieren (wird vom DatabaseSeeder beim ersten
+-- App-Start im Development-Mode angelegt).
+DECLARE @SeedUserID UNIQUEIDENTIFIER = '11111111-1111-1111-1111-111111111111'; -- Lehrer1
+
+-- Demo-Group wird ueber den Namen identifiziert (GroupID dynamisch),
+-- damit eine evtl. bereits manuell angelegte Group mit ID 1 nicht weggeraeumt wird.
+DECLARE @SeedGroupName NVARCHAR(64) = N'Demo-Klasse';
+DECLARE @SeedGroupID INT = (SELECT GroupID FROM Groups WHERE Name = @SeedGroupName);
 
 -- ── Idempotenz: vorhandene Quiz-Seeds wegräumen (Reihenfolge wegen FKs) ─────
-DELETE FROM "STAvailableMethods"    WHERE "QuestionID" IN (1,2,3,4,5,6,7,8);
-DELETE FROM "STAvailableChemicals"  WHERE "QuestionID" IN (1,2,3,4,5,6,7,8);
-DELETE FROM "STLAvailableReactions" WHERE "QuestionID" IN (1,2,3,4,5,6,7,8);
-DELETE FROM "STLQuestions"          WHERE "QuestionID" IN (1,2,3,4,5,6,7,8);
-DELETE FROM "STQuestions"           WHERE "QuestionID" IN (1,2,3,4,5,6,7,8);
-DELETE FROM "QuizQuestions"         WHERE "QuizID" IN (1,2,3,4);
-DELETE FROM "Questions"             WHERE "QuestionID" IN (1,2,3,4,5,6,7,8);
-DELETE FROM "Quizzes"               WHERE "QuizID" IN (1,2,3,4);
+-- Group-Joins zuerst, sonst blockieren sie Quiz/Group-Deletes (FK Restrict).
+DELETE FROM GroupQuiz             WHERE QuizID IN (1,2,3,4,5) OR GroupID = @SeedGroupID;
+DELETE FROM GroupUser             WHERE GroupID = @SeedGroupID;
+-- Results + Attempts zuerst löschen; sonst blockieren sie Questions/Quizzes.
+DELETE FROM STChemicalResults
+    WHERE ResultID IN (
+        SELECT ResultID FROM STResults
+        WHERE QuestionID IN (1,2,3,4,5,6,7,8,9,10)
+           OR AttemptID IN (SELECT AttemptID FROM QuizAttempts WHERE QuizID IN (1,2,3,4,5))
+    );
+DELETE FROM STResults
+    WHERE QuestionID IN (1,2,3,4,5,6,7,8,9,10)
+       OR AttemptID IN (SELECT AttemptID FROM QuizAttempts WHERE QuizID IN (1,2,3,4,5));
+DELETE FROM STLResults
+    WHERE QuestionID IN (1,2,3,4,5,6,7,8,9,10)
+       OR AttemptID IN (SELECT AttemptID FROM QuizAttempts WHERE QuizID IN (1,2,3,4,5));
+DELETE FROM QuizAttempts          WHERE QuizID IN (1,2,3,4,5);
+DELETE FROM STAvailableMethods    WHERE QuestionID IN (1,2,3,4,5,6,7,8,9,10);
+DELETE FROM STAvailableChemicals  WHERE QuestionID IN (1,2,3,4,5,6,7,8,9,10);
+DELETE FROM STLAvailableReactions WHERE QuestionID IN (1,2,3,4,5,6,7,8,9,10);
+DELETE FROM STLQuestions          WHERE QuestionID IN (1,2,3,4,5,6,7,8,9,10);
+DELETE FROM STQuestions           WHERE QuestionID IN (1,2,3,4,5,6,7,8,9,10);
+DELETE FROM QuizQuestions         WHERE QuizID IN (1,2,3,4,5);
+DELETE FROM Questions             WHERE QuestionID IN (1,2,3,4,5,6,7,8,9,10);
+DELETE FROM Quizzes               WHERE QuizID IN (1,2,3,4,5);
+DELETE FROM Groups                WHERE GroupID = @SeedGroupID;
 
 -- ============================================================================
 -- HINWEIS: Additiv-Reaktionen (Edukt+NaOH/HCl) kommen aus dem Excel-Import.
@@ -167,15 +187,81 @@ INSERT INTO "STAvailableMethods" ("QuestionID", "MethodID") VALUES
     -- Q8: ph-Papier(1) + Flammenfaerbung(2)
     (8, 1), (8, 2);
 
-COMMIT;
+
+-- ============================================================================
+-- MIXED QUIZ  (1 Light- + 1 Tuepfeln-Frage im selben Quiz)
+-- ============================================================================
+
+-- ── Quiz 5 ──────────────────────────────────────────────────────────────────
+SET IDENTITY_INSERT Quizzes ON;
+
+INSERT INTO Quizzes (QuizID, Name, CreatedBy) VALUES
+    (5, 'Gemischt - Light und Tuepfeln', @SeedUserID);
+
+SET IDENTITY_INSERT Quizzes OFF;
+
+-- ── Questions (eine je Type) ────────────────────────────────────────────────
+SET IDENTITY_INSERT Questions ON;
+
+INSERT INTO Questions (QuestionID, Type, Title, Description, CreatedBy) VALUES
+    (9,  1, 'Mixed Q9 - gelber Niederschlag AgNO3', 'Welche Reaktion erzeugt gelben Niederschlag mit Silber(I)nitrat?', @SeedUserID),
+    (10, 0, 'Mixed Q10 - zwei Unbekannte',          'Identifiziere die zwei unbekannten Edukte.', @SeedUserID);
+
+SET IDENTITY_INSERT Questions OFF;
+
+-- Light-Parent fuer Q9
+-- Q9: korrekt R13 (KI+Ag -> AgI, gelb), gezeigt: AgNO3=5
+INSERT INTO STLQuestions (QuestionID, ReactionID, ShownEductID) VALUES
+    (9, 13, 5);
+
+-- SpotTest-Parent fuer Q10
+INSERT INTO STQuestions (QuestionID) VALUES (10);
+
+INSERT INTO QuizQuestions (QuizID, QuestionID, [Order]) VALUES
+    (5, 9,  1),
+    (5, 10, 2);
+
+-- Antwortoptionen fuer Q9 (analog Q3)
+INSERT INTO STLAvailableReactions (QuestionID, ReactionID) VALUES
+    (9, 13), (9, 4), (9, 16), (9, 19);
+
+-- Q10: Unbekannte = AgNO3(5), KI(3) + Zusatzstoffe NaOH(8), HCl(9)
+INSERT INTO STAvailableChemicals (QuestionID, ChemicalID, [Order]) VALUES
+    (10, 5, 0), (10, 3, 1), (10, 8, 2), (10, 9, 3);
+
+-- Q10: ph-Papier + Flammenfaerbung
+INSERT INTO STAvailableMethods (QuestionID, MethodID) VALUES
+    (10, 1), (10, 2);
+
+
+-- ============================================================================
+-- GROUP: Demo-Klasse mit Lehrer1 + Schueler1, zugewiesen Quiz 5
+-- ============================================================================
+
+INSERT INTO Groups (Name, Description) VALUES
+    (@SeedGroupName, N'Seed-Gruppe mit Lehrer1 und Schueler1, gekoppelt an das Mixed-Quiz.');
+
+SET @SeedGroupID = CAST(SCOPE_IDENTITY() AS INT);
+
+INSERT INTO GroupUser (GroupID, UserID) VALUES
+    (@SeedGroupID, '11111111-1111-1111-1111-111111111111'),  -- Lehrer1
+    (@SeedGroupID, '44444444-4444-4444-4444-444444444444');  -- Schueler1
+
+INSERT INTO GroupQuiz (GroupID, QuizID) VALUES
+    (@SeedGroupID, 5);
+
+COMMIT TRANSACTION;
 
 -- Verification
-SELECT 'Reactions' AS "Table", COUNT(*) AS "Count" FROM "Reactions"
-UNION ALL SELECT 'Quizzes', COUNT(*) FROM "Quizzes"
-UNION ALL SELECT 'Questions', COUNT(*) FROM "Questions"
-UNION ALL SELECT 'STLQuestions', COUNT(*) FROM "STLQuestions"
-UNION ALL SELECT 'STQuestions', COUNT(*) FROM "STQuestions"
-UNION ALL SELECT 'QuizQuestions', COUNT(*) FROM "QuizQuestions"
-UNION ALL SELECT 'STLAvailableReactions', COUNT(*) FROM "STLAvailableReactions"
-UNION ALL SELECT 'STAvailableChemicals', COUNT(*) FROM "STAvailableChemicals"
-UNION ALL SELECT 'STAvailableMethods', COUNT(*) FROM "STAvailableMethods";
+SELECT 'Reactions' AS [Table], COUNT(*) AS [Count] FROM Reactions
+UNION ALL SELECT 'Quizzes', COUNT(*) FROM Quizzes
+UNION ALL SELECT 'Questions', COUNT(*) FROM Questions
+UNION ALL SELECT 'STLQuestions', COUNT(*) FROM STLQuestions
+UNION ALL SELECT 'STQuestions', COUNT(*) FROM STQuestions
+UNION ALL SELECT 'QuizQuestions', COUNT(*) FROM QuizQuestions
+UNION ALL SELECT 'STLAvailableReactions', COUNT(*) FROM STLAvailableReactions
+UNION ALL SELECT 'STAvailableChemicals', COUNT(*) FROM STAvailableChemicals
+UNION ALL SELECT 'STAvailableMethods', COUNT(*) FROM STAvailableMethods
+UNION ALL SELECT 'Groups', COUNT(*) FROM Groups
+UNION ALL SELECT 'GroupUser', COUNT(*) FROM GroupUser
+UNION ALL SELECT 'GroupQuiz', COUNT(*) FROM GroupQuiz;

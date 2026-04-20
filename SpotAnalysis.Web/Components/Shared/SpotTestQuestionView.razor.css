@@ -2,7 +2,6 @@
     background-color: #6b21a8;
 }
 
-/* Educt Boxes */
 .educt-box {
     min-width: 160px;
     max-width: 220px;
@@ -13,19 +12,10 @@
     transition: border-color 0.2s, background-color 0.2s, transform 0.15s;
 }
 
-.educt-box:hover {
-    transform: scale(1.02);
-}
+.educt-box:hover { transform: scale(1.02); }
+.educt-box:active { cursor: grabbing; }
+.educt-box.drag-over { background-color: rgba(107, 33, 168, 0.05); }
 
-.educt-box:active {
-    cursor: grabbing;
-}
-
-.educt-box.drag-over {
-    background-color: rgba(107, 33, 168, 0.05);
-}
-
-/* Slide-Out Panel Toggle */
 .tools-panel-toggle {
     position: fixed;
     right: 0;
@@ -42,11 +32,8 @@
     transition: background-color 0.2s;
 }
 
-.tools-panel-toggle:hover {
-    background: #581c87;
-}
+.tools-panel-toggle:hover { background: #581c87; }
 
-/* Slide-Out Panel */
 .tools-panel {
     position: fixed;
     right: 0;
@@ -62,11 +49,8 @@
     padding: 1.5rem;
 }
 
-.tools-panel.open {
-    transform: translateX(0);
-}
+.tools-panel.open { transform: translateX(0); }
 
-/* Mix Drop Zones - row columns must be equal height */
 ::deep .drop-zone {
     display: flex;
     height: 100%;

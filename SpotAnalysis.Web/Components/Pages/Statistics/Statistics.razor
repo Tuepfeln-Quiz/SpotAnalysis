@@ -1,5 +1,6 @@
 @page "/statistics"
-@attribute [Authorize]
+@attribute [Authorize(Roles = "Teacher, Admin")]
+
 <PageTitle>Statistiken</PageTitle>
 <h1>Statistiken</h1>
 <p>Coming soon...</p>

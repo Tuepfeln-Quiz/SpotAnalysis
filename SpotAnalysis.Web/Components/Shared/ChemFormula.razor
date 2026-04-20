@@ -1,0 +1,10 @@
+@using SpotAnalysis.Web.Services
+
+@if (!string.IsNullOrEmpty(Value))
+{
+    @ChemicalStringFormatter.Format(Value)
+}
+
+@code {
+    [Parameter] public string? Value { get; set; }
+}

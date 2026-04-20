@@ -84,7 +84,7 @@ else
                     {
                         var educt = question.UnknownEducts[i];
                         var idx = i;
-                        var eigenfarbe = string.IsNullOrWhiteSpace(educt.Color) || educt.Color == "keine" ? null : educt.Color;
+                        var eigenfarbe = string.IsNullOrWhiteSpace(educt.Color) ? null : educt.Color;
                         var phPaper = educt.MethodOutputs.GetValueOrDefault("pH-Papier");
                         var flame = educt.MethodOutputs.GetValueOrDefault("Flammenfärbung");
 
@@ -119,7 +119,7 @@ else
                             </div>
                             @if (hasChecked && answerResults.GetValueOrDefault(idx) == false)
                             {
-                                <small class="text-muted">Richtig: <strong>@educt.Formula</strong></small>
+                                <small class="text-muted">Richtig: <strong><ChemFormula Value="@educt.Formula" /></strong></small>
                             }
                             <!-- Zeile 2: Färbungen -->
                             <div class="d-flex flex-wrap gap-2 mt-1">

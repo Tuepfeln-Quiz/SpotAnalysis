@@ -26,11 +26,11 @@ public class QuizService(ILogger<QuizService> logger, IDbContextFactory<Analysis
         }).ToListAsync();
     }
 
-    public async Task CreateQuiz(Guid teacherId, CreateQuizDto quiz)
+    public async Task<int> CreateQuiz(Guid teacherId, CreateQuizDto quiz)
     {
         await using var dbContext = await factory.CreateDbContextAsync();
         await using var transaction = await dbContext.Database.BeginTransactionAsync();
-        
+
         var newQuiz = new Quiz
         {
             Name = quiz.Name,
@@ -51,6 +51,7 @@ public class QuizService(ILogger<QuizService> logger, IDbContextFactory<Analysis
         await dbContext.SaveChangesAsync();
 
         await transaction.CommitAsync();
+        return newQuiz.QuizID;
     }
 
     public async Task UpdateQuiz(Guid teacherId, UpdateQuizDto quiz)
@@ -104,17 +105,21 @@ public class QuizService(ILogger<QuizService> logger, IDbContextFactory<Analysis
     public async Task DeleteQuiz(Guid teacherId, int quizId)
     {
         await using var dbContext = await factory.CreateDbContextAsync();
-        await using var transaction = await dbContext.Database.BeginTransactionAsync();
+
+        var quiz = await dbContext.Quizzes
+            .Include(q => q.Groups)
+            .SingleOrDefaultAsync(q => q.QuizID == quizId && q.CreatedBy == teacherId);
+
+        if (quiz is null) return;
+
+        quiz.Groups.Clear();
 
         await dbContext.QuizQuestions
-            .Where(x => x.QuizID == quizId && x.Quiz.CreatedBy == teacherId)
+            .Where(x => x.QuizID == quizId)
             .ExecuteDeleteAsync();
 
-        await dbContext.Quizzes
-            .Where(x => x.QuizID == quizId && x.CreatedBy == teacherId)
-            .ExecuteDeleteAsync();
-
-        await transaction.CommitAsync();
+        dbContext.Quizzes.Remove(quiz);
+        await dbContext.SaveChangesAsync();
     }
 
     public async Task AssignGroupToQuiz(int quizId, int groupId)
@@ -132,6 +137,21 @@ public class QuizService(ILogger<QuizService> logger, IDbContextFactory<Analysis
 
         quiz.Groups.Add(group);
         await dbContext.SaveChangesAsync();
+    }
+
+    public async Task<List<GroupDto>> GetGroupsByQuiz(int quizId)
+    {
+        await using var dbContext = await factory.CreateDbContextAsync();
+
+        return await dbContext.Quizzes
+            .Where(q => q.QuizID == quizId)
+            .SelectMany(q => q.Groups)
+            .Select(g => new GroupDto
+            {
+                Id = g.GroupID,
+                Name = g.Name,
+                Description = g.Description,
+            }).ToListAsync();
     }
 
     public async Task RemoveGroupFromQuiz(int quizId, int groupId)

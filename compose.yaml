@@ -1,0 +1,38 @@
+﻿services:
+  spotanalysis.web:
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      ConnectionStrings__MyDatabase: "Host=spotanalysis_db;Port=5432;Database=SpotAnalysis;Username=spot_analysis;Password=${POSTGRES_PASSWORD};SSL Mode=Allow;Trust Server Certificate=true;Timeout=10;"
+    build:
+      context: .
+      dockerfile: SpotAnalysis.Web/Dockerfile
+    depends_on:
+      spotanalysis_db:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+      - "8081:8081"
+  
+  spotanalysis_db:
+    image: postgres:18
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      POSTGRES_USER: spot_analysis
+      POSTGRES_DB: SpotAnalysis
+    ports:
+      - "5432:5432"
+    volumes:
+      - spot_analysis_pgdata:/var/lib/postgresql
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U spot_analysis -d SpotAnalysis" ]
+      interval: 30s
+      timeout: 60s
+      retries: 5
+      start_period: 80s
+
+volumes:
+  spot_analysis_pgdata:

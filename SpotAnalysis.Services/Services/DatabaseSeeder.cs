@@ -73,7 +73,7 @@ public class DatabaseSeeder(
         {
             UserID = newGuid,
             UserName = "Admin",
-            PasswordHash = new PasswordProvider.Password("admin", newGuid).ParamString(),
+            PasswordHash = new PasswordProvider.Password("admin123", newGuid).ParamString(),
         };
         adminUser.Roles.Add(Role.Admin);
         context.Users.Add(adminUser);

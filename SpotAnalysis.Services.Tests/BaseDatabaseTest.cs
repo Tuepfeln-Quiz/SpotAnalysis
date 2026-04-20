@@ -13,7 +13,7 @@ public abstract class BaseDatabaseTest
     public async Task RunBeforeAllTests()
     {
         var options = new DbContextOptionsBuilder<AnalysisContext>()
-            .UseSqlServer(TestConfiguration.GetConnectionString("TestDatabase"))
+            .UseNpgsql(TestConfiguration.GetConnectionString("TestDatabase"))
             .Options;
         
         ContextFactory = new TestDbContextFactory(options);
@@ -33,7 +33,7 @@ public abstract class BaseDatabaseTest
             // Optional: Use Respawn here if you want to wipe 
             // user-generated data between tests while keeping seed data.
             _context = new AnalysisContext(new DbContextOptionsBuilder<AnalysisContext>()
-                .UseSqlServer(TestConfiguration.GetConnectionString("TestDatabase")).Options);
+                .UseNpgsql(TestConfiguration.GetConnectionString("TestDatabase")).Options);
             return Task.CompletedTask;
         }
         catch (Exception exception)

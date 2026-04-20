@@ -1,4 +1,4 @@
-@page "/uebungen/{UebungId:int}"
+@* @page "/uebungen/{UebungId:int}"
 @rendermode InteractiveServer
 @inject NavigationManager Navigation
 
@@ -12,3 +12,4 @@
     protected override void OnParametersSet() =>
         Navigation.NavigateTo($"/uebungen/{UebungId}/aufgabe/1", replace: true);
 }
+ *@

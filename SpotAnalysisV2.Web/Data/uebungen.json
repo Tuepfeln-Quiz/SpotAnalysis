@@ -1,57 +1,47 @@
 [
   {
     "Id": 1,
-    "Title": "Test",
-    "Description": "Test",
+    "Title": "test",
+    "Description": "test",
     "Aufgaben": [
       {
         "AufgabeId": 1,
         "Typ": 0,
-        "QuizId": 1
+        "QuizId": 6
       },
       {
         "AufgabeId": 2,
         "Typ": 0,
-        "QuizId": 2
+        "QuizId": 5
       },
       {
         "AufgabeId": 3,
-        "Typ": 0,
-        "QuizId": 3
-      },
-      {
-        "AufgabeId": 4,
         "Typ": 1,
         "QuizId": 6
       },
       {
-        "AufgabeId": 5,
+        "AufgabeId": 4,
         "Typ": 1,
         "QuizId": 5
       }
     ],
-    "AufgabenCount": 5,
-    "LightCount": 3,
+    "AufgabenCount": 4,
+    "LightCount": 2,
     "TupfelnCount": 2
   },
   {
     "Id": 2,
-    "Title": "dfgdfd",
-    "Description": "sdfsdf",
+    "Title": "TupfelnQuiz",
+    "Description": "TupfelnQuiz",
     "Aufgaben": [
       {
         "AufgabeId": 1,
-        "Typ": 0,
-        "QuizId": 1
-      },
-      {
-        "AufgabeId": 2,
         "Typ": 1,
         "QuizId": 1
       }
     ],
-    "AufgabenCount": 2,
-    "LightCount": 1,
+    "AufgabenCount": 1,
+    "LightCount": 0,
     "TupfelnCount": 1
   }
 ]

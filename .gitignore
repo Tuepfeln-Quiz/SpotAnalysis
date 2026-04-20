@@ -65,3 +65,4 @@ nunit-*.xml
 /SpotAnalysis.Data/**/Migrations
 
 .env
+/logs/

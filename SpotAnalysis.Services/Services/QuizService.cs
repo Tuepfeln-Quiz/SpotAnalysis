@@ -628,7 +628,7 @@ public class QuizService(ILogger<QuizService> logger, IDbContextFactory<Analysis
             {
                 UserID = userId,
                 QuizID = quizId,
-                Started = DateTime.Now
+                Started = DateTime.UtcNow
             };
             db.QuizAttempts.Add(openAttempt);
             await db.SaveChangesAsync();

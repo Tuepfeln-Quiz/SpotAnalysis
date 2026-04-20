@@ -44,10 +44,7 @@
 
                 </tbody>
             </table>
-            
     </div>
-
-
 </div>
 
 
@@ -55,19 +52,27 @@
 
 @code {
 
-    private List<UserDto> _users = [];
+    private readonly List<UserDto> _users = [];
 
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        var teachers = await AdminService.GetUsersByRole(Role.Teacher);
-        _users.AddRange(teachers);
+        // Only load user list on first load. After that db loading is not needed anymore.
+        if (!firstRender)
+        {
+            return;
+        }
+        
         var admins = await AdminService.GetUsersByRole(Role.Admin);
         _users.AddRange(admins);
+        await InvokeAsync(StateHasChanged);
+        
+        var teachers = await AdminService.GetUsersByRole(Role.Teacher);
+        _users.AddRange(teachers.ExceptBy(_users.Select(x => x.Id), x => x.Id));
+        await InvokeAsync(StateHasChanged);
+        
         var students = await AdminService.GetUsersByRole(Role.Student);
-        _users.AddRange(students);
-
-        // Filter out users that have multiple roles
-        _users = _users.Distinct().ToList();
+        _users.AddRange(students.ExceptBy(_users.Select(x => x.Id), x => x.Id));
+        await InvokeAsync(StateHasChanged);
     }
 
 

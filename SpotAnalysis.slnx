@@ -3,7 +3,6 @@
     <File Path="compose.yaml" />
     <File Path=".env" />
     <File Path=".gitignore" />
-    <File Path=".husky/task-runner.json" />
   </Folder>
   <Project Path="ExcelImportExport.Tests/ExcelImportExport.Tests.csproj" />
   <Project Path="ExcelImportExport/ExcelImportExport.csproj" />

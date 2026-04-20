@@ -13,7 +13,9 @@
         condition: service_healthy
     ports:
       - "127.0.0.1:8080:8080"
-  
+    volumes:
+      - ./logs:/app/Logs
+
   spotanalysis_db:
     image: postgres:18
     restart: unless-stopped
@@ -32,6 +34,12 @@
       timeout: 60s
       retries: 5
       start_period: 80s
+      
+  adminer:
+    image: adminer:5
+    restart: always
+    ports:
+      - 8080:8080
 
 volumes:
   spot_analysis_pgdata:

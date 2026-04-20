@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.HttpOverrides;
 using Serilog;
 using SpotAnalysis.Services;
 using SpotAnalysis.Services.Services;
@@ -37,9 +38,13 @@ public class Program
             try
             {
                 await seeder.SeedAdminAsync();
+                await seeder.SeedMasterDataAsync();
 
                 if (app.Environment.IsDevelopment())
+                {
                     await seeder.SeedDevUserAsync();
+                    await seeder.SeedQuizDataAsync();
+                }
             }
             catch (Exception ex)
             {
@@ -47,15 +52,21 @@ public class Program
             }
         }
 
+        
+
         // Configure the HTTP request pipeline.
         if (!app.Environment.IsDevelopment())
         {
+            app.UseForwardedHeaders(new ForwardedHeadersOptions
+            {
+                ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto,
+                KnownNetworks = { },
+                KnownProxies = { },
+            });
             app.UseExceptionHandler("/Error");
-            app.UseHsts();
         }
 
         app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
-        app.UseHttpsRedirection();
 
         app.UseAuthentication();
         app.UseAuthorization();

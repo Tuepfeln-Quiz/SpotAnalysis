@@ -2,6 +2,8 @@
 
 <div class="input-group">
     <InputText @bind-Value="Value" 
+               name="@InputName"
+               readonly
                class="form-control font-bold text-center"/>
     <button type="button" 
             class="btn btn-outline-secondary" 
@@ -14,6 +16,7 @@
 @code {
     [Parameter] public string Value { get; set; } = "";
     [Parameter] public EventCallback<string> ValueChanged { get; set; }
+    [Parameter] public string? InputName { get; set; }
     [Parameter] public bool AutoGenerate { get; set; } = true;
         
     [Inject] public IUsernameService UsernameService { get; set; } = default!;

@@ -118,6 +118,12 @@ public class QuizService(ILogger<QuizService> logger, IDbContextFactory<Analysis
 
         if (quiz is null) return;
 
+        var hasAttempts = await dbContext.QuizAttempts.AnyAsync(a => a.QuizID == quizId);
+        if (hasAttempts)
+        {
+            throw new InvalidOperationException("Dieses Quiz kann nicht gelöscht werden, weil bereits Ergebnisse/Versuche dazu existieren.");
+        }
+
         quiz.Groups.Clear();
 
         dbContext.QuizQuestions.RemoveRange(

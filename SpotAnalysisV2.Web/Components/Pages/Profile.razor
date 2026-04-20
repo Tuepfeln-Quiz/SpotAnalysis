@@ -1,0 +1,128 @@
+@page "/profile"
+@page "/reset-password"
+@rendermode InteractiveServer
+@attribute [Authorize]
+@inject IJSRuntime JS
+@inject AuthenticationStateProvider AuthStateProvider
+
+<PageTitle>Profil – SpotAnalysis</PageTitle>
+
+<div class="min-h-screen bg-gradient-to-br from-gray-50 via-white to-teal-50 p-8">
+    <div class="mx-auto max-w-3xl rounded-3xl bg-white p-8 shadow-xl">
+        <div class="mb-8 flex items-center gap-4">
+            <div class="flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-teal-100 to-blue-100 text-4xl">
+                @_selectedAvatar
+            </div>
+            <div>
+                <p class="text-sm font-medium text-teal-600">Profil & Passwort</p>
+                <h1 class="text-3xl font-bold text-gray-800">Konto verwalten</h1>
+                <p class="mt-1 text-sm text-gray-500">Benutzername ändern, Passwort zurücksetzen und ein Emoji als Profilbild wählen.</p>
+            </div>
+        </div>
+
+        @if (!string.IsNullOrWhiteSpace(DisplayMessage))
+        {
+            <div class="mb-6 rounded-2xl border @(IsError ? "border-red-200 bg-red-50 text-red-700" : "border-green-200 bg-green-50 text-green-700") px-4 py-3 text-sm">
+                @DisplayMessage
+            </div>
+        }
+
+        <form action="/api/auth/profile" method="post" class="space-y-6">
+            <AntiforgeryToken />
+            <input type="hidden" name="returnUrl" value="/profile" />
+            <input type="hidden" name="avatarEmoji" value="@_selectedAvatar" />
+
+            <div>
+                <label class="mb-3 block text-sm font-medium text-gray-700">Profilbild auswählen</label>
+                <div class="flex flex-wrap gap-3">
+                    @foreach (var emoji in AvatarOptions)
+                    {
+                        <button type="button"
+                                @onclick='() => SelectAvatar(emoji)'
+                                class="flex h-14 w-14 items-center justify-center rounded-2xl border text-2xl transition @(_selectedAvatar == emoji ? "border-teal-400 bg-teal-50 ring-4 ring-teal-100" : "border-gray-200 bg-white hover:border-teal-300 hover:bg-teal-50")">
+                            @emoji
+                        </button>
+                    }
+                </div>
+            </div>
+
+            <div>
+                <label class="mb-2 block text-sm font-medium text-gray-700">Benutzername</label>
+                <input type="text" name="userName" value="@_currentUserName" class="w-full rounded-2xl border border-gray-300 px-4 py-3 outline-none focus:border-teal-400 focus:ring-4 focus:ring-teal-100" required />
+            </div>
+
+            <div>
+                <label class="mb-2 block text-sm font-medium text-gray-700">Neues Passwort</label>
+                <input type="password" name="newPassword" autocomplete="new-password" class="w-full rounded-2xl border border-gray-300 px-4 py-3 outline-none focus:border-teal-400 focus:ring-4 focus:ring-teal-100" placeholder="Leer lassen, wenn unverändert" />
+                <p class="mt-1 text-xs text-gray-400">Mindestens 8 Zeichen mit Großbuchstabe, Kleinbuchstabe, Zahl und Sonderzeichen.</p>
+            </div>
+
+            <div>
+                <label class="mb-2 block text-sm font-medium text-gray-700">Passwort wiederholen</label>
+                <input type="password" name="confirmPassword" autocomplete="new-password" class="w-full rounded-2xl border border-gray-300 px-4 py-3 outline-none focus:border-teal-400 focus:ring-4 focus:ring-teal-100" placeholder="Neues Passwort wiederholen" />
+            </div>
+
+            <div class="flex justify-end gap-3 pt-2">
+                <a href="/" class="rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50" style="text-decoration:none;">Zurück</a>
+                <button type="submit" class="rounded-2xl bg-teal-500 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-teal-200 hover:bg-teal-600">
+                    Änderungen speichern
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@code {
+    [SupplyParameterFromQuery(Name = "error")]
+    public string? ErrorMessage { get; set; }
+
+    [SupplyParameterFromQuery(Name = "success")]
+    public string? SuccessMessage { get; set; }
+
+    private string _currentUserName = string.Empty;
+    private string _selectedAvatar = "🧑‍🔬";
+    private string _userId = string.Empty;
+
+    private static readonly string[] AvatarOptions = ["🧑‍🔬", "👩‍🔬", "👨‍🔬", "🧪", "🔬", "🌟", "🦊", "🐼", "🐙", "🐸", "🦁", "🐧"];
+
+    private bool IsError => !string.IsNullOrWhiteSpace(ErrorMessage);
+    private string? DisplayMessage => ErrorMessage switch
+    {
+        "InvalidUserName" => "Der Benutzername ist ungültig.",
+        "WeakPassword" => "Passwort muss mindestens 8 Zeichen sowie Großbuchstabe, Kleinbuchstabe, Zahl und Sonderzeichen enthalten.",
+        "UserNameTaken" => "Dieser Benutzername ist bereits vergeben.",
+        "PasswordsDoNotMatch" => "Die Passwörter stimmen nicht überein.",
+        "UserNotFound" => "Benutzer konnte nicht gefunden werden.",
+        null or "" => SuccessMessage == "ProfileUpdated" ? "Profil erfolgreich aktualisiert." : null,
+        _ => ErrorMessage
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        _currentUserName = authState.User.Identity?.Name ?? string.Empty;
+        _userId = authState.User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? string.Empty;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender || string.IsNullOrWhiteSpace(_userId))
+            return;
+
+        var avatar = await JS.InvokeAsync<string?>("localStorage.getItem", GetAvatarStorageKey());
+        if (!string.IsNullOrWhiteSpace(avatar))
+        {
+            _selectedAvatar = avatar!;
+            StateHasChanged();
+        }
+    }
+
+    private async Task SelectAvatar(string emoji)
+    {
+        _selectedAvatar = emoji;
+        if (!string.IsNullOrWhiteSpace(_userId))
+            await JS.InvokeVoidAsync("localStorage.setItem", GetAvatarStorageKey(), emoji);
+    }
+
+    private string GetAvatarStorageKey() => $"spotanalysis.avatar.{_userId}";
+}

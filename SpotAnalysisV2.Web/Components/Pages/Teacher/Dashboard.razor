@@ -1,0 +1,55 @@
+@page "/teacher"
+@rendermode InteractiveServer
+@attribute [Authorize(Roles = "Admin,Teacher")]
+@inject NavigationManager Navigation
+
+<PageTitle>Lehrerbereich – SpotAnalysis</PageTitle>
+
+<div class="min-h-screen bg-gradient-to-br from-gray-50 via-white to-teal-50 p-8">
+    <div class="mx-auto max-w-6xl">
+        <div class="mb-8 flex items-center justify-between gap-4">
+            <div>
+                <p class="text-sm font-medium text-teal-600">Lehrerbereich</p>
+                <h1 class="text-3xl font-bold text-gray-800">Verwaltung</h1>
+                <p class="mt-2 text-gray-500">Gruppen, Quizzes und Fragen mit echter Datenbanklogik verwalten.</p>
+            </div>
+            <NavLink href="/" class="rounded-2xl border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50" style="text-decoration:none;">
+                Zurück zur Startseite
+            </NavLink>
+        </div>
+
+        <div class="grid gap-6 md:grid-cols-3">
+            <button type="button" @onclick='() => Navigation.NavigateTo("/teacher/quizzes")' class="rounded-3xl border border-purple-100 bg-white p-8 text-left shadow-lg transition hover:-translate-y-1 hover:border-purple-300 hover:bg-purple-50">
+                <div class="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-500 to-fuchsia-500 text-white shadow-md ring-1 ring-white/40">
+                    <svg class="h-7 w-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M7 4h8l4 4v12a2 2 0 01-2 2H7a2 2 0 01-2-2V6a2 2 0 012-2z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 4v4h4M9 12h6M9 16h4" />
+                    </svg>
+                </div>
+                <h2 class="text-xl font-semibold text-gray-800">Quizzes</h2>
+                <p class="mt-2 text-sm text-gray-500">Quizzes erstellen, bearbeiten und Gruppen zuweisen.</p>
+            </button>
+
+            <button type="button" @onclick='() => Navigation.NavigateTo("/teacher/questions")' class="rounded-3xl border border-blue-100 bg-white p-8 text-left shadow-lg transition hover:-translate-y-1 hover:border-blue-300 hover:bg-blue-50">
+                <div class="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-sky-500 to-indigo-500 text-white shadow-md ring-1 ring-white/40">
+                    <svg class="h-7 w-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M7 8h10M7 12h6M7 16h10" />
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 4h14a2 2 0 012 2v13a1 1 0 01-1.707.707L16 16H5a2 2 0 01-2-2V6a2 2 0 012-2z" />
+                    </svg>
+                </div>
+                <h2 class="text-xl font-semibold text-gray-800">Fragenpool</h2>
+                <p class="mt-2 text-sm text-gray-500">SpotTest- und Light-Fragen anlegen und pflegen.</p>
+            </button>
+
+            <button type="button" @onclick='() => Navigation.NavigateTo("/teacher/groups")' class="rounded-3xl border border-amber-100 bg-white p-8 text-left shadow-lg transition hover:-translate-y-1 hover:border-amber-300 hover:bg-amber-50">
+                <div class="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 text-white shadow-md ring-1 ring-white/40">
+                    <svg class="h-7 w-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M16 10a3 3 0 11-6 0 3 3 0 016 0zM7 20a6 6 0 0112 0M6 12a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0zM1 20a5 5 0 016-4" />
+                    </svg>
+                </div>
+                <h2 class="text-xl font-semibold text-gray-800">Gruppen</h2>
+                <p class="mt-2 text-sm text-gray-500">Gruppen, Lehrkräfte, Schüler und Quiz-Zuordnungen verwalten.</p>
+            </button>
+        </div>
+    </div>
+</div>

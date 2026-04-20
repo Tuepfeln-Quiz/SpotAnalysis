@@ -1,0 +1,133 @@
+@rendermode InteractiveServer
+@inject NavigationManager Navigation
+@inject AuthenticationStateProvider AuthStateProvider
+@inject IJSRuntime JS
+
+<div class="relative @ContainerClass" @onclick:stopPropagation>
+    <button type="button"
+            @onclick="ToggleProfileMenu"
+            class="flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 bg-white shadow-sm transition hover:border-teal-300 hover:bg-teal-50 text-xl text-teal-700"
+            aria-label="Profilmenü öffnen">
+        @if (!string.IsNullOrWhiteSpace(_avatarEmoji))
+        {
+            <span>@_avatarEmoji</span>
+        }
+        else
+        {
+            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M5.121 17.804A9 9 0 1118.88 17.804M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+        }
+    </button>
+
+    @if (_profileMenuOpen)
+    {
+        <div class="fixed inset-0 z-30" @onclick="CloseProfileMenu"></div>
+
+        <div class="absolute right-0 top-full z-40 mt-3 w-80 overflow-hidden rounded-3xl border border-gray-100 bg-white shadow-2xl ring-1 ring-black/5">
+             <AuthorizeView>
+                 <Authorized>
+                    <div class="border-b border-gray-100 bg-gradient-to-r from-teal-50/90 via-cyan-50/90 to-blue-50/90 px-4 py-3.5">
+                        <div class="flex items-center gap-2.5">
+                            <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-white/90 text-lg text-teal-700 shadow-sm ring-1 ring-white/80">
+                                 @if (!string.IsNullOrWhiteSpace(_avatarEmoji))
+                                 {
+                                     <span>@_avatarEmoji</span>
+                                 }
+                                 else
+                                 {
+                                    <svg class="h-4.5 w-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                         <path stroke-linecap="round" stroke-linejoin="round" d="M5.121 17.804A9 9 0 1118.88 17.804M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                                     </svg>
+                                 }
+                             </div>
+                             <div>
+                                <p class="text-[10px] uppercase tracking-wide text-gray-400">Profil</p>
+                                <p class="mt-0.5 text-base font-semibold text-gray-800 leading-tight">@context.User.Identity?.Name</p>
+                                <p class="text-xs text-gray-500">
+                                     @(context.User.IsInRole("Teacher") || context.User.IsInRole("Admin") ? "Lehrkraft" : "Schüler:in")
+                                 </p>
+                             </div>
+                         </div>
+                     </div>
+
+                    <div class="p-3 space-y-2">
+                        <button type="button" @onclick='() => OpenLink("/profile")' class="group flex w-full items-center justify-between rounded-xl px-3.5 py-2.5 text-left text-gray-700 transition hover:bg-teal-50 hover:text-teal-700">
+                             <span>
+                                 <span class="block font-medium">Profil bearbeiten</span>
+                                 <span class="block text-xs text-gray-400">Name, Passwort, Emoji</span>
+                             </span>
+                             <svg class="h-4 w-4 text-gray-400 transition group-hover:text-teal-600 group-hover:translate-x-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+                             </svg>
+                        </button>
+
+                        @if (context.User.IsInRole("Teacher") || context.User.IsInRole("Admin"))
+                        {
+                            <button type="button" @onclick='() => OpenLink("/teacher")' class="group flex w-full items-center justify-between rounded-xl px-3.5 py-2.5 text-left text-gray-700 transition hover:bg-teal-50 hover:text-teal-700">
+                                 <span>
+                                     <span class="block font-medium">Verwaltung</span>
+                                     <span class="block text-xs text-gray-400">Gruppen, Fragen, Quizzes</span>
+                                 </span>
+                                 <svg class="h-4 w-4 text-gray-400 transition group-hover:text-teal-600 group-hover:translate-x-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+                                 </svg>
+                            </button>
+                        }
+
+                        <form method="post" action="/api/auth/logout" class="pt-1.5">
+                            <button type="submit" class="w-full rounded-xl border border-red-200 bg-gradient-to-r from-red-50 to-rose-50 px-4 py-2.5 text-sm font-semibold text-red-700 transition hover:from-red-100 hover:to-rose-100">
+                                 Logout
+                             </button>
+                         </form>
+                     </div>
+                 </Authorized>
+                 <NotAuthorized>
+                    <div class="border-b border-gray-100 bg-gradient-to-r from-teal-50/90 via-cyan-50/90 to-blue-50/90 px-4 py-3.5">
+                        <p class="text-[10px] uppercase tracking-wide text-gray-400">Gast</p>
+                        <p class="mt-1 text-base font-semibold text-gray-800 leading-tight">Nicht eingeloggt</p>
+                        <p class="text-xs text-gray-500">Melde dich an oder registriere dich.</p>
+                     </div>
+                    <div class="p-3 space-y-2">
+                        <button type="button" @onclick='() => OpenLink("/login")' class="w-full rounded-xl bg-teal-500 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-teal-600">Login</button>
+                        <button type="button" @onclick='() => OpenLink("/register")' class="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50">Register</button>
+                     </div>
+                 </NotAuthorized>
+             </AuthorizeView>
+         </div>
+     }
+</div>
+
+@code {
+    [Parameter] public string ContainerClass { get; set; } = string.Empty;
+
+    private bool _profileMenuOpen;
+    private string? _avatarEmoji;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender)
+            return;
+
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var userId = authState.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrWhiteSpace(userId))
+            return;
+
+        _avatarEmoji = await JS.InvokeAsync<string?>("localStorage.getItem", $"spotanalysis.avatar.{userId}")
+            ?? authState.User.FindFirst("avatar")?.Value;
+
+        if (!string.IsNullOrWhiteSpace(_avatarEmoji))
+            StateHasChanged();
+    }
+
+    private void ToggleProfileMenu() => _profileMenuOpen = !_profileMenuOpen;
+
+    private void CloseProfileMenu() => _profileMenuOpen = false;
+
+    private void OpenLink(string url)
+    {
+        _profileMenuOpen = false;
+        Navigation.NavigateTo(url);
+    }
+}

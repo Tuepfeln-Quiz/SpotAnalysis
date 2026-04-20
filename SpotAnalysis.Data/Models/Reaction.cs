@@ -1,6 +1,7 @@
 ﻿namespace SpotAnalysis.Data.Models;
 
-public class Reaction {
+public class Reaction
+{
     [Key]
     public int ReactionID { get; set; }
 
@@ -15,7 +16,7 @@ public class Reaction {
 
     [Required]
     [StringLength(256)]
-    public string Formula { get; set; } =  null!;
+    public string Formula { get; set; } = null!;
 
     public int ObservationID { get; set; }
 
@@ -47,11 +48,15 @@ public class Reaction {
     /// </summary>
     /// <param name="chem1"></param>
     /// <param name="chem2"></param>
-    public Reaction(Chemical chem1, Chemical chem2) {
-        if (chem1.ChemicalID <= chem2.ChemicalID) {
+    public Reaction(Chemical chem1, Chemical chem2)
+    {
+        if (chem1.ChemicalID <= chem2.ChemicalID)
+        {
             Chemical1 = chem1;
             Chemical2 = chem2;
-        } else {
+        }
+        else
+        {
             Chemical1 = chem2;
             Chemical2 = chem1;
         }
@@ -62,11 +67,15 @@ public class Reaction {
     /// </summary>
     /// <param name="chem1"></param>
     /// <param name="chem2"></param>
-    public void SetChemicals(Chemical chem1, Chemical chem2) {
-        if (chem1.ChemicalID <= chem2.ChemicalID) {
+    public void SetChemicals(Chemical chem1, Chemical chem2)
+    {
+        if (chem1.ChemicalID <= chem2.ChemicalID)
+        {
             Chemical1 = chem1;
             Chemical2 = chem2;
-        } else {
+        }
+        else
+        {
             Chemical1 = chem2;
             Chemical2 = chem1;
         }

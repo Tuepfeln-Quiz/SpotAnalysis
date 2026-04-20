@@ -5,7 +5,8 @@
 /// </summary>
 
 [Index(nameof(Type))]
-public class Chemical {
+public class Chemical
+{
     [Key]
     public int ChemicalID { get; set; }
     public ChemicalType Type { get; set; }

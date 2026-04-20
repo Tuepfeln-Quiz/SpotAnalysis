@@ -25,9 +25,9 @@ public class TestUserService : BaseDatabaseTest
     private const string StudentPassword3 = "password";
 
     #endregion
-    
+
     #region helpers
-    
+
     private static Random random = new Random();
     public static string RandomString(int length)
     {
@@ -35,9 +35,9 @@ public class TestUserService : BaseDatabaseTest
         return new string(Enumerable.Repeat(chars, length)
             .Select(s => s[random.Next(s.Length)]).ToArray());
     }
-    
+
     #endregion
-    
+
     [OneTimeSetUp]
     public void InitStudentService()
     {
@@ -49,7 +49,7 @@ public class TestUserService : BaseDatabaseTest
     public async Task TestAllUserService()
     {
         var registeredUsers = new HashSet<(string, string)>();
-        
+
         #region TestStudentRegister
 
         {
@@ -65,7 +65,7 @@ public class TestUserService : BaseDatabaseTest
         }
 
         #endregion
-        
+
         #region TestStudentLogin
 
         {
@@ -79,9 +79,9 @@ public class TestUserService : BaseDatabaseTest
                 Assert.That(user, Is.Not.Null);
             }
         }
-        
+
         #endregion
-        
+
         #region TestStudentFailLogin
 
         {

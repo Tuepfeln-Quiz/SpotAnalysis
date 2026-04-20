@@ -5,7 +5,8 @@
 /// </summary>
 
 [PrimaryKey(nameof(ChemicalID), nameof(MethodID))]
-public class MethodOutput {
+public class MethodOutput
+{
     public int ChemicalID { get; set; }
     public int MethodID { get; set; }
 

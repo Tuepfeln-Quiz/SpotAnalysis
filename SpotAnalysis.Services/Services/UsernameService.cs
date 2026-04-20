@@ -9,7 +9,7 @@ public class UsernameService : IUsernameService
 
     private static readonly string[] Adjectives =
     {
-        "Happy", "Sad", "Funny", "Serious", "Silly", "Crazy", "Lazy", "Smart",  
+        "Happy", "Sad", "Funny", "Serious", "Silly", "Crazy", "Lazy", "Smart",
         "Brave", "Flaming", "Frosty", "Grumpy", "Jolly", "Lucky", "Mighty", "Proud",
         "Dusty", "Hyper", "Tiny", "Massive", "Weird", "Scary", "Friendly", "Dark",
         "Periodic", "Covalent", "Ionic", "Resonant", "Unstable", "Metastable",
@@ -25,15 +25,15 @@ public class UsernameService : IUsernameService
     {
         "Bit", "Dog", "Cat", "Bird", "Fish", "Elephant", "Lion", "Tiger", "Bear", "Monkey", "Snake",
         "Eagle", "Shark", "Dolphin", "Whale", "Wolf", "Fox", "Rabbit", "Frog", "Turtle",
-        "Hertz", "Proton", "Quark", "Polar", "Electron", "Titan", "Neon", "Ion", "Photon", "Plasma", 
-        "Nebula", "Comet", "Asteroid", "Meteor", "Galaxy", "Star", "Koala", "Giraffe", 
-        "Zebra", "Cheetah", "Leopard", "Panda", "Sloth", "Otter", "Penguin", "Raccoon", "Squirrel", 
-        "Hamster", "Llama", "Alpaca", "Cobra", "Viper", "Python", "Anaconda", "Cheetah", "Panther", 
-        "Jaguar", "Lynx", "Bobcat", "Parrot", "Toucan", "Flamingo", "Owl", "Hawk", "Falcon", 
-        "Vulture", "Crow", "Raven", "Sparrow", "Bluejay", "Woodpecker", "Cardinal", "Swan", "Duck", 
+        "Hertz", "Proton", "Quark", "Polar", "Electron", "Titan", "Neon", "Ion", "Photon", "Plasma",
+        "Nebula", "Comet", "Asteroid", "Meteor", "Galaxy", "Star", "Koala", "Giraffe",
+        "Zebra", "Cheetah", "Leopard", "Panda", "Sloth", "Otter", "Penguin", "Raccoon", "Squirrel",
+        "Hamster", "Llama", "Alpaca", "Cobra", "Viper", "Python", "Anaconda", "Cheetah", "Panther",
+        "Jaguar", "Lynx", "Bobcat", "Parrot", "Toucan", "Flamingo", "Owl", "Hawk", "Falcon",
+        "Vulture", "Crow", "Raven", "Sparrow", "Bluejay", "Woodpecker", "Cardinal", "Swan", "Duck",
         "Goose", "Turkey"
     };
-  
+
 
     public string Generate()
     {

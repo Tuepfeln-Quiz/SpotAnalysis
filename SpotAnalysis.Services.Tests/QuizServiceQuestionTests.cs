@@ -50,9 +50,9 @@ public class QuizServiceQuestionTests : BaseDatabaseTest
         await dbContext.Observations.AddRangeAsync(obs1, obs2, obs3);
         await dbContext.SaveChangesAsync();
 
-        var reaction1 = new Reaction (chem1, chem2) { ObservationID = obs1.ObservationID, RelevantProduct = "P1", Formula = "F1" };
-        var reaction2 = new Reaction (chem1, chem2) { ObservationID = obs2.ObservationID, RelevantProduct = "P2", Formula = "F2" };
-        var reaction3 = new Reaction (chem1, chem2) { ObservationID = obs3.ObservationID, RelevantProduct = "P3", Formula = "F3" };
+        var reaction1 = new Reaction(chem1, chem2) { ObservationID = obs1.ObservationID, RelevantProduct = "P1", Formula = "F1" };
+        var reaction2 = new Reaction(chem1, chem2) { ObservationID = obs2.ObservationID, RelevantProduct = "P2", Formula = "F2" };
+        var reaction3 = new Reaction(chem1, chem2) { ObservationID = obs3.ObservationID, RelevantProduct = "P3", Formula = "F3" };
         await dbContext.Reactions.AddRangeAsync(reaction1, reaction2, reaction3);
         await dbContext.SaveChangesAsync();
         _reaction1Id = reaction1.ReactionID;
@@ -137,7 +137,7 @@ public class QuizServiceQuestionTests : BaseDatabaseTest
         });
 
         Assert.ThrowsAsync<InvalidOperationException>(
-            async () => await _quizService.DeleteQuestion(question.Id));
+            async () => await _quizService.DeleteQuestion(SeededTeacherId, question.Id));
     }
 
     [Test]
@@ -154,7 +154,7 @@ public class QuizServiceQuestionTests : BaseDatabaseTest
         var questions = await _quizService.GetQuestions();
         var question = questions.First(q => q.Description == "Question to delete");
 
-        await _quizService.DeleteQuestion(question.Id);
+        await _quizService.DeleteQuestion(SeededTeacherId, question.Id);
 
         var afterDelete = await _quizService.GetQuestions();
         Assert.That(afterDelete.Any(q => q.Id == question.Id), Is.False);

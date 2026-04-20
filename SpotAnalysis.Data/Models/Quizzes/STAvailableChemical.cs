@@ -7,7 +7,8 @@
 /// </summary>
 
 [PrimaryKey(nameof(QuestionID), nameof(ChemicalID))]
-public class STAvailableChemical {
+public class STAvailableChemical
+{
     public int QuestionID { get; set; }
     public int ChemicalID { get; set; }
     public required int Order { get; set; }

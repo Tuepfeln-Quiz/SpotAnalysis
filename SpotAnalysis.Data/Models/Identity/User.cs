@@ -1,7 +1,8 @@
 ﻿namespace SpotAnalysis.Data.Models.Identity;
 
 [Index(nameof(UserName), IsUnique = true)]
-public class User {
+public class User
+{
     [Key]
     [DatabaseGenerated(DatabaseGeneratedOption.None)]
     public Guid UserID { get; set; }
@@ -20,5 +21,5 @@ public class User {
     public virtual ICollection<Group> Groups { get; set; } = [];
 
     public virtual ICollection<Quiz> Quizzes { get; set; } = [];
-    public virtual ICollection<Question> Questions {  get; set; } = [];
+    public virtual ICollection<Question> Questions { get; set; } = [];
 }

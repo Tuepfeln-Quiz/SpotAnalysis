@@ -4,7 +4,8 @@
 /// Lookup table for every available Observation in a Reaction.
 /// </summary>
 
-public class Observation {
+public class Observation
+{
     [Key]
     public int ObservationID { get; set; }
 

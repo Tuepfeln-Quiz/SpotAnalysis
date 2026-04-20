@@ -15,7 +15,7 @@ public abstract class BaseDatabaseTest
         var options = new DbContextOptionsBuilder<AnalysisContext>()
             .UseNpgsql(TestConfiguration.GetConnectionString("TestDatabase"))
             .Options;
-        
+
         ContextFactory = new TestDbContextFactory(options);
 
         _context = await ContextFactory.CreateDbContextAsync();
@@ -47,13 +47,13 @@ public abstract class BaseDatabaseTest
     {
         _context.Dispose();
     }
-    
+
     [OneTimeTearDown]
     public void GlobalTeardown()
     {
         _context.Dispose();
     }
-    
+
     private class TestDbContextFactory(DbContextOptions<AnalysisContext> options) : IDbContextFactory<AnalysisContext>
     {
         public AnalysisContext CreateDbContext() => new AnalysisContext(options);
@@ -67,7 +67,7 @@ public abstract class BaseDatabaseTest
             await _context.Database.ExecuteSqlRawAsync(seedSql);
         }
     }
-    
+
     protected async Task CleanUpDb()
     {
         await using var dbContext = await ContextFactory.CreateDbContextAsync();

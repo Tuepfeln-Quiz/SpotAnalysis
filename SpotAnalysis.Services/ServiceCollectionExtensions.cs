@@ -28,6 +28,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IUserService, UserService>();
         services.AddScoped<IAdminService, AdminService>();
         services.AddScoped<IChemistryDataService, ChemistryDataService>();
+        services.AddScoped<IDatabaseSeeder, DatabaseSeeder>();
 
         return services;
     }

@@ -29,8 +29,7 @@
                         <img src="/images/science.svg" class="user-avatar" />
                     </button>
 
-                    @if (IsDropdownOpen)
-                    {
+                    @if (IsDropdownOpen) {
                         <div class="fixed inset-0 z-10" @onclick="CloseAll"></div>
 
                         <ul class="dropdown-menu show dropdown-menu-end z-20" style="position:absolute; padding: 28px; right:0; top:100%">
@@ -39,7 +38,7 @@
                             <li><a class="btn btn-outline-warning mb-2" href="/reset-password" @onclick="CloseAll">Change Password</a></li>
                             <li>
                                 <form method="post" action="/api/auth/logout">
-                                   <button type="submit" class="btn btn-outline-danger w-100">
+                                    <button type="submit" class="btn btn-outline-danger w-100">
                                         <i class="bi bi-box-arrow-left"></i> Logout
                                     </button>
                                 </form>
@@ -59,12 +58,26 @@
     
     <div class="nav-menu @(IsMenuOpen ? "open" : "")">
         <div class="nav-links">
-            <NavLink class="nav-link-item" href="/" Match="NavLinkMatch.Prefix" @onclick="CloseAll">
+            <NavLink class="nav-link-item" href="/" Match="NavLinkMatch.All" @onclick="CloseAll">
                 <i class="bi bi-lightbulb"></i> Quizzes
             </NavLink>
-            <NavLink class="nav-link-item" href="/statistics" Match="NavLinkMatch.Prefix" @onclick="CloseAll">
-                <i class="bi bi-bar-chart"></i> Statistiken
-            </NavLink>
+            <AuthorizeView Roles="Admin,Teacher">
+                <Authorized>
+                    <NavLink class="nav-link-item" href="/statistics" Match="NavLinkMatch.All" @onclick="CloseAll">
+                        <i class="bi bi-bar-chart"></i> Statistiken
+                    </NavLink>
+                    <NavLink class="nav-link-item" href="/teacher" Match="NavLinkMatch.All" @onclick="CloseAll">
+                        <i class="bi bi-person-badge"></i> Lehrerbereich
+                    </NavLink>
+                </Authorized>
+            </AuthorizeView>
+            <AuthorizeView Roles="Admin">
+                <Authorized>
+                    <NavLink class="nav-link-item" href="/admin" Match="NavLinkMatch.All" @onclick="CloseAll">
+                        <i class="bi bi-info"></i> Admin
+                    </NavLink>
+                </Authorized>
+            </AuthorizeView>
         </div>
         <div class="nav-auth">
             <AuthorizeView>
@@ -85,8 +98,7 @@
     </div>
 </div>
 
-@if (IsMenuOpen || IsDropdownOpen)
-{
+@if (IsMenuOpen || IsDropdownOpen) {
     <div class="nav-overlay" @onclick="CloseAll"></div>
 }
 
@@ -99,8 +111,7 @@
     private void ToggleDropdown() => IsDropdownOpen = !IsDropdownOpen;
     private void CloseAll() { IsMenuOpen = false; IsDropdownOpen = false; }
 
-    private void NavigateAndCloseMenu()
-    {
+    private void NavigateAndCloseMenu() {
         CloseAll();
         NavigationManager.NavigateTo("/");
     }

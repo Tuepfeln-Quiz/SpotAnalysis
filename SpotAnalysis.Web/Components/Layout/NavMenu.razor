@@ -58,26 +58,26 @@
     
     <div class="nav-menu @(IsMenuOpen ? "open" : "")">
         <div class="nav-links">
-            <NavLink class="nav-link-item" href="/" Match="NavLinkMatch.All" @onclick="CloseAll">
-                <i class="bi bi-lightbulb"></i> Quizzes
-            </NavLink>
-            <AuthorizeView Roles="Admin,Teacher">
-                <Authorized>
-                    <NavLink class="nav-link-item" href="/statistics" Match="NavLinkMatch.All" @onclick="CloseAll">
-                        <i class="bi bi-bar-chart"></i> Statistiken
-                    </NavLink>
-                    <NavLink class="nav-link-item" href="/teacher" Match="NavLinkMatch.All" @onclick="CloseAll">
-                        <i class="bi bi-person-badge"></i> Lehrerbereich
-                    </NavLink>
-                </Authorized>
-            </AuthorizeView>
             <AuthorizeView Roles="Admin">
                 <Authorized>
                     <NavLink class="nav-link-item" href="/admin" Match="NavLinkMatch.All" @onclick="CloseAll">
-                        <i class="bi bi-info"></i> Admin
+                        <i class="bi bi-person-lines-fill"></i> Admin
                     </NavLink>
                 </Authorized>
             </AuthorizeView>
+            <AuthorizeView Roles="Admin,Teacher">
+                <Authorized>
+                    <NavLink class="nav-link-item" href="/teacher" Match="NavLinkMatch.All" @onclick="CloseAll">
+                        <i class="bi bi-person-badge"></i> Lehrerbereich
+                    </NavLink>
+                    <NavLink class="nav-link-item" href="/statistics" Match="NavLinkMatch.All" @onclick="CloseAll">
+                        <i class="bi bi-bar-chart"></i> Statistiken
+                    </NavLink>
+                </Authorized>
+            </AuthorizeView>
+            <NavLink class="nav-link-item" href="/" Match="NavLinkMatch.All" @onclick="CloseAll">
+                <i class="bi bi-lightbulb"></i> Quizzes
+            </NavLink>
         </div>
         <div class="nav-auth">
             <AuthorizeView>

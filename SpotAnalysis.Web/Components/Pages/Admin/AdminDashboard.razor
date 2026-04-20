@@ -1,6 +1,8 @@
 @page "/admin"
 @rendermode InteractiveServer
 
+@attribute [Authorize(Roles = "Admin")]
+
 <AuthorizeView Roles="Admin">
     <NotAuthorized>
         <PageTitle>Zugriff verweigert</PageTitle>

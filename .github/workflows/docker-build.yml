@@ -7,7 +7,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository_owner }}/spotanalysis.web
+  IMAGE_NAME_RAW: ${{ github.repository_owner }}/spotanalysis.web
 
 jobs:
   build:
@@ -30,6 +30,9 @@ jobs:
         run: echo "PLATFORM_PAIR=${PLATFORM//\//-}" >> "$GITHUB_ENV"
         env:
           PLATFORM: ${{ matrix.platform }}
+
+      - name: Lowercase image name
+        run: echo "IMAGE_NAME=${IMAGE_NAME_RAW,,}" >> "$GITHUB_ENV"
 
       - name: Checkout
         uses: actions/checkout@v4
@@ -84,6 +87,9 @@ jobs:
       packages: write
 
     steps:
+      - name: Lowercase image name
+        run: echo "IMAGE_NAME=${IMAGE_NAME_RAW,,}" >> "$GITHUB_ENV"
+
       - name: Download digests
         uses: actions/download-artifact@v4
         with:

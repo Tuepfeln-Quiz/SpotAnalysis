@@ -1,55 +1,103 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System.Security.Authentication;
+using System.Text.RegularExpressions;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using SpotAnalysis.Data;
 using SpotAnalysis.Data.Enums;
 using SpotAnalysis.Data.Models.Identity;
 
 namespace SpotAnalysis.Services.Services;
 
-public class UserService(IDbContextFactory<AnalysisContext> factory) : IUserService
+public class UserService(ILogger<UserService> logger, IDbContextFactory<AnalysisContext> factory) : IUserService
 {
-    public async Task<User?> ChangePassword(string userName, string oldPassword, string newPassword)
-    {
-        System.Console.WriteLine("ChangePassword method called with username: " + userName);
-        return null;
-    }
+    private static readonly Regex PasswordRegex = new(
+        @"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z\d]).{8,}$",
+        RegexOptions.Compiled);
 
-    public async Task<User?> Login(string userName, string password)
+    public async Task<User?> ChangePassword(string userName, string newPassword)
     {
-        System.Console.WriteLine("Login method called with username: " + userName);
-
-        if (string.IsNullOrEmpty(userName) || string.IsNullOrEmpty(password))
+        if (string.IsNullOrEmpty(userName) || string.IsNullOrEmpty(newPassword))
         {
             return null;
         }
-
-        using var context = factory.CreateDbContext();
+        await using var context = await factory.CreateDbContextAsync();
+        
         var user = context.Users.FirstOrDefault(u => u.UserName == userName);
         if (user == null) return null;
+      
+        var newHash = new PasswordProvider.Password(newPassword, user.UserID).ParamString();
+        user.PasswordHash = newHash;
+        
+        await context.SaveChangesAsync();
+        
+        return user;
+    }
+
+    public async Task<User> Login(string userName, string password)
+    {
+        if (string.IsNullOrEmpty(userName) || string.IsNullOrEmpty(password))
+        {
+            logger.LogWarning("Username or password was null or empty, Username: {userName}, Password: {password}", userName, password);
+            throw new ArgumentException("Username or password was null or empty");
+        }
+
+        await using var context = await factory.CreateDbContextAsync();
+        var user = await context.Users.SingleOrDefaultAsync(u => u.UserName.ToLower() == userName.ToLower());
+        
+        if (user == null)
+        {
+            logger.LogWarning("No user was found with user name: {userName}", userName);
+            throw new ArgumentException("No user was found with given user name");
+        }
         
         if (string.IsNullOrEmpty(user.PasswordHash))
         {
-            return null;
+            logger.LogWarning("The password was null or empty");
+            throw new ArgumentException("The given password was empty");
         }
 
         var hashedPassword = new PasswordProvider.Password(password, user.UserID);
         var storedHash = PasswordProvider.Password.FromParamString(user.PasswordHash);
-        if (hashedPassword.Compare(storedHash))
+
+        var isPasswordCorrect = hashedPassword.Compare(storedHash);
+
+        if (!isPasswordCorrect)
         {
-            return user;
+            logger.LogError("The given password was wrong");
+            throw new AuthenticationException("The given password was wrong");
         }
-        return null;
+
+        return user;
     }
     
     public async Task Register(string userName, string password, string? email, Guid? userId)
     {
+        if (string.IsNullOrWhiteSpace(userName) || userName.Length > 128)
+        {
+            throw new ArgumentException("InvalidUserName");
+        }
+
+        if (string.IsNullOrWhiteSpace(password) || !PasswordRegex.IsMatch(password))
+        {
+            throw new ArgumentException("WeakPassword");
+        }
+
         var newGuid = userId ?? Guid.NewGuid();
 
         var passwordString = new PasswordProvider.Password(password, newGuid).ParamString();
         
         await using var context = await factory.CreateDbContextAsync();
+
+        var normalizedUserName = userName.Trim();
+        var exists = await context.Users.AnyAsync(u => u.UserName.ToLower() == normalizedUserName.ToLower());
+        if (exists)
+        {
+            throw new InvalidOperationException("UserNameTaken");
+        }
+
         var newUser = new User
         {
-            UserName = userName,
+            UserName = normalizedUserName,
             PasswordHash = passwordString,
             UserID = newGuid
         };

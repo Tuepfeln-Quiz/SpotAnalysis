@@ -8,11 +8,12 @@
 public class STLAvailableReaction {
     public int QuestionID { get; set; }
     public int ReactionID { get; set; }
-
-
+    
+    [ForeignKey(nameof(QuestionID))]
     [DeleteBehavior(DeleteBehavior.Restrict)]
-    public Question Question { get; set; } = null!;
+    public STLQuestion STLQuestion { get; set; } = null!;
 
+    [ForeignKey(nameof(ReactionID))]
     [DeleteBehavior(DeleteBehavior.Restrict)]
     public Reaction Reaction { get; set; } = null!;
 }

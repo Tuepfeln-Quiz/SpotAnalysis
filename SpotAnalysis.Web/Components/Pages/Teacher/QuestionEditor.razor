@@ -4,10 +4,9 @@
 @using SpotAnalysis.Data.Enums
 @using SpotAnalysis.Services.DTOs
 @using SpotAnalysis.Services.Services
+@using SpotAnalysis.Web.Services
 
 <PageTitle>@(_isEdit ? "Frage bearbeiten" : "Neue Frage") – Tüpfeln Digital</PageTitle>
-
-<PageHeader PageTitle="@(_isEdit ? "Frage bearbeiten" : "Neue Frage erstellen")" />
 
 <div class="container py-4">
     <div class="card-form">
@@ -22,6 +21,15 @@
                         @onclick="() => SetType(QuestionType.SpotTestLight)"
                         disabled="@_isEdit">Light</button>
             </div>
+        </div>
+
+        @* Title *@
+        <div class="mb-4">
+            <label class="form-label-custom">Titel</label>
+            <p class="hint-text">Interner Titel (nur für Lehrer sichtbar, nicht für Schüler)</p>
+            <input type="text" class="form-control input-custom"
+                   placeholder="z.B. Tüpfeln Q1 - drei Unbekannte"
+                   @bind="_title" />
         </div>
 
         @* Description *@
@@ -46,17 +54,18 @@
                         {
                             <span class="tag tag-educt">
                                 <span class="color-dot" style="background: @chem.Color;"></span>
-                                @chem.Formula <span class="tag-name">(@chem.Name)</span>
+                                <ChemFormula Value="@chem.Formula" /> <span class="tag-name">(@chem.Name)</span>
                                 <span class="tag-remove" @onclick="() => RemoveEduct(chem.Id)">✕</span>
                             </span>
                         }
                     </div>
                     <select class="form-select form-select-sm input-custom"
+                            value=""
                             @onchange="OnEductSelected">
                         <option value="">+ Edukt hinzufügen...</option>
                         @foreach (var chem in _eductsAvailable.Where(c => !_selectedEducts.Any(s => s.Id == c.Id)))
                         {
-                            <option value="@chem.Id">@chem.Formula – @chem.Name</option>
+                            <option value="@chem.Id">@ChemicalStringFormatter.Format(chem.Formula) – @chem.Name</option>
                         }
                     </select>
                 </div>
@@ -71,17 +80,18 @@
                         @foreach (var chem in _selectedAdditives)
                         {
                             <span class="tag tag-additive">
-                                @chem.Formula <span class="tag-name">(@chem.Name)</span>
+                                <ChemFormula Value="@chem.Formula" /> <span class="tag-name">(@chem.Name)</span>
                                 <span class="tag-remove" @onclick="() => RemoveAdditive(chem.Id)">✕</span>
                             </span>
                         }
                     </div>
                     <select class="form-select form-select-sm input-custom"
+                            value=""
                             @onchange="OnAdditiveSelected">
                         <option value="">+ Zusatzstoff hinzufügen...</option>
                         @foreach (var chem in _additivesAvailable.Where(c => !_selectedAdditives.Any(s => s.Id == c.Id)))
                         {
-                            <option value="@chem.Id">@chem.Formula – @chem.Name</option>
+                            <option value="@chem.Id">@ChemicalStringFormatter.Format(chem.Formula) – @chem.Name</option>
                         }
                     </select>
                 </div>
@@ -102,6 +112,7 @@
                         }
                     </div>
                     <select class="form-select form-select-sm input-custom"
+                            value=""
                             @onchange="OnMethodSelected">
                         <option value="">+ Methode hinzufügen...</option>
                         @foreach (var method in _allMethods.Where(m => !_selectedMethods.Any(s => s.Id == m.Id)))
@@ -122,7 +133,7 @@
                     <option value="0">Reaktion auswählen...</option>
                     @foreach (var reaction in _allReactions)
                     {
-                        <option value="@reaction.ReactionID">@reaction.Formula</option>
+                        <option value="@reaction.ReactionID">@ChemicalStringFormatter.Format(reaction.Formula)</option>
                     }
                 </select>
                 @if (_selectedReactionId > 0)
@@ -132,7 +143,7 @@
                     {
                         <div class="reaction-preview">
                             <div class="preview-label">Gewählte Reaktion:</div>
-                            <div>@selected.Formula</div>
+                            <div><ChemFormula Value="@selected.Formula" /></div>
                             <small class="text-muted">Beobachtung: @selected.ObservationDescription</small>
                         </div>
                     }
@@ -151,7 +162,7 @@
                         {
                             <div class="reaction-option correct">
                                 <span class="me-2">★</span>
-                                <span class="flex-grow-1">@correct.Formula</span>
+                                <span class="flex-grow-1"><ChemFormula Value="@correct.Formula" /></span>
                                 <small class="text-success">Richtig</small>
                             </div>
                         }
@@ -163,19 +174,20 @@
                         {
                             <div class="reaction-option">
                                 <span class="me-2 text-muted">○</span>
-                                <span class="flex-grow-1">@reaction.Formula</span>
+                                <span class="flex-grow-1"><ChemFormula Value="@reaction.Formula" /></span>
                                 <span class="tag-remove" @onclick="() => RemoveDistractor(reactionId)">✕</span>
                             </div>
                         }
                     }
                     <select class="form-select form-select-sm input-custom mt-2"
+                            value=""
                             @onchange="OnDistractorSelected">
                         <option value="">+ Reaktion als Auswahloption hinzufügen...</option>
                         @foreach (var reaction in _allReactions.Where(r =>
                             r.ReactionID != _selectedReactionId &&
                             !_selectedDistractors.Contains(r.ReactionID)))
                         {
-                            <option value="@reaction.ReactionID">@reaction.Formula</option>
+                            <option value="@reaction.ReactionID">@ChemicalStringFormatter.Format(reaction.Formula)</option>
                         }
                     </select>
                 </div>
@@ -208,6 +220,7 @@
 
     private bool _isEdit => QuestionId.HasValue;
     private QuestionType _questionType = QuestionType.SpotTest;
+    private string _title = "";
     private string _description = "";
 
     // SpotTest state
@@ -228,11 +241,14 @@
     private bool _saving;
     private string? _errorMessage;
 
-    // TODO: Replace with actual teacher ID from auth when login is implemented
-    private Guid _teacherId = Guid.Parse("00000000-0000-0000-0000-000000000001");
+    [CascadingParameter] private Task<AuthenticationState> AuthState { get; set; } = default!;
+    private Guid _teacherId;
 
     protected override async Task OnInitializedAsync()
     {
+        var auth = await AuthState;
+        _teacherId = Guid.Parse(auth.User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+
         // Parse type from query string for edit mode
         if (_isEdit && Enum.TryParse<QuestionType>(Type, out var parsedType))
             _questionType = parsedType;
@@ -240,11 +256,11 @@
         // Load reference data
         var chemicals = await ChemistryData.GetAllChemicalsAsync();
         _eductsAvailable = chemicals
-            .Where(c => c.ChemicalTypeID == 0)
+            .Where(c => c.Type == ChemicalType.Educt)
             .Select(c => new ChemicalItem(c.ChemicalID, c.Name, c.Formula, "#9ca3af"))
             .ToList();
         _additivesAvailable = chemicals
-            .Where(c => c.ChemicalTypeID == 1)
+            .Where(c => c.Type == ChemicalType.Additive)
             .Select(c => new ChemicalItem(c.ChemicalID, c.Name, c.Formula, "#60a5fa"))
             .ToList();
 
@@ -263,6 +279,7 @@
     private async Task LoadExistingQuestion()
     {
         var detail = await QuizService.GetQuestionDetail(QuestionId!.Value);
+        _title = detail.Title;
         _description = detail.Description;
         _questionType = detail.Type;
 
@@ -335,6 +352,12 @@
     {
         _errorMessage = null;
 
+        if (string.IsNullOrWhiteSpace(_title))
+        {
+            _errorMessage = "Bitte einen Titel eingeben.";
+            return;
+        }
+
         if (string.IsNullOrWhiteSpace(_description))
         {
             _errorMessage = "Bitte eine Beschreibung eingeben.";
@@ -355,7 +378,8 @@
                     Id = _isEdit ? QuestionId : null,
                     Description = _description,
                     AvailableChemicals = allChemicalIds,
-                    AvailableMethods = _selectedMethods.Select(m => m.Id).ToList()
+                    AvailableMethods = _selectedMethods.Select(m => m.Id).ToList(),
+                    Title = _title
                 };
 
                 if (_isEdit)
@@ -375,12 +399,16 @@
                 var allReactionIds = new List<int> { _selectedReactionId };
                 allReactionIds.AddRange(_selectedDistractors);
 
+                var selectedReaction = _allReactions.FirstOrDefault(r => r.ReactionID == _selectedReactionId);
+
                 var dto = new ConfigSTLQuestionDto
                 {
                     Id = _isEdit ? QuestionId : null,
                     Description = _description,
                     ReactionId = _selectedReactionId,
-                    AvailableReactions = allReactionIds
+                    ShowEductId = selectedReaction?.Chemical1ID ?? 0,
+                    AvailableReactions = allReactionIds,
+                    Title = _title
                 };
 
                 if (_isEdit)

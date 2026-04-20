@@ -1,0 +1,144 @@
+.section-card {
+    background: white;
+    border-radius: 16px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.section-title {
+    font-weight: 700;
+    font-size: 1.1rem;
+    margin-bottom: 1rem;
+}
+
+.member-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.6rem 0;
+    border-bottom: 1px solid #f3f4f6;
+}
+
+.member-row:last-child {
+    border-bottom: none;
+}
+
+.input-custom {
+    border-radius: 10px;
+    border: 1px solid #d1d5db;
+}
+
+.btn-primary-purple {
+    background: linear-gradient(135deg, #6b21a8, #4c1d95);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 0.5rem 1.25rem;
+}
+
+.btn-primary-purple:hover {
+    background: linear-gradient(135deg, #7c3aed, #5b21b6);
+    color: white;
+}
+
+.btn-edit {
+    background: #ede9fe;
+    color: #6b21a8;
+    border: none;
+    border-radius: 8px;
+}
+
+.btn-edit:hover {
+    background: #ddd6fe;
+    color: #6b21a8;
+}
+
+.btn-delete {
+    background: #fee2e2;
+    color: #ef4444;
+    border: none;
+    border-radius: 8px;
+}
+
+.btn-delete:hover {
+    background: #fecaca;
+    color: #dc2626;
+}
+
+.btn-outline-custom {
+    border: 1px solid #d1d5db;
+    border-radius: 10px;
+    background: white;
+    color: #374151;
+}
+
+.btn-outline-custom:hover {
+    background: #f9fafb;
+    border-color: #9ca3af;
+}
+
+.badge-self {
+    background: #ede9fe;
+    color: #6b21a8;
+    font-size: 0.75rem;
+    padding: 0.2rem 0.6rem;
+    border-radius: 12px;
+}
+
+.search-result {
+    padding: 0.5rem 0.75rem;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 0.85rem;
+}
+
+.search-result:hover {
+    background: #f9fafb;
+}
+
+.search-result[disabled] {
+    opacity: 0.5;
+    cursor: default;
+}
+
+.badge-add {
+    background: #d1fae5;
+    color: #059669;
+    font-size: 0.7rem;
+    padding: 0.15rem 0.5rem;
+    border-radius: 12px;
+}
+
+.badge-member {
+    background: #f3f4f6;
+    color: #6b7280;
+    font-size: 0.7rem;
+    padding: 0.15rem 0.5rem;
+    border-radius: 12px;
+}
+
+.quiz-row {
+    background: white;
+    border-radius: 12px;
+    padding: 1rem 1.25rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.quiz-row-modal {
+    padding: 0.75rem;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.quiz-row-modal:hover {
+    background: #f9fafb;
+}

@@ -7,4 +7,7 @@ public class QuizOverviewDto
     public required int STCount { get; init; }
     public required int STLCount { get; init; }
     public int GroupCount { get; init; }
+    public int QuestionCount { get; init; }
+    public LastAttemptStatus LastAttemptStatus { get; init; } = LastAttemptStatus.NotStarted;
+    public DateTime? LastCompletedAt { get; init; }
 }

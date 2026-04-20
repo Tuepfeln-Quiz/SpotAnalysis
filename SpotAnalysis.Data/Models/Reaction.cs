@@ -10,13 +10,16 @@ public class Reaction {
     public int Chemical2ID { get; private set; } // set only in Constructor or with SetChemicals method
 
     [Required]
+    [StringLength(256)]
     public string RelevantProduct { get; set; } = null!;
 
     [Required]
+    [StringLength(256)]
     public string Formula { get; set; } =  null!;
 
     public int ObservationID { get; set; }
 
+    [StringLength(256)]
     public string? ImagePath { get; set; }
 
 
@@ -33,7 +36,7 @@ public class Reaction {
 
     public virtual ICollection<STLAvailableReaction> STLAvailableReactions { get; set; } = [];
 
-    public virtual ICollection<Question> STLQuestions { get; set; } = [];
+    public virtual ICollection<STLQuestion> STLQuestions { get; set; } = [];
 
     // construcors
 

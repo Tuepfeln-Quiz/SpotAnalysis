@@ -1,0 +1,108 @@
+@page "/teacher/groups"
+@rendermode InteractiveServer
+@using SpotAnalysis.Services.DTOs
+@using SpotAnalysis.Services.Services
+
+<PageTitle>Gruppen – Tüpfeln Digital</PageTitle>
+
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h4 class="fw-bold mb-0">Gruppen</h4>
+        <button class="btn btn-primary-purple" @onclick="CreateGroup">
+            <i class="bi bi-plus-lg me-1"></i> Neue Gruppe
+        </button>
+    </div>
+
+    @if (_groups is null)
+    {
+        <p class="text-muted">Laden...</p>
+    }
+    else if (_groups.Count == 0)
+    {
+        <div class="text-center text-muted py-5">
+            <i class="bi bi-people" style="font-size: 2.5rem;"></i>
+            <p class="mt-2">Noch keine Gruppen erstellt.</p>
+        </div>
+    }
+    else
+    {
+        <div class="d-flex flex-column gap-3">
+            @foreach (var group in _groups)
+            {
+                <div class="quiz-row">
+                    <div class="flex-grow-1" style="cursor:pointer" @onclick="() => OpenGroup(group.Id)">
+                        <div class="fw-bold">@group.Name</div>
+                        <small class="text-muted">
+                            @(string.IsNullOrWhiteSpace(group.Description) ? "—" : group.Description)
+                        </small>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-sm btn-edit" @onclick="() => OpenGroup(group.Id)">
+                            Öffnen
+                        </button>
+                        <button class="btn btn-sm btn-delete" @onclick="() => ConfirmDelete(group)">
+                            Löschen
+                        </button>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+
+    @if (_groupToDelete is not null)
+    {
+        <div class="modal-backdrop show"></div>
+        <div class="modal d-block" tabindex="-1">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content" style="border-radius: var(--card-radius);">
+                    <div class="modal-header border-0">
+                        <h5 class="modal-title fw-bold">Gruppe löschen?</h5>
+                    </div>
+                    <div class="modal-body">
+                        <p>
+                            Gruppe <strong>@_groupToDelete.Name</strong> endgültig löschen?
+                            Alle zugehörigen Schülerzuordnungen und Quiz-Zuordnungen werden entfernt.
+                            Die Quizze selbst bleiben erhalten.
+                        </p>
+                    </div>
+                    <div class="modal-footer border-0">
+                        <button class="btn btn-secondary" @onclick="CancelDelete">Abbrechen</button>
+                        <button class="btn btn-danger" @onclick="DeleteGroup">Löschen</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    [Inject] private IGroupService GroupService { get; set; } = default!;
+    [Inject] private NavigationManager Navigation { get; set; } = default!;
+
+    [CascadingParameter] private Task<AuthenticationState> AuthState { get; set; } = default!;
+
+    private List<GroupDto>? _groups;
+    private GroupDto? _groupToDelete;
+    private Guid _teacherId;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var auth = await AuthState;
+        _teacherId = Guid.Parse(auth.User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+        _groups = await GroupService.GetGroups(_teacherId);
+    }
+
+    private void CreateGroup() => Navigation.NavigateTo("/teacher/groups/new");
+    private void OpenGroup(int id) => Navigation.NavigateTo($"/teacher/groups/{id}");
+
+    private void ConfirmDelete(GroupDto group) => _groupToDelete = group;
+    private void CancelDelete() => _groupToDelete = null;
+
+    private async Task DeleteGroup()
+    {
+        if (_groupToDelete is null) return;
+        await GroupService.DeleteGroup(_teacherId, _groupToDelete.Id);
+        _groupToDelete = null;
+        _groups = await GroupService.GetGroups(_teacherId);
+    }
+}

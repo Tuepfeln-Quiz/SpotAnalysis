@@ -19,11 +19,16 @@ public static class ServiceCollectionExtensions
             options.UseSqlServer(configuration.GetConnectionString("MyDatabase")));
 
         services.AddScoped<IUserService, UserService>();
-        services.AddScoped<ITeacherService, TeacherService>();
+        services.AddScoped<IGroupInviteTokenService, GroupInviteTokenService>();
+        services.AddScoped<IGroupService, GroupService>();
         services.AddScoped<IQuizService, QuizService>();
         services.AddScoped<IUsernameService, UsernameService>();
+        services.AddScoped<IStatisticsService, StatisticsService>();
         services.AddScoped<IXlsImportExportService, XlsImportExportService>();
+        services.AddScoped<IUserService, UserService>();
+        services.AddScoped<IAdminService, AdminService>();
         services.AddScoped<IChemistryDataService, ChemistryDataService>();
+        services.AddScoped<IDatabaseSeeder, DatabaseSeeder>();
 
         return services;
     }

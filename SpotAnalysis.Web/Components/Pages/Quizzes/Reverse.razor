@@ -2,8 +2,6 @@
 
 <PageTitle>Reverse – Tüpfeln Digital</PageTitle>
 
-<PageHeader PageTitle="Reverse" />
-
 <div class="container py-4 flex-grow-1">
     @if (currentReaction != null)
     {
@@ -15,11 +13,11 @@
                 @{ var chem1 = GetChemical(currentReaction.Chemical1ID); }
                 @{ var chem2 = GetChemical(currentReaction.Chemical2ID); }
                 <div class="d-flex align-items-center justify-content-center gap-3 mb-4">
-                    <div class="compound-card compound-card-static text-center chemical-@(chem1.ChemicalTypeName.ToLowerInvariant())" style="border-color: @ColorHelper.GetBorderColor(chem1.MethodOutputs.GetValueOrDefault("Eigenfarbe"))">
+                    <div class="compound-card compound-card-static text-center chemical-@(chem1.ChemicalTypeName.ToLowerInvariant())" style="border-color: @ColorHelper.GetBorderColor(chem1.Color)">
                         <SubstanceCard Chemical="chem1" />
                     </div>
                     <span class="plus-symbol">+</span>
-                    <div class="compound-card compound-card-static text-center chemical-@(chem2.ChemicalTypeName.ToLowerInvariant())" style="border-color: @ColorHelper.GetBorderColor(chem2.MethodOutputs.GetValueOrDefault("Eigenfarbe"))">
+                    <div class="compound-card compound-card-static text-center chemical-@(chem2.ChemicalTypeName.ToLowerInvariant())" style="border-color: @ColorHelper.GetBorderColor(chem2.Color)">
                         <SubstanceCard Chemical="chem2" />
                     </div>
                 </div>
@@ -97,14 +95,14 @@
                     {
                         <div class="alert alert-success">
                             <strong>Richtig!</strong>
-                            <br />@currentReaction.Formula
+                            <br /><ChemFormula Value="@currentReaction.Formula" />
                         </div>
                     }
                     else
                     {
                         <div class="alert alert-danger">
                             Richtige Antwort: <strong>@currentReaction.RelevantProduct</strong>
-                            <br />@currentReaction.Formula
+                            <br /><ChemFormula Value="@currentReaction.Formula" />
                             <br /><em>@currentReaction.ObservationDescription</em>
                         </div>
                     }

@@ -1,10 +1,10 @@
 <div class="d-flex justify-content-between align-items-baseline gap-2">
     <strong>@Chemical.Name</strong>
-    <span class="text-muted">@Chemical.Formula</span>
+    <span class="text-muted"><ChemFormula Value="@Chemical.Formula" /></span>
 </div>
 
 @{
-    var eigenfarbe = Chemical.MethodOutputs.GetValueOrDefault("Eigenfarbe");
+    var eigenfarbe = string.IsNullOrWhiteSpace(Chemical.Color) ? null : Chemical.Color;
     var flame = Chemical.MethodOutputs.GetValueOrDefault("Flammenfärbung");
     var phPaper = Chemical.MethodOutputs.GetValueOrDefault("pH-Papier");
 }

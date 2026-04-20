@@ -1,57 +1,47 @@
 @page "/register"
 @using Microsoft.AspNetCore.Components.Authorization
-@using System.Security.Claims
-@using Microsoft.AspNetCore.Authentication
-@using Microsoft.AspNetCore.Authentication.Cookies
-@using System.Text.RegularExpressions
-@using SpotAnalysis.Services.DTOs
-@using SpotAnalysis.Services.Services
-@using SpotAnalysis.Data.Models.Identity
-@inject NavigationManager NavigationManager;
-@inject AuthenticationStateProvider AuthStateProvider
-@inject IHttpContextAccessor HttpContextAccessor;
-@* @inject IStudentService _StudentService; *@
 
-<div class="row">
-    <div class="col-lg-4 offset-lg-4 pt-4 pb-4 border">
-        <EditForm Model="@LoginVM" OnValidSubmit="Authenticate" FormName="RegForm">
-            <DataAnnotationsValidator />
+@inject NavigationManager NavigationManager
+@inject AuthenticationStateProvider AuthStateProvider
+
+@attribute [AllowAnonymous]
+
+<div class="row justify-content-center min-vh-100 align-items-center p-4">
+    <div class="col-lg-4 col-md-6 col-sm-10 pt-4 pb-4 border border-secondary rounded">
+        <form action="/api/auth/register" method="post">
+            <AntiforgeryToken />
+            <input type="hidden" name="returnUrl" value="@ReturnUrl" />
 
             <div class="mb-3 text-center flex-column">
-                <img src="/images/avatar.png" id="SignPic" class="img-fluid" />
                 <h3>Register</h3>
             </div>
 
             <div class="mb-4">
-                    <UsernameGenerator @bind-Value="LoginVM.UserName" />
-                    <label class="username-label text-gray"><b>* generate username</b></label>
-                <ValidationMessage For="() => LoginVM.UserName" />
-
+                <UsernameGenerator @bind-Value="_userName" InputName="userName" />
+                <label class="username-label text-gray"><b>* generate username</b></label>
             </div>
 
             <div class="mb-3">
-                @* <label>Password</label> *@
-                <InputText @bind-Value="LoginVM.Password" placeholder="Password" type="password" class="form-control" />
-                <ValidationMessage For="() => LoginVM.Password" />
+                <input type="password" name="password" @bind="_password" placeholder="Password" class="form-control" required />
             </div>
 
             <div class="mb-3">
-                @* <label>Confirm Password</label> *@
-                <InputText @bind-Value="ConfirmPassword" placeholder="Confirm Password" type="password" class="form-control" />
-                <ValidationMessage For="() => ConfirmPassword" />
+                <input type="password" name="confirmPassword" @bind="_confirmPassword" placeholder="Confirm Password" class="form-control" required />
             </div>
 
-            <div class="mb-3 text-center">
-                <span class="text-danger">@ErrorMessage</span>
-            </div>
+            @if (!string.IsNullOrEmpty(DisplayErrorMessage)) {
+                <div class="mb-3 text-center">
+                    <span class="text-danger">@DisplayErrorMessage</span>
+                </div>
+            }
 
             <div class="d-grid gap-2">
                 <button type="submit" class="btn btn-primary">Register</button>
             </div>
-        </EditForm>
-       <div class="mt-3 text-center">
-            <p>Already have an account? <a href="/login">Login here</a></p>
-       </div>
+        </form>
+        <div class="mt-3 text-center">
+            <p>Already have an account? <a href="/login@(string.IsNullOrEmpty(ReturnUrl) ? "" : $"?returnUrl={Uri.EscapeDataString(ReturnUrl)}")">Login here</a></p>
+        </div>
     </div>
 </div>
 
@@ -77,88 +67,38 @@
 
 .username-label {
     display: flex;
-    justify-content: flex-end;
+    justify-content: flex-start;
     margin-top: 0.25rem;
     font-size: 0.875rem;
 }
 </style>
 
 @code {
+    [SupplyParameterFromQuery(Name = "error")]
+    public string? ErrorMessage { get; set; }
 
+    [SupplyParameterFromQuery(Name = "returnUrl")]
+    public string? ReturnUrl { get; set; }
 
-    [CascadingParameter]
-    public HttpContext? HttpContext { get; set; }
-
-    public LoginDTO LoginVM { get; set; } = new() { UserName = string.Empty, Password = string.Empty };
-
-    public string ConfirmPassword { get; set; } = string.Empty;
-    private string? ErrorMessage { get; set; }
-
-    private async Task Authenticate()
+    private string _userName = string.Empty;
+    private string _password = string.Empty;
+    private string _confirmPassword = string.Empty;
+    private string? DisplayErrorMessage => ErrorMessage switch
     {
-        ErrorMessage = null;
-        Console.WriteLine("Authenticate method called with username: " + LoginVM.UserName + " and password: " + LoginVM.Password + " and confirm password: " + ConfirmPassword);
-
-        if (!isValid(LoginVM.Password))
-        {
-            ErrorMessage = "Passwort muss:\nmin.8 Zeichen lang sein\nmin. 1 Großbuchstabe\nmin.1 Kleinbuchstabe\nmin.1 Zahl und 1 Sonderzeichen enthalten.";
-            return;
-        }
-        if(LoginVM.Password != ConfirmPassword)
-        {
-            ErrorMessage = "Passwörter stimmen nicht überein.";
-            return;
-        }
-
-        @* var userAccount = _StudentService.Register(LoginVM);
-
-        if (userAccount == null)
-        {
-            ErrorMessage = "Invalid username or password.";
-            return;
-        }
-        else
-        {
-            var claims = new List<Claim>
-            {
-                new Claim(ClaimTypes.Name, userAccount.UserName ?? string.Empty),
-                new Claim(ClaimTypes.Role, userAccount.Roles?.FirstOrDefault()?.Title ?? string.Empty)
-            };
-
-            var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-            var principal = new ClaimsPrincipal(identity);
-            await HttpContext.SignInAsync(principal);
-            NavigationManager.NavigateTo("/");
-        } *@
-    }
-
-    private bool isValid(string? pw)
-    {
-        if (string.IsNullOrEmpty(pw))
-            return false;
-
-        var isv = Regex.IsMatch(pw,
-        @"^(?=.*[a-z])      # mind. 1 Kleinbuchstabe
-              (?=.*[A-Z])      # mind. 1 Großbuchstabe
-              (?=.*\d)         # mind. 1 Zahl
-              (?=.*[^a-zA-Z\d])# mind. 1 Sonderzeichen
-              .{8,}$           # mindestens 8 Zeichen
-            ", RegexOptions.IgnorePatternWhitespace);
-
-        if (isv)
-            return true;
-        else
-            return false;
-    }
+        "InvalidUserName" => "Der generierte Benutzername ist ungültig. Bitte erneut generieren.",
+        "WeakPassword" => "Passwort muss min. 8 Zeichen, 1 Großbuchstabe, 1 Kleinbuchstabe, 1 Zahl und 1 Sonderzeichen enthalten.",
+        "UserNameTaken" => "Dieser Benutzername ist bereits vergeben. Bitte erneut generieren.",
+        "PasswordsDoNotMatch" => "Passwörter stimmen nicht überein.",
+        "RegistrationFailed" => "Registrierung fehlgeschlagen. Bitte erneut versuchen.",
+        null or "" => null,
+        _ => ErrorMessage
+    };
 
     protected override async Task OnInitializedAsync()
     {
         var authState = await AuthStateProvider.GetAuthenticationStateAsync();
-        var user = authState.User;
-
-        if (user.Identity != null && user.Identity.IsAuthenticated)
+        if (authState.User.Identity?.IsAuthenticated == true)
         {
-            // Schon eingeloggt → zur Dashboard-Seite weiterleiten
             NavigationManager.NavigateTo("/");
         }
     }

@@ -1,58 +1,72 @@
-using Microsoft.AspNetCore.Authentication.Cookies;
+using Serilog;
 using SpotAnalysis.Services;
+using SpotAnalysis.Services.Services;
 using SpotAnalysis.Web.Components;
+using SpotAnalysis.Web.Extensions;
 
-namespace SpotAnalysis.Web
+namespace SpotAnalysis.Web;
+
+public class Program
 {
-    public class Program
+    public static async Task Main(string[] args)
     {
-        public static void Main(string[] args)
+        var builder = WebApplication.CreateBuilder(args);
+
+        builder.Services.AddSpotAnalysis(builder.Configuration);
+
+        // Add services to the container.
+        builder.Services.AddRazorComponents()
+            .AddInteractiveServerComponents();
+
+        builder.Services.AddWebAuthentication();
+
+        builder.Host.UseSerilog((context, services, loggerConfig) =>
         {
-            var builder = WebApplication.CreateBuilder(args);
+            loggerConfig
+                .ReadFrom.Configuration(context.Configuration)
+                .ReadFrom.Services(services);
+        });
 
-            builder.Services.AddSpotAnalysis(builder.Configuration);
+        var app = builder.Build();
 
-            // Add services to the container.
-            builder.Services.AddRazorComponents()
-                .AddInteractiveServerComponents();
+        app.UseSerilogRequestLogging();
 
-            builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
-                .AddCookie(options =>
-                {
-                    options.Cookie.Name = "auth_token";
-                    options.LoginPath = "/login";
-                    options.Cookie.MaxAge = TimeSpan.FromMinutes(30);
-                    options.AccessDeniedPath = "/access-denied";
-                    options.Cookie.SameSite = SameSiteMode.Lax;
-                    options.Cookie.HttpOnly = true;
-                    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
-                });
-
-            builder.Services.AddHttpContextAccessor();
-            builder.Services.AddCascadingAuthenticationState();
-
-            var app = builder.Build();
-
-            // Configure the HTTP request pipeline.
-            if (!app.Environment.IsDevelopment())
+        using (var scope = app.Services.CreateAsyncScope())
+        {
+            var seeder = scope.ServiceProvider.GetRequiredService<IDatabaseSeeder>();
+            try
             {
-                app.UseExceptionHandler("/Error");
-                app.UseHsts();
+                if (app.Environment.IsDevelopment())
+                    await seeder.SeedDevUserAsync();
+                else
+                    await seeder.SeedAdminAsync();
             }
-
-            app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
-            app.UseHttpsRedirection();
-
-            app.UseAuthentication();   
-            app.UseAuthorization();    
-
-            app.UseAntiforgery();
-
-            app.MapStaticAssets();
-            app.MapRazorComponents<App>()
-                .AddInteractiveServerRenderMode();
-
-            app.Run();
+            catch (Exception ex)
+            {
+                app.Logger.LogError(ex, "Seeding failed");
+            }
         }
+
+        // Configure the HTTP request pipeline.
+        if (!app.Environment.IsDevelopment())
+        {
+            app.UseExceptionHandler("/Error");
+            app.UseHsts();
+        }
+
+        app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
+        app.UseHttpsRedirection();
+
+        app.UseAuthentication();
+        app.UseAuthorization();
+
+        app.UseAntiforgery();
+
+        app.MapStaticAssets();
+        app.MapAuthEndpoints();
+        app.MapRazorComponents<App>()
+            .AddInteractiveServerRenderMode();
+
+        app.Run();
     }
 }

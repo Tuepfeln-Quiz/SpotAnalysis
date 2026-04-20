@@ -103,6 +103,30 @@
     gap: 0.3rem;
 }
 
+.group-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #f3f4f6;
+}
+
+.group-row:last-of-type {
+    border-bottom: none;
+}
+
+.btn-delete {
+    background: #fee2e2;
+    color: #ef4444;
+    border: none;
+    border-radius: 8px;
+}
+
+.btn-delete:hover {
+    background: #fecaca;
+    color: #dc2626;
+}
+
 .remove-pill {
     cursor: pointer;
     opacity: 0.8;

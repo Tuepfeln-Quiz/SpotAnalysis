@@ -1,9 +1,10 @@
 @using SpotAnalysis.Services.Services;
 
 <div class="input-group">
-    <InputText style="padding-left: 4rem;" 
-               @bind-Value="Value" 
-               class="form-control font-bold"/>
+    <InputText @bind-Value="Value" 
+               name="@InputName"
+               readonly
+               class="form-control font-bold text-center"/>
     <button type="button" 
             class="btn btn-outline-secondary" 
             @onclick="Generate"
@@ -15,19 +16,21 @@
 @code {
     [Parameter] public string Value { get; set; } = "";
     [Parameter] public EventCallback<string> ValueChanged { get; set; }
-
+    [Parameter] public string? InputName { get; set; }
+    [Parameter] public bool AutoGenerate { get; set; } = true;
+        
     [Inject] public IUsernameService UsernameService { get; set; } = default!;
 
     protected override async Task OnInitializedAsync()
     {
-        if (string.IsNullOrWhiteSpace(Value))
+        if (AutoGenerate && string.IsNullOrWhiteSpace(Value))
             await Generate();
     }
 
     private async Task Generate()
     {
         var name = UsernameService.Generate();
-        Value = name; // Update the local value
+        Value = name;
         await ValueChanged.InvokeAsync(name);
     }
 }

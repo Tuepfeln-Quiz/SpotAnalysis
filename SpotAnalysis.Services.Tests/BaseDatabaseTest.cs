@@ -67,4 +67,12 @@ public abstract class BaseDatabaseTest
             await _context.Database.ExecuteSqlRawAsync(seedSql);
         }
     }
+    
+    protected async Task CleanUpDb()
+    {
+        await using var dbContext = await ContextFactory.CreateDbContextAsync();
+        await dbContext.Database.EnsureDeletedAsync();
+        await dbContext.Database.MigrateAsync();
+        await SeedDatabase();
+    }
 }

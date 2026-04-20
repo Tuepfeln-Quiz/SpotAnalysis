@@ -2,7 +2,6 @@
 
 <PageTitle>Sandbox – Tüpfeln Digital</PageTitle>
 
-<PageHeader PageTitle="Sandbox" />
 
 <div class="container py-4 flex-grow-1"
      @ondrop="DropOutside"
@@ -27,7 +26,7 @@
                                 @if (slot1 != null)
                                 {
                                     <div class="compound-card chemical-@(slot1.ChemicalTypeName.ToLowerInvariant()) h-100"
-                                         style="border-color: @ColorHelper.GetBorderColor(slot1.MethodOutputs.GetValueOrDefault("Eigenfarbe"))"
+                                         style="border-color: @ColorHelper.GetBorderColor(slot1.Color)"
                                          draggable="true"
                                          @ondragstart="() => { draggedChemical = slot1; dragSource = 1; }">
                                         <SubstanceCard Chemical="slot1" />
@@ -53,7 +52,7 @@
                                 @if (slot2 != null)
                                 {
                                     <div class="compound-card chemical-@(slot2.ChemicalTypeName.ToLowerInvariant()) h-100"
-                                         style="border-color: @ColorHelper.GetBorderColor(slot2.MethodOutputs.GetValueOrDefault("Eigenfarbe"))"
+                                         style="border-color: @ColorHelper.GetBorderColor(slot2.Color)"
                                          draggable="true"
                                          @ondragstart="() => { draggedChemical = slot2; dragSource = 2; }">
                                         <SubstanceCard Chemical="slot2" />
@@ -91,7 +90,7 @@
                         {
                             <div class="alert alert-success d-flex align-items-center gap-3 mb-0">
                                 <div class="flex-grow-1">
-                                    <strong>@lastResult.Reaction.Formula</strong>
+                                    <strong><ChemFormula Value="@lastResult.Reaction.Formula" /></strong>
                                     <br />
                                     <span>Produkt: @lastResult.Reaction.RelevantProduct</span>
                                     <br />
@@ -158,14 +157,14 @@
                            placeholder="Stoffe suchen..."
                            @bind="searchTerm"
                            @bind:event="oninput" />
-                    @foreach (var group in FilteredChemicals.GroupBy(c => c.ChemicalTypeID).OrderBy(g => g.Key))
+                    @foreach (var group in FilteredChemicals.GroupBy(c => c.Type).OrderBy(g => g.Key))
                     {
-                        <h6 class="text-muted fw-semibold mt-3 mb-2">@(group.Key == 1 ? "Edukte" : "Zusatzstoffe")</h6>
+                        <h6 class="text-muted fw-semibold mt-3 mb-2">@(group.Key == ChemicalType.Educt ? "Edukte" : "Zusatzstoffe")</h6>
                         <div class="d-flex flex-column gap-2 mb-2">
                             @foreach (var chem in group)
                             {
                                 <div class="compound-card chemical-@(chem.ChemicalTypeName.ToLowerInvariant())"
-                                     style="border-color: @ColorHelper.GetBorderColor(chem.MethodOutputs.GetValueOrDefault("Eigenfarbe"))"
+                                     style="border-color: @ColorHelper.GetBorderColor(chem.Color)"
                                      draggable="true"
                                      @ondragstart="() => { draggedChemical = chem; dragSource = 0; }">
                                     <SubstanceCard Chemical="chem" />

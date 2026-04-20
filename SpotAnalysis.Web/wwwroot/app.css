@@ -99,6 +99,123 @@ body {
     border-left: 3px solid #9ca3af;
 }
 
+/* ===== Shared form / list design tokens (used by Teacher + Admin) ===== */
+
+.card-form {
+    background: white;
+    border-radius: var(--card-radius);
+    padding: 1.5rem;
+    box-shadow: var(--shadow-card);
+}
+
+.form-label-custom {
+    font-weight: 600;
+    font-size: 0.85rem;
+    display: block;
+    margin-bottom: 0.2rem;
+}
+
+.hint-text {
+    font-size: 0.8rem;
+    color: #8a8686;
+    margin-bottom: 0.4rem;
+}
+
+.input-custom {
+    border-radius: 10px;
+    border: 1px solid #d1d5db;
+}
+
+.selection-box {
+    border: 1px solid #d1d5db;
+    border-radius: 10px;
+    padding: 0.75rem;
+}
+
+.btn-primary-purple {
+    background: var(--purple-gradient);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 0.5rem 1.25rem;
+}
+
+.btn-primary-purple:hover {
+    background: linear-gradient(135deg, #7c3aed, #5b21b6);
+    color: white;
+}
+
+.btn-edit {
+    background: #ede9fe;
+    color: #6b21a8;
+    border: none;
+    border-radius: 8px;
+}
+
+.btn-edit:hover {
+    background: #ddd6fe;
+    color: #6b21a8;
+}
+
+.btn-delete {
+    background: #fee2e2;
+    color: #ef4444;
+    border: none;
+    border-radius: 8px;
+}
+
+.btn-delete:hover {
+    background: #fecaca;
+    color: #dc2626;
+}
+
+.btn-pill {
+    background: #f3f4f6;
+    color: #374151;
+    padding: 0.3rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    border: none;
+}
+
+.btn-pill.active {
+    background: var(--purple-600);
+    color: white;
+}
+
+.list-row {
+    background: white;
+    border-radius: 12px;
+    padding: 1rem 1.25rem;
+    box-shadow: var(--shadow-card);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.badge-role {
+    font-size: 0.7rem;
+    padding: 0.15rem 0.5rem;
+    border-radius: 12px;
+    background: #f3f4f6;
+    color: #374151;
+}
+
+.badge-role.badge-admin {
+    background: #ede9fe;
+    color: #6b21a8;
+}
+
+.badge-role.badge-teacher {
+    background: #dbeafe;
+    color: #2563eb;
+}
+
+.badge-role.badge-student {
+    background: #fef3c7;
+    color: #b45309;
+}
+
 /* ===== End Custom Styles ===== */
 
 html, body {

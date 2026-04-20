@@ -1,5 +1,6 @@
 @page "/statistics"
-@attribute [Authorize]
+@attribute [Authorize(Roles = "Teacher, Admin")]
+
 <PageTitle>Statistiken</PageTitle>
 
 <div class="container py-4">

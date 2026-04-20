@@ -47,7 +47,6 @@ public class XlsImportExportService : IXlsImportExportService
             chemicals[kvp.Key] = kvp.Value;
 
         await UpsertCombinationsAsync(combinations, chemicals);
-        await _context.SaveChangesAsync();
     }
 
     private async Task<Dictionary<string, Method>> UpsertMethodsAsync()
@@ -102,8 +101,6 @@ public class XlsImportExportService : IXlsImportExportService
                 chemical.Color = educt.InherentColor ?? "keine";
                 chemical.Type = ChemicalType.Educt;
             }
-
-            await _context.SaveChangesAsync();
 
             foreach (var (methodName, value) in educt.GetMethodValues())
             {
@@ -284,36 +281,34 @@ public class XlsImportExportService : IXlsImportExportService
     {
         var methods = await _context.Methods.ToDictionaryAsync(m => m.Name);
 
-        var eductChemicals = await _context.Chemicals
+        var allChemicals = await _context.Chemicals
             .Include(c => c.MethodOutputs)
+            .OrderBy(c => c.ChemicalID)
+            .ToListAsync();
+
+        var chemicalById = allChemicals.ToDictionary(c => c.ChemicalID);
+
+        var educts = allChemicals
             .Where(c => c.Type == ChemicalType.Educt)
-            .OrderBy(c => c.ChemicalID)
-            .ToListAsync();
-
-        var educts = eductChemicals.Select(c =>
-        {
-            var educt = new Educt
+            .Select(c =>
             {
-                Substance = c.Name,
-                Formula = c.Formula,
-                InherentColor = c.Color
-            };
-            SetMethodProperties(educt, c, methods);
-            return educt;
-        }).ToList();
+                var educt = new Educt
+                {
+                    Substance = c.Name,
+                    Formula = c.Formula,
+                    InherentColor = c.Color
+                };
+                SetMethodProperties(educt, c, methods);
+                return educt;
+            }).ToList();
 
-        var additiveChemicals = await _context.Chemicals
+        var additives = allChemicals
             .Where(c => c.Type == ChemicalType.Additive)
-            .OrderBy(c => c.ChemicalID)
-            .ToListAsync();
-
-        var additives = additiveChemicals.Select(c => new Additive
-        {
-            Name = c.Name,
-            Formula = c.Formula
-        }).ToList();
-
-        var allChemicals = await _context.Chemicals.ToDictionaryAsync(c => c.ChemicalID);
+            .Select(c => new Additive
+            {
+                Name = c.Name,
+                Formula = c.Formula
+            }).ToList();
 
         var reactions = await _context.Reactions
             .Include(r => r.Observation)
@@ -322,8 +317,8 @@ public class XlsImportExportService : IXlsImportExportService
 
         var combinations = reactions.Select(r =>
         {
-            var chem1 = allChemicals[r.Chemical1ID];
-            var chem2 = allChemicals[r.Chemical2ID];
+            var chem1 = chemicalById[r.Chemical1ID];
+            var chem2 = chemicalById[r.Chemical2ID];
 
             return new Combination
             {

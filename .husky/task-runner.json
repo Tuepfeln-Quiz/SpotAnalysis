@@ -1,0 +1,17 @@
+{
+   "$schema": "https://alirezanet.github.io/Husky.Net/schema.json",
+   "tasks": [
+      {
+         "name": "format-check",
+         "group": "pre-commit",
+         "command": "dotnet",
+         "args": ["format", "SpotAnalysis.slnx", "--verify-no-changes"]
+      },
+      {
+         "name": "build-check",
+         "group": "pre-push",
+         "command": "dotnet",
+         "args": ["build", "SpotAnalysis.slnx", "--warnaserror"]
+      }
+   ]
+}

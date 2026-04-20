@@ -22,6 +22,20 @@ DECLARE @SeedGroupID INT = (SELECT GroupID FROM Groups WHERE Name = @SeedGroupNa
 -- Group-Joins zuerst, sonst blockieren sie Quiz/Group-Deletes (FK Restrict).
 DELETE FROM GroupQuiz             WHERE QuizID IN (1,2,3,4,5) OR GroupID = @SeedGroupID;
 DELETE FROM GroupUser             WHERE GroupID = @SeedGroupID;
+-- Results + Attempts zuerst löschen; sonst blockieren sie Questions/Quizzes.
+DELETE FROM STChemicalResults
+    WHERE ResultID IN (
+        SELECT ResultID FROM STResults
+        WHERE QuestionID IN (1,2,3,4,5,6,7,8,9,10)
+           OR AttemptID IN (SELECT AttemptID FROM QuizAttempts WHERE QuizID IN (1,2,3,4,5))
+    );
+DELETE FROM STResults
+    WHERE QuestionID IN (1,2,3,4,5,6,7,8,9,10)
+       OR AttemptID IN (SELECT AttemptID FROM QuizAttempts WHERE QuizID IN (1,2,3,4,5));
+DELETE FROM STLResults
+    WHERE QuestionID IN (1,2,3,4,5,6,7,8,9,10)
+       OR AttemptID IN (SELECT AttemptID FROM QuizAttempts WHERE QuizID IN (1,2,3,4,5));
+DELETE FROM QuizAttempts          WHERE QuizID IN (1,2,3,4,5);
 DELETE FROM STAvailableMethods    WHERE QuestionID IN (1,2,3,4,5,6,7,8,9,10);
 DELETE FROM STAvailableChemicals  WHERE QuestionID IN (1,2,3,4,5,6,7,8,9,10);
 DELETE FROM STLAvailableReactions WHERE QuestionID IN (1,2,3,4,5,6,7,8,9,10);

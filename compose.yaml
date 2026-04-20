@@ -12,8 +12,7 @@
       spotanalysis_db:
         condition: service_healthy
     ports:
-      - "8080:8080"
-      - "8081:8081"
+      - "127.0.0.1:8080:8080"
   
   spotanalysis_db:
     image: postgres:18

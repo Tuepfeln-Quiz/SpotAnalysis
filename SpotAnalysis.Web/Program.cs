@@ -38,9 +38,13 @@ public class Program
             try
             {
                 await seeder.SeedAdminAsync();
+                await seeder.SeedMasterDataAsync();
 
                 if (app.Environment.IsDevelopment())
+                {
                     await seeder.SeedDevUserAsync();
+                    await seeder.SeedQuizDataAsync();
+                }
             }
             catch (Exception ex)
             {

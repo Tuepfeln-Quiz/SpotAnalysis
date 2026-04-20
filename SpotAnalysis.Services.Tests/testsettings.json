@@ -1,6 +1,6 @@
 {
   "ConnectionStrings": {
-    "TestDatabase": "Host=spotanalysis_db;Port=5432;Database=SpotAnalysisTest;Username=spot_analysis;Password=SpotAnalysis;SSL Mode=Allow;Trust Server Certificate=true;Timeout=10;",
-    "MyDatabase": "Host=spotanalysis_db;Port=5432;Database=SpotAnalysis;Username=spot_analysis;Password=SpotAnalysis;SSL Mode=Allow;Trust Server Certificate=true;Timeout=10;"
+    "TestDatabase": "Host=localhost;Port=5432;Database=SpotAnalysisTest;Username=spot_analysis;Password=SpotAnalysis;SSL Mode=Allow;Trust Server Certificate=true;Timeout=10;",
+    "MyDatabase": "Host=localhost;Port=5432;Database=SpotAnalysis;Username=spot_analysis;Password=SpotAnalysis;SSL Mode=Allow;Trust Server Certificate=true;Timeout=10;"
   }
 }

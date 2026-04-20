@@ -67,121 +67,6 @@ public class ChemistryDataService(IDbContextFactory<AnalysisContext> factory, Hy
             });
     }
 
-    public async Task<List<LightQuizDto>> GetLightQuizzesAsync()
-    {
-        await using var context = await factory.CreateDbContextAsync();
-
-        var quizzes = await context.Quizzes
-            .Where(q => q.QuizQuestions.Any(qq => qq.Question.Type == QuestionType.SpotTestLight))
-            .Include(q => q.QuizQuestions)
-                .ThenInclude(qq => qq.Question)
-                    .ThenInclude(question => question.STLQuestion!)
-                        .ThenInclude(stl => stl.ShownEduct)
-                            .ThenInclude(c => c.MethodOutputs)
-                                .ThenInclude(mo => mo.Method)
-            .Include(q => q.QuizQuestions)
-                .ThenInclude(qq => qq.Question)
-                    .ThenInclude(question => question.STLQuestion!)
-                        .ThenInclude(stl => stl.Reaction)
-                            .ThenInclude(r => r.Observation)
-            .Include(q => q.QuizQuestions)
-                .ThenInclude(qq => qq.Question)
-                    .ThenInclude(question => question.STLQuestion!)
-                        .ThenInclude(stl => stl.AvailableReactions)
-                            .ThenInclude(ar => ar.Reaction)
-                                .ThenInclude(r => r.Chemical1)
-            .Include(q => q.QuizQuestions)
-                .ThenInclude(qq => qq.Question)
-                    .ThenInclude(question => question.STLQuestion!)
-                        .ThenInclude(stl => stl.AvailableReactions)
-                            .ThenInclude(ar => ar.Reaction)
-                                .ThenInclude(r => r.Chemical2)
-            .Include(q => q.QuizQuestions)
-                .ThenInclude(qq => qq.Question)
-                    .ThenInclude(question => question.STLQuestion!)
-                        .ThenInclude(stl => stl.AvailableReactions)
-                            .ThenInclude(ar => ar.Reaction)
-                                .ThenInclude(r => r.Observation)
-            .AsNoTracking()
-            .ToListAsync();
-
-        return quizzes.Select(q => new LightQuizDto
-        {
-            QuizID = q.QuizID,
-            Name = q.Name,
-            Questions = q.QuizQuestions
-                .Where(qq => qq.Question.Type == QuestionType.SpotTestLight)
-                .OrderBy(qq => qq.Order)
-                .Select(qq =>
-                {
-                    var stl = qq.Question.STLQuestion!;
-                    var availableReactions = stl.AvailableReactions
-                        .Select(ar => MapReaction(ar.Reaction))
-                        .ToList();
-
-                    return new LightQuestionDto
-                    {
-                        QuestionID = qq.QuestionID,
-                        Description = qq.Question.Description,
-                        Chemical = MapChemical(stl.ShownEduct),
-                        ObservationDescription = stl.Reaction.Observation.Description,
-                        AvailableReactions = availableReactions,
-                        CorrectReactionID = stl.ReactionID
-                    };
-                })
-                .ToList()
-        }).ToList();
-    }
-
-    public async Task<List<SpotTestQuizDto>> GetSpotTestQuizzesAsync()
-    {
-        await using var context = await factory.CreateDbContextAsync();
-
-        var quizzes = await context.Quizzes
-            .Where(q => q.QuizQuestions.Any(qq => qq.Question.Type == QuestionType.SpotTest))
-            .Include(q => q.QuizQuestions)
-                .ThenInclude(qq => qq.Question)
-                    .ThenInclude(question => question.STQuestion!)
-                        .ThenInclude(st => st.AvailableChemicals)
-                            .ThenInclude(ac => ac.Chemical)
-                                .ThenInclude(c => c.MethodOutputs)
-                                    .ThenInclude(mo => mo.Method)
-            .Include(q => q.QuizQuestions)
-                .ThenInclude(qq => qq.Question)
-                    .ThenInclude(question => question.STQuestion!)
-                        .ThenInclude(st => st.AvailableMethods)
-                            .ThenInclude(am => am.Method)
-            .AsNoTracking()
-            .ToListAsync();
-
-        return quizzes.Select(MapSpotTestQuiz).ToList();
-    }
-
-    public async Task<SpotTestQuizDto?> GetSpotTestQuizAsync(int quizId)
-    {
-        await using var context = await factory.CreateDbContextAsync();
-
-        var quiz = await context.Quizzes
-            .Where(q => q.QuizID == quizId &&
-                        q.QuizQuestions.Any(qq => qq.Question.Type == QuestionType.SpotTest))
-            .Include(q => q.QuizQuestions)
-                .ThenInclude(qq => qq.Question)
-                    .ThenInclude(question => question.STQuestion!)
-                        .ThenInclude(st => st.AvailableChemicals)
-                            .ThenInclude(ac => ac.Chemical)
-                                .ThenInclude(c => c.MethodOutputs)
-                                    .ThenInclude(mo => mo.Method)
-            .Include(q => q.QuizQuestions)
-                .ThenInclude(qq => qq.Question)
-                    .ThenInclude(question => question.STQuestion!)
-                        .ThenInclude(st => st.AvailableMethods)
-                            .ThenInclude(am => am.Method)
-            .AsNoTracking()
-            .FirstOrDefaultAsync();
-
-        return quiz is null ? null : MapSpotTestQuiz(quiz);
-    }
-
     public async Task<List<MethodQuestionDto>> GetAllMethodsAsync()
     {
         await using var context = await factory.CreateDbContextAsync();
@@ -194,37 +79,6 @@ public class ChemistryDataService(IDbContextFactory<AnalysisContext> factory, Hy
             }).ToListAsync();
     }
 
-    private static SpotTestQuizDto MapSpotTestQuiz(Data.Models.Quizzes.Quiz quiz) => new()
-    {
-        QuizID = quiz.QuizID,
-        Name = quiz.Name,
-        Questions = quiz.QuizQuestions
-            .Where(qq => qq.Question.Type == QuestionType.SpotTest)
-            .OrderBy(qq => qq.Order)
-            .Select(qq =>
-            {
-                var st = qq.Question.STQuestion!;
-                var allChems = st.AvailableChemicals;
-                return new SpotTestQuestionDto
-                {
-                    QuestionID = qq.QuestionID,
-                    Description = qq.Question.Description,
-                    UnknownEducts = allChems
-                        .Where(ac => ac.Chemical.Type == ChemicalType.Educt)
-                        .Select(ac => MapChemical(ac.Chemical))
-                        .ToList(),
-                    AvailableChemicals = allChems
-                        .Where(ac => ac.Chemical.Type == ChemicalType.Additive)
-                        .Select(ac => MapChemical(ac.Chemical))
-                        .ToList(),
-                    AvailableMethods = st.AvailableMethods
-                        .Select(am => am.Method.Name)
-                        .ToList()
-                };
-            })
-            .ToList()
-    };
-
     private static LabChemicalDto MapChemical(Chemical c) => new()
     {
         ChemicalID = c.ChemicalID,
@@ -236,18 +90,5 @@ public class ChemistryDataService(IDbContextFactory<AnalysisContext> factory, Hy
         ChemicalTypeName = c.Type == ChemicalType.Educt ? "Edukt" : "Zusatzstoff",
         Color = c.Color,
         MethodOutputs = c.MethodOutputs.ToDictionary(mo => mo.Method.Name, mo => mo.Color)
-    };
-
-    private static LabReactionDto MapReaction(Reaction r) => new()
-    {
-        ReactionID = r.ReactionID,
-        Chemical1ID = r.Chemical1ID,
-        Chemical2ID = r.Chemical2ID,
-        Chemical1Name = r.Chemical1.Name,
-        Chemical2Name = r.Chemical2.Name,
-        RelevantProduct = r.RelevantProduct,
-        Formula = r.Formula,
-        ObservationDescription = r.Observation.Description,
-        ImagePath = r.ImagePath
     };
 }

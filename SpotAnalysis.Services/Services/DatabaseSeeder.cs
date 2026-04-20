@@ -22,7 +22,7 @@ public class DatabaseSeeder(
         ("Schueler3", new Guid("66666666-6666-6666-6666-666666666666"), [Role.Student]),
     ];
 
-    public async Task SeedAsync(CancellationToken cancellationToken = default)
+    public async Task SeedDevUserAsync(CancellationToken cancellationToken = default)
     {
         await using var context = await factory.CreateDbContextAsync(cancellationToken);
 
@@ -56,5 +56,27 @@ public class DatabaseSeeder(
 
         await context.SaveChangesAsync(cancellationToken);
         logger.LogInformation("Dev data seeder added {Count}/{Total} users", added, DevUsers.Length);
+    }
+
+    public async Task SeedAdminAsync(CancellationToken cancellationToken = default)
+    {
+        await using var context = await factory.CreateDbContextAsync(cancellationToken);
+
+        var user = await context.Users.FirstOrDefaultAsync(u => u.UserName == "Admin", cancellationToken);
+        if(user != null)
+        {
+            return;
+        }
+
+        var newGuid = Guid.NewGuid();
+        var adminUser = new User
+        {
+            UserID = newGuid,
+            UserName = "Admin",
+            PasswordHash = new PasswordProvider.Password("admin123", newGuid).ParamString(),
+        };
+        adminUser.Roles.Add(Role.Admin);
+        context.Users.Add(adminUser);
+        await context.SaveChangesAsync(cancellationToken);
     }
 }

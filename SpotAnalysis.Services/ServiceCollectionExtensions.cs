@@ -16,7 +16,7 @@ public static class ServiceCollectionExtensions
         this IServiceCollection services, IConfiguration configuration)
     {
         services.AddDbContextFactory<AnalysisContext>(options =>
-            options.UseSqlServer(configuration.GetConnectionString("MyDatabase")));
+            options.UseNpgsql(configuration.GetConnectionString("MyDatabase")));
 
         services.AddScoped<IUserService, UserService>();
         services.AddScoped<IGroupInviteTokenService, GroupInviteTokenService>();

@@ -1,0 +1,92 @@
+@page "/my-quizzes"
+@rendermode InteractiveServer
+@attribute [Microsoft.AspNetCore.Authorization.Authorize]
+@using SpotAnalysis.Services.DTOs
+@using SpotAnalysis.Services.Services
+
+<PageTitle>Meine Quizzes – Tüpfeln Digital</PageTitle>
+
+<div class="container py-4 flex-grow-1">
+    <div class="mb-4">
+        <h4 class="fw-bold">Meine Quizzes</h4>
+        <p class="text-muted">Quizzes, die dir über deine Gruppen zugewiesen sind.</p>
+    </div>
+
+    @if (_quizzes is null)
+    {
+        <p class="text-muted">Lädt …</p>
+    }
+    else if (_quizzes.Count == 0)
+    {
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle me-2"></i>
+            Noch keine Quizzes zugewiesen. Frag deine:n Lehrer:in.
+        </div>
+    }
+    else
+    {
+        <div class="row g-4">
+            @foreach (var quiz in _quizzes)
+            {
+                <div class="col-sm-6 col-lg-4">
+                    <div class="card card-interactive h-100" @onclick="() => Open(quiz.Id)">
+                        <div class="card-body p-4">
+                            <div class="d-flex align-items-center gap-2 mb-3">
+                                @if (quiz.STCount > 0)
+                                {
+                                    <span class="badge bg-purple">@quiz.STCount Tüpfeln</span>
+                                }
+                                @if (quiz.STLCount > 0)
+                                {
+                                    <span class="badge" style="background-color: #2563eb; color: white;">@quiz.STLCount Light</span>
+                                }
+                                <span class="text-muted small">@quiz.QuestionCount Aufgaben</span>
+                            </div>
+                            <h5 class="card-title fw-bold mb-2">@quiz.Name</h5>
+                            <p class="card-text text-muted small mb-0">
+                                @switch (quiz.LastAttemptStatus)
+                                {
+                                    case LastAttemptStatus.NotStarted:
+                                        <i class="bi bi-play-circle me-1"></i><text>Noch nicht gestartet</text>
+                                        break;
+                                    case LastAttemptStatus.InProgress:
+                                        <i class="bi bi-hourglass-split me-1"></i><text>Läuft</text>
+                                        break;
+                                    case LastAttemptStatus.Completed:
+                                        <i class="bi bi-check-circle me-1"></i><text>Abgeschlossen am @quiz.LastCompletedAt?.ToString("dd.MM.yyyy")</text>
+                                        break;
+                                }
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    [Inject] private IQuizService QuizService { get; set; } = default!;
+    [Inject] private NavigationManager Navigation { get; set; } = default!;
+    [CascadingParameter] private Task<AuthenticationState> AuthState { get; set; } = default!;
+
+    private List<QuizOverviewDto>? _quizzes;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (!RendererInfo.IsInteractive) return;
+
+        var auth = await AuthState;
+        var userIdClaim = auth.User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                        ?? auth.User.FindFirst("sub")?.Value;
+        if (!Guid.TryParse(userIdClaim, out var userId))
+        {
+            _quizzes = new();
+            return;
+        }
+
+        _quizzes = await QuizService.GetQuizzes(userId);
+    }
+
+    private void Open(int quizId) => Navigation.NavigateTo($"/quiz/{quizId}");
+}

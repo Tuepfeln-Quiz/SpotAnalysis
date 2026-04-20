@@ -23,7 +23,7 @@ public class ManualImportExport
     private AnalysisContext CreateContext()
     {
         var options = new DbContextOptionsBuilder<AnalysisContext>()
-            .UseSqlServer(TestConfiguration.GetConnectionString("MyDatabase"))
+            .UseNpgsql(TestConfiguration.GetConnectionString("MyDatabase"))
             .Options;
         return new AnalysisContext(options);
     }

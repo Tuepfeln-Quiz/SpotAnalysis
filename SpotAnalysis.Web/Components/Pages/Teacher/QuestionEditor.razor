@@ -6,6 +6,8 @@
 @using SpotAnalysis.Services.Services
 @using SpotAnalysis.Web.Services
 
+@attribute [Authorize(Roles = "Teacher, Admin")]
+
 <PageTitle>@(_isEdit ? "Frage bearbeiten" : "Neue Frage") – Tüpfeln Digital</PageTitle>
 
 <div class="container py-4">

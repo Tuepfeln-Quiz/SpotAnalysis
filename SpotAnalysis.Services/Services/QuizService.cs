@@ -775,14 +775,14 @@ public class QuizService(ILogger<QuizService> logger, IDbContextFactory<Analysis
             .FirstOrDefaultAsync();
         if (openAttempt is not null)
         {
-            openAttempt.Completed = DateTime.Now;
+            openAttempt.Completed = DateTime.UtcNow;
         }
 
         var fresh = new QuizAttempt
         {
             UserID = userId,
             QuizID = quizId,
-            Started = DateTime.Now
+            Started = DateTime.UtcNow
         };
         db.QuizAttempts.Add(fresh);
         await db.SaveChangesAsync();
@@ -794,7 +794,7 @@ public class QuizService(ILogger<QuizService> logger, IDbContextFactory<Analysis
     {
         await using var db = await factory.CreateDbContextAsync();
         var attempt = await db.QuizAttempts.SingleAsync(a => a.AttemptID == attemptId);
-        attempt.Completed = DateTime.Now;
+        attempt.Completed = DateTime.UtcNow;
         await db.SaveChangesAsync();
     }
 

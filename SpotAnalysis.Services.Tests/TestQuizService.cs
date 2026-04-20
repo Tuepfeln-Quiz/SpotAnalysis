@@ -272,83 +272,246 @@ public class TestQuizService : BaseDatabaseTest
     // }
 
     [Test]
-    public async Task OpenQuiz()
+    public async Task GetQuizzes_ReturnsCreatedQuiz()
     {
+        await _teacherService.CreateGroup(Teacher1, new ConfigGroupDto
         {
-            await _teacherService.CreateGroup(Teacher1, new ConfigGroupDto
-            {
-                Name = "Test Quiz Group",
-            });
+            Name = "Test Quiz Group",
+        });
 
-            var groups = await _teacherService.GetGroups(Teacher1);
-        
-            Assert.That(groups, Has.Count.EqualTo(1));
-        
-            var gid = groups.First().Id;
+        var groups = await _teacherService.GetGroups(Teacher1);
 
-            await _quizService.CreateQuiz(Teacher1, new CreateQuizDto
-            {
-                Name = "Test Quiz",
-                Questions = [],
-            });
-        
-            var quizzes = await _quizService.GetQuizzes(Teacher1);
-        
-            Assert.That(quizzes, Has.Count.EqualTo(1));
-        
-            var quiz = quizzes[0];
-            using (Assert.EnterMultipleScope())
-            {
-                Assert.That(quiz.Name, Is.EqualTo("Test Quiz"));
-                Assert.That(quiz.STCount, Is.EqualTo(0));
-                Assert.That(quiz.STLCount, Is.EqualTo(0));
-            }
+        Assert.That(groups, Has.Count.EqualTo(1));
 
-            var opened = await _quizService.OpenQuiz(Teacher1, quiz.Id);
-            using (Assert.EnterMultipleScope())
-            {
-                Assert.That(opened.Name, Is.EqualTo("Test Quiz"));
-                Assert.That(opened.STQuestions, Has.Count.EqualTo(0));
-                Assert.That(opened.STLQuestions, Has.Count.EqualTo(0));
-            }
-        
-            var attempt = await _quizService.GetQuizAttempt(Teacher1, quiz.Id);
-        
-            Assert.That(attempt, Is.Not.Null);
-        
-            Assert.That(attempt.Completed, Is.EqualTo(DateTime.Parse("0001-01-01 00:00:00")));
+        await _quizService.CreateQuiz(Teacher1, new CreateQuizDto
+        {
+            Name = "Test Quiz",
+            Questions = [],
+        });
+
+        var quizzes = await _quizService.GetQuizzes(Teacher1);
+
+        Assert.That(quizzes, Has.Count.EqualTo(1));
+
+        var quiz = quizzes[0];
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(quiz.Name, Is.EqualTo("Test Quiz"));
+            Assert.That(quiz.STCount, Is.EqualTo(0));
+            Assert.That(quiz.STLCount, Is.EqualTo(0));
         }
 
+        await _quizService.CreateSTLQuestion(Teacher1, new ConfigSTLQuestionDto
         {
-            var quizzes = await _quizService.GetQuizzes(Teacher1);
-        
-            Assert.That(quizzes, Has.Count.EqualTo(1));
-        
-            var quiz = quizzes[0];
+            Description = "A Test STL Question",
+            AvailableReactions = [
+                1
+            ],
+            ShowEductId = 1,
+            ReactionId = 1,
+            Title = "HohohoTitle"
+        });
 
-            await _quizService.CreateSTLQuestion(Teacher1, new ConfigSTLQuestionDto
+        await _quizService.UpdateQuiz(Teacher1, new UpdateQuizDto
+        {
+            Name = "Test Quiz",
+            Id = quiz.Id,
+            Questions = [
+                new QuestionDto
+                {
+                    Id = 1,
+                    Order = 1
+                },
+            ],
+        });
+    }
+
+    [Test]
+    public async Task GetQuizzes_NotStartedWhenNoAttempt()
+    {
+        await CleanUpDb();
+        var creatorId = Guid.NewGuid();
+        var quizId = await SeedQuizForUser(creatorId, creatorId, assignViaGroup: false);
+
+        var result = await _quizService.GetQuizzes(creatorId);
+        var q = result.Single(x => x.Id == quizId);
+
+        Assert.That(q.LastAttemptStatus, Is.EqualTo(LastAttemptStatus.NotStarted));
+        Assert.That(q.LastCompletedAt, Is.Null);
+        Assert.That(q.QuestionCount, Is.EqualTo(0));
+    }
+
+    [Test]
+    public async Task GetQuizzes_InProgressWhenOpenAttempt()
+    {
+        await CleanUpDb();
+        var creatorId = Guid.NewGuid();
+        var quizId = await SeedQuizForUser(creatorId, creatorId, assignViaGroup: false);
+        await _quizService.StartOrResumeQuiz(creatorId, quizId);
+
+        var q = (await _quizService.GetQuizzes(creatorId)).Single(x => x.Id == quizId);
+
+        Assert.That(q.LastAttemptStatus, Is.EqualTo(LastAttemptStatus.InProgress));
+        Assert.That(q.LastCompletedAt, Is.Null);
+    }
+
+    [Test]
+    public async Task GetQuizzes_CompletedWhenAttemptCompleted()
+    {
+        await CleanUpDb();
+        var creatorId = Guid.NewGuid();
+        var quizId = await SeedQuizForUser(creatorId, creatorId, assignViaGroup: false);
+        var attempt = await _quizService.StartOrResumeQuiz(creatorId, quizId);
+        await _quizService.CompleteAttempt(attempt.AttemptID);
+
+        var q = (await _quizService.GetQuizzes(creatorId)).Single(x => x.Id == quizId);
+
+        Assert.That(q.LastAttemptStatus, Is.EqualTo(LastAttemptStatus.Completed));
+        Assert.That(q.LastCompletedAt, Is.Not.Null);
+    }
+
+    private async Task<int> SeedQuizForUser(Guid userId, Guid creatorId, bool assignViaGroup)
+    {
+        await using var db = await ContextFactory.CreateDbContextAsync();
+
+        if (!await db.Users.AnyAsync(u => u.UserID == creatorId))
+            db.Users.Add(new User { UserID = creatorId, UserName = "Creator", PasswordHash = "x" });
+
+        if (userId != creatorId && !await db.Users.AnyAsync(u => u.UserID == userId))
+            db.Users.Add(new User { UserID = userId, UserName = "Member", PasswordHash = "x" });
+
+        var quiz = new SpotAnalysis.Data.Models.Quizzes.Quiz { Name = "Seed", CreatedBy = creatorId };
+        db.Quizzes.Add(quiz);
+        await db.SaveChangesAsync();
+
+        if (assignViaGroup)
+        {
+            var group = new SpotAnalysis.Data.Models.Identity.Group { Name = "SeedGroup" };
+            group.Users.Add(await db.Users.SingleAsync(u => u.UserID == userId));
+            group.Quizzes.Add(quiz);
+            db.Groups.Add(group);
+            await db.SaveChangesAsync();
+        }
+
+        return quiz.QuizID;
+    }
+
+    [Test]
+    public async Task StartOrResumeQuiz_CreatorGetsAccess()
+    {
+        await CleanUpDb();
+        var creatorId = Guid.NewGuid();
+        var quizId = await SeedQuizForUser(creatorId, creatorId, assignViaGroup: false);
+
+        var dto = await _quizService.StartOrResumeQuiz(creatorId, quizId);
+
+        Assert.That(dto.QuizID, Is.EqualTo(quizId));
+        Assert.That(dto.AttemptID, Is.GreaterThan(0));
+    }
+
+    [Test]
+    public async Task StartOrResumeQuiz_GroupMemberGetsAccess()
+    {
+        await CleanUpDb();
+        var creatorId = Guid.NewGuid();
+        var memberId = Guid.NewGuid();
+        var quizId = await SeedQuizForUser(memberId, creatorId, assignViaGroup: true);
+
+        var dto = await _quizService.StartOrResumeQuiz(memberId, quizId);
+
+        Assert.That(dto.QuizID, Is.EqualTo(quizId));
+    }
+
+    [Test]
+    public async Task StartOrResumeQuiz_StrangerIsRejected()
+    {
+        await CleanUpDb();
+        var creatorId = Guid.NewGuid();
+        var strangerId = Guid.NewGuid();
+        var quizId = await SeedQuizForUser(creatorId, creatorId, assignViaGroup: false);
+
+        await using (var db = await ContextFactory.CreateDbContextAsync())
+        {
+            db.Users.Add(new User { UserID = strangerId, UserName = "Stranger", PasswordHash = "x" });
+            await db.SaveChangesAsync();
+        }
+
+        Assert.ThrowsAsync<UnauthorizedAccessException>(async () =>
+            await _quizService.StartOrResumeQuiz(strangerId, quizId));
+    }
+
+    [Test]
+    public async Task StartNewAttempt_ClosesOpenAttemptAndCreatesNew()
+    {
+        await CleanUpDb();
+        var creatorId = Guid.NewGuid();
+        var quizId = await SeedQuizForUser(creatorId, creatorId, assignViaGroup: false);
+
+        var first = await _quizService.StartOrResumeQuiz(creatorId, quizId);
+        var second = await _quizService.StartNewAttempt(creatorId, quizId);
+
+        Assert.That(second.AttemptID, Is.Not.EqualTo(first.AttemptID));
+
+        await using var db = await ContextFactory.CreateDbContextAsync();
+        var closed = await db.QuizAttempts.SingleAsync(a => a.AttemptID == first.AttemptID);
+        Assert.That(closed.Completed, Is.GreaterThan(DateTime.Now.AddMinutes(-1)));
+    }
+
+    [Test]
+    public async Task StartNewAttempt_WithoutOpenAttempt_JustCreates()
+    {
+        await CleanUpDb();
+        var creatorId = Guid.NewGuid();
+        var quizId = await SeedQuizForUser(creatorId, creatorId, assignViaGroup: false);
+
+        var dto = await _quizService.StartNewAttempt(creatorId, quizId);
+
+        Assert.That(dto.AttemptID, Is.GreaterThan(0));
+    }
+
+    [Test]
+    public async Task StartOrResumeQuiz_ResumesOpenAttempt()
+    {
+        await CleanUpDb();
+        var creatorId = Guid.NewGuid();
+        var quizId = await SeedQuizForUser(creatorId, creatorId, assignViaGroup: false);
+
+        var first = await _quizService.StartOrResumeQuiz(creatorId, quizId);
+        var second = await _quizService.StartOrResumeQuiz(creatorId, quizId);
+
+        Assert.That(second.AttemptID, Is.EqualTo(first.AttemptID));
+    }
+
+    [Test]
+    public async Task CompleteAttempt_SetsCompletedNow()
+    {
+        await CleanUpDb();
+
+        int attemptId;
+        await using (var db = await ContextFactory.CreateDbContextAsync())
+        {
+            await db.Users.AddAsync(new User { UserID = _createdBy, UserName = "U", PasswordHash = "x" });
+            var quiz = new SpotAnalysis.Data.Models.Quizzes.Quiz { Name = "Q", CreatedBy = _createdBy };
+            db.Quizzes.Add(quiz);
+            await db.SaveChangesAsync();
+
+            var attempt = new SpotAnalysis.Data.Models.Quizzes.QuizAttempt
             {
-                Description = "A Test STL Question",
-                AvailableReactions = [
-                    1
-                ],
-                ShowEductId = 1,
-                ReactionId = 1,
-                Title = "HohohoTitle"
-            });
-        
-            await _quizService.UpdateQuiz(Teacher1, new UpdateQuizDto
-            {
-                Name = "Test Quiz",
-                Id = quiz.Id,
-                Questions = [
-                    new QuestionDto
-                    {
-                        Id = 1,
-                        Order = 1
-                    },
-                ],
-            });
+                UserID = _createdBy,
+                QuizID = quiz.QuizID,
+                Started = DateTime.Now
+            };
+            db.QuizAttempts.Add(attempt);
+            await db.SaveChangesAsync();
+            attemptId = attempt.AttemptID;
+        }
+
+        await _quizService.CompleteAttempt(attemptId);
+
+        await using (var db = await ContextFactory.CreateDbContextAsync())
+        {
+            var updated = await db.QuizAttempts.SingleAsync(a => a.AttemptID == attemptId);
+            Assert.That(updated.Completed, Is.GreaterThan(DateTime.Now.AddMinutes(-1)));
         }
     }
 }

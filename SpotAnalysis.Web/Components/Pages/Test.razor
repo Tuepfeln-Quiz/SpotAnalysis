@@ -2,6 +2,7 @@
 @using Microsoft.AspNetCore.Mvc
 @using SpotAnalysis.Data.Enums
 @inject IAdminService AdminService
+@inject IDatabaseSeeder D
 
 <h1>Admin Service Test</h1>
 
@@ -114,6 +115,16 @@
     {
         statusMessage = null;
         users = await AdminService.GetUsersByRole(selectedRole);
+        try
+        {
+            await D.SeedAdminAsync();
+
+        }
+        catch (Exception)
+        {
+            
+            throw;
+        }
     }
 
     private void SelectUser(UserDto user) => selectedUser = user;

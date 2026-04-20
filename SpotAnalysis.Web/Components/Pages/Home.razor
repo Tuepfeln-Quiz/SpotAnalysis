@@ -4,7 +4,7 @@
 
 <div class="container py-4 flex-grow-1">
     <div class="row g-4 justify-content-center">
-        <div class="col-sm-6 col-lg-5">
+        <div class="col-sm-6 col-lg-4">
             <div class="card card-interactive h-100" @onclick='() => Navigate("/sandbox")'>
                 <div class="card-body text-center p-4">
                     <div class="card-icon mb-3" style="background-color: #dbeafe;">
@@ -15,7 +15,7 @@
                 </div>
             </div>
         </div>
-        <div class="col-sm-6 col-lg-5">
+        <div class="col-sm-6 col-lg-4">
             <div class="card card-interactive h-100" @onclick='() => Navigate("/reverse")'>
                 <div class="card-body text-center p-4">
                     <div class="card-icon mb-3" style="background-color: #fef3c7;">
@@ -26,28 +26,21 @@
                 </div>
             </div>
         </div>
-        <div class="col-sm-6 col-lg-5">
-            <div class="card card-interactive h-100" @onclick='() => Navigate("/light")'>
-                <div class="card-body text-center p-4">
-                    <div class="card-icon mb-3" style="background-color: #ede9fe;">
-                        <i class="bi bi-stars" style="color: #7c3aed; font-size: 2rem;"></i>
+        <AuthorizeView>
+            <Authorized>
+                <div class="col-sm-6 col-lg-4">
+                    <div class="card card-interactive h-100" @onclick='() => Navigate("/my-quizzes")'>
+                        <div class="card-body text-center p-4">
+                            <div class="card-icon mb-3" style="background-color: #ede9fe;">
+                                <i class="bi bi-journal-check" style="color: #6b21a8; font-size: 2rem;"></i>
+                            </div>
+                            <h5 class="card-title fw-bold">Meine Quizzes</h5>
+                            <p class="card-text text-muted">Von deinen Lehrern zugewiesene Quizzes starten</p>
+                        </div>
                     </div>
-                    <h5 class="card-title fw-bold">Light</h5>
-                    <p class="card-text text-muted">Vereinfachte Version – ideal zum Einstieg</p>
                 </div>
-            </div>
-        </div>
-        <div class="col-sm-6 col-lg-5">
-            <div class="card card-interactive h-100" @onclick='() => Navigate("/tuepfeln")'>
-                <div class="card-body text-center p-4">
-                    <div class="card-icon mb-3" style="background-color: #dcfce7;">
-                        <i class="bi bi-clipboard-check" style="color: #16a34a; font-size: 2rem;"></i>
-                    </div>
-                    <h5 class="card-title fw-bold">Tüpfeln</h5>
-                    <p class="card-text text-muted">Quiz-Modus – Teste dein Wissen mit Aufgaben</p>
-                </div>
-            </div>
-        </div>
+            </Authorized>
+        </AuthorizeView>
     </div>
 </div>
 
@@ -55,8 +48,5 @@
     [Inject]
     private NavigationManager Navigation { get; set; } = default!;
 
-    private void Navigate(string url)
-    {
-        Navigation.NavigateTo(url);
-    }
+    private void Navigate(string url) => Navigation.NavigateTo(url);
 }

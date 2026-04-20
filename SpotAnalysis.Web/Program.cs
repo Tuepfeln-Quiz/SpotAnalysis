@@ -36,10 +36,10 @@ public class Program
             var seeder = scope.ServiceProvider.GetRequiredService<IDatabaseSeeder>();
             try
             {
+                await seeder.SeedAdminAsync();
+
                 if (app.Environment.IsDevelopment())
                     await seeder.SeedDevUserAsync();
-                else
-                    await seeder.SeedAdminAsync();
             }
             catch (Exception ex)
             {

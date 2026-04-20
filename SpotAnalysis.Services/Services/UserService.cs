@@ -1,4 +1,5 @@
 ﻿using System.Security.Authentication;
+using System.Text.RegularExpressions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using SpotAnalysis.Data;
@@ -9,6 +10,10 @@ namespace SpotAnalysis.Services.Services;
 
 public class UserService(ILogger<UserService> logger, IDbContextFactory<AnalysisContext> factory) : IUserService
 {
+    private static readonly Regex PasswordRegex = new(
+        @"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z\d]).{8,}$",
+        RegexOptions.Compiled);
+
     public async Task<User?> ChangePassword(string userName, string newPassword)
     {
         if (string.IsNullOrEmpty(userName) || string.IsNullOrEmpty(newPassword))
@@ -67,14 +72,32 @@ public class UserService(ILogger<UserService> logger, IDbContextFactory<Analysis
     
     public async Task Register(string userName, string password, string? email, Guid? userId)
     {
+        if (string.IsNullOrWhiteSpace(userName) || userName.Length > 128)
+        {
+            throw new ArgumentException("InvalidUserName");
+        }
+
+        if (string.IsNullOrWhiteSpace(password) || !PasswordRegex.IsMatch(password))
+        {
+            throw new ArgumentException("WeakPassword");
+        }
+
         var newGuid = userId ?? Guid.NewGuid();
 
         var passwordString = new PasswordProvider.Password(password, newGuid).ParamString();
         
         await using var context = await factory.CreateDbContextAsync();
+
+        var normalizedUserName = userName.Trim();
+        var exists = await context.Users.AnyAsync(u => u.UserName.ToLower() == normalizedUserName.ToLower());
+        if (exists)
+        {
+            throw new InvalidOperationException("UserNameTaken");
+        }
+
         var newUser = new User
         {
-            UserName = userName,
+            UserName = normalizedUserName,
             PasswordHash = passwordString,
             UserID = newGuid
         };

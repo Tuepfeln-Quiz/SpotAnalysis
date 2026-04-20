@@ -8,9 +8,9 @@ public class TestPasswordProvider
     public void TestPasswordGeneration()
     {
         var provider = new PasswordProvider.Password("asdfghij", Guid.Parse("fe64042c-161b-4aa6-91d9-0a93211a7f41"));
-
         Console.WriteLine(provider.ParamString());
     }
+
 
     [Test, Order(2)]
     public void TestPasswordComparison()

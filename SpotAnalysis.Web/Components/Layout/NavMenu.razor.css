@@ -1,0 +1,33 @@
+navbar-user {
+    margin-left: auto;
+}   
+.cursor-pointer {
+    cursor: pointer;
+}
+.user-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    object-fit: cover;  
+}
+.user-avatar:hover {
+    transform: scale(1.15);
+}
+.btn-user {
+    padding: 0;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+}
+
+.dropdown-menu-end {
+    right: 0;
+    left: auto;
+}
+
+.dropdown-menu .dropdown-item-text {
+    display: block;
+    text-align: center;
+    font-weight: 800;
+    margin-bottom: 0.5rem;
+}

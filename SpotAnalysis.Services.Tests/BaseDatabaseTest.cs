@@ -21,7 +21,7 @@ public abstract class BaseDatabaseTest
         _context = await ContextFactory.CreateDbContextAsync();
 
         await _context.Database.EnsureDeletedAsync();
-        await _context.Database.MigrateAsync();
+        await _context.Database.EnsureCreatedAsync();
         await SeedDatabase();
     }
 
@@ -72,7 +72,7 @@ public abstract class BaseDatabaseTest
     {
         await using var dbContext = await ContextFactory.CreateDbContextAsync();
         await dbContext.Database.EnsureDeletedAsync();
-        await dbContext.Database.MigrateAsync();
+        await dbContext.Database.EnsureCreatedAsync();
         await SeedDatabase();
     }
 }

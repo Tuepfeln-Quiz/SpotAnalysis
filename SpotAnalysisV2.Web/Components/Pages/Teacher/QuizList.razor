@@ -12,8 +12,16 @@
                            Title="Quizzes"
                            Description="Erstellen, bearbeiten und verwalten Sie Ihre Quiz-Sammlungen.">
             <Actions>
-                <button type="button" @onclick='() => Navigation.NavigateTo("/teacher")' class="rounded-2xl border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50">Zurück</button>
-                <button type="button" @onclick="CreateQuiz" class="rounded-2xl bg-purple-600 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-purple-200 hover:bg-purple-700">Neues Quiz</button>
+                <AppButton Variant="AppButton.ButtonVariant.Secondary"
+                           OnClick='() => Navigation.NavigateTo("/teacher")'
+                           Class="font-medium">
+                    Zurück
+                </AppButton>
+                <AppButton Variant="AppButton.ButtonVariant.Custom"
+                           CustomVariantClass="bg-purple-600 text-white shadow-lg shadow-purple-200 hover:bg-purple-700"
+                           OnClick="CreateQuiz">
+                    Neues Quiz
+                </AppButton>
             </Actions>
         </TeacherPageHeader>
 
@@ -55,8 +63,14 @@
                                 </div>
                              </div>
                              <div class="flex gap-2">
-                                <button type="button" @onclick='() => EditQuiz(quiz.Id)' class="rounded-2xl border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-50">Bearbeiten</button>
-                                <button type="button" @onclick='() => ConfirmDelete(quiz)' class="rounded-2xl border border-red-200 bg-red-50 px-4 py-2 text-sm font-semibold text-red-700 transition hover:bg-red-100">Löschen</button>
+                                <AppButton Variant="AppButton.ButtonVariant.Secondary"
+                                           OnClick='() => EditQuiz(quiz.Id)'>
+                                    Bearbeiten
+                                </AppButton>
+                                <AppButton Variant="AppButton.ButtonVariant.Danger"
+                                           OnClick='() => ConfirmDelete(quiz)'>
+                                    Löschen
+                                </AppButton>
                              </div>
                          </div>
                      </div>

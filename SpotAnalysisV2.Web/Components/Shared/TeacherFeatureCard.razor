@@ -1,0 +1,20 @@
+<button type="button"
+        @onclick="OnClick"
+        class="rounded-3xl border bg-white p-8 text-left shadow-lg transition hover:-translate-y-1 @BorderClass @HoverBorderClass @HoverBackgroundClass">
+    <div class="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl text-white shadow-md ring-1 ring-white/40 @IconBackgroundClass">
+        @Icon
+    </div>
+    <h2 class="text-xl font-semibold text-gray-800">@Title</h2>
+    <p class="mt-2 text-sm text-gray-500">@Description</p>
+</button>
+
+@code {
+    [Parameter] public string BorderClass { get; set; } = "border-gray-100";
+    [Parameter] public string HoverBorderClass { get; set; } = "hover:border-gray-300";
+    [Parameter] public string HoverBackgroundClass { get; set; } = "hover:bg-gray-50";
+    [Parameter] public string IconBackgroundClass { get; set; } = "bg-gradient-to-br from-teal-500 to-cyan-500";
+    [Parameter] public string Title { get; set; } = string.Empty;
+    [Parameter] public string Description { get; set; } = string.Empty;
+    [Parameter] public EventCallback OnClick { get; set; }
+    [Parameter] public RenderFragment? Icon { get; set; }
+}

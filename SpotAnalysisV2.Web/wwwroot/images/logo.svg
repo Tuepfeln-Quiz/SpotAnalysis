@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
+  <defs>
+    <linearGradient id="dropletGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#2563eb;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#9333ea;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0d9488;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Water droplet with gradient - maximum size -->
+  <g transform="translate(128, 128) scale(2)">
+    <!-- Main droplet shape -->
+    <path d="M 0 -50 C -30 -20 -45 0 -45 20 C -45 45 -25 60 0 60 C 25 60 45 45 45 20 C 45 0 30 -20 0 -50 Z" 
+          fill="url(#dropletGradient)" 
+          stroke="none" />
+    
+    <!-- Light reflection highlight for 3D effect -->
+    <ellipse cx="-15" cy="-15" rx="18" ry="25" fill="#ffffff" opacity="0.35" />
+  </g>
+</svg>

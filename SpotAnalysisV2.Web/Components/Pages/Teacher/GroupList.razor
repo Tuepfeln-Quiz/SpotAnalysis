@@ -12,8 +12,16 @@
                            Title="Gruppen"
                            Description="Verwalte Klassen, Beschreibungen und Quiz-Zuweisungen zentral an einem Ort.">
             <Actions>
-                <button type="button" @onclick='() => Navigation.NavigateTo("/teacher")' class="rounded-2xl border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50">Zurück</button>
-                <button type="button" @onclick="CreateGroup" class="rounded-2xl bg-amber-500 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-amber-200 hover:bg-amber-600">Neue Gruppe</button>
+                <AppButton Variant="AppButton.ButtonVariant.Secondary"
+                           OnClick='() => Navigation.NavigateTo("/teacher")'
+                           Class="font-medium">
+                    Zurück
+                </AppButton>
+                <AppButton Variant="AppButton.ButtonVariant.Custom"
+                           CustomVariantClass="bg-amber-500 text-white shadow-lg shadow-amber-200 hover:bg-amber-600"
+                           OnClick="CreateGroup">
+                    Neue Gruppe
+                </AppButton>
             </Actions>
         </TeacherPageHeader>
 
@@ -44,8 +52,14 @@
                                 </div>
                              </button>
                              <div class="flex gap-2">
-                                <button type="button" @onclick='() => OpenGroup(group.Id)' class="rounded-2xl border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-50">Öffnen</button>
-                                <button type="button" @onclick='() => ConfirmDelete(group)' class="rounded-2xl border border-red-200 bg-red-50 px-4 py-2 text-sm font-semibold text-red-700 transition hover:bg-red-100">Löschen</button>
+                                <AppButton Variant="AppButton.ButtonVariant.Secondary"
+                                           OnClick='() => OpenGroup(group.Id)'>
+                                    Öffnen
+                                </AppButton>
+                                <AppButton Variant="AppButton.ButtonVariant.Danger"
+                                           OnClick='() => ConfirmDelete(group)'>
+                                    Löschen
+                                </AppButton>
                              </div>
                          </div>
                      </div>

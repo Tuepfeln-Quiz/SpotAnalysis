@@ -1,4 +1,5 @@
 ﻿using System.Security.Authentication;
+using System.Security.Cryptography;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 using SpotAnalysis.Data.Enums;
@@ -28,12 +29,11 @@ public class TestUserService : BaseDatabaseTest
 
     #region helpers
 
-    private static Random random = new Random();
     public static string RandomString(int length)
     {
         const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
         return new string(Enumerable.Repeat(chars, length)
-            .Select(s => s[random.Next(s.Length)]).ToArray());
+            .Select(s => s[RandomNumberGenerator.GetInt32(s.Length)]).ToArray());
     }
 
     #endregion

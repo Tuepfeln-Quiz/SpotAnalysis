@@ -19,6 +19,9 @@ INSERT INTO "Reactions" ("ReactionID", "Chemical1ID", "Chemical2ID", "RelevantPr
     (1, 1, 2, 'Cucumber', 'It Reacts', 1)
 ON CONFLICT ("ReactionID") DO NOTHING;
 
-SELECT setval('"Chemicals_ChemicalID_seq"', (SELECT COALESCE(MAX("ChemicalID"), 0) FROM "Chemicals"));
-SELECT setval('"Observations_ObservationID_seq"', (SELECT COALESCE(MAX("ObservationID"), 0) FROM "Observations"));
-SELECT setval('"Reactions_ReactionID_seq"', (SELECT COALESCE(MAX("ReactionID"), 0) FROM "Reactions"));
+DO $$
+BEGIN
+    PERFORM setval('"Chemicals_ChemicalID_seq"', (SELECT COALESCE(MAX("ChemicalID"), 0) FROM "Chemicals"));
+    PERFORM setval('"Observations_ObservationID_seq"', (SELECT COALESCE(MAX("ObservationID"), 0) FROM "Observations"));
+    PERFORM setval('"Reactions_ReactionID_seq"', (SELECT COALESCE(MAX("ReactionID"), 0) FROM "Reactions"));
+END $$;

@@ -36,7 +36,7 @@
     [Inject] private NavigationManager Navigation { get; set; } = default!;
 
     private bool IsEdit => GroupId.HasValue;
-    private FormModel _model = new();
+    private readonly FormModel _model = new();
     private string? _error;
 
     protected override async Task OnParametersSetAsync()
@@ -83,7 +83,7 @@
         {
             _error = $"Eine Gruppe mit dem Namen \"{_model.Name}\" existiert bereits.";
         }
-        catch (Exception ex)
+        catch (InvalidOperationException ex)
         {
             _error = $"Speichern fehlgeschlagen: {ex.Message}";
         }

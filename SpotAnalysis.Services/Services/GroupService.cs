@@ -33,13 +33,13 @@ public class GroupService : IGroupService
 
         var teacher = GetTeacher(ctx, teacherId);
 
-        return teacher.SelectMany(u => u.Groups)
+        return await teacher.SelectMany(u => u.Groups)
             .Select(g => new GroupDto
             {
                 Id = g.GroupID,
                 Name = g.Name,
                 Description = g.Description,
-            }).ToList();
+            }).ToListAsync();
     }
 
     public async Task<List<StudentDto>> GetStudents(Guid teacherId)
@@ -48,7 +48,7 @@ public class GroupService : IGroupService
 
         var teacher = GetTeacher(ctx, teacherId);
 
-        return teacher.SelectMany(u => u.Groups)
+        return await teacher.SelectMany(u => u.Groups)
             .SelectMany(g => g.Users)
             .Distinct()
             .Where(u => u.UserID != teacherId)
@@ -61,7 +61,7 @@ public class GroupService : IGroupService
                     Id = g.GroupID,
                     Name = g.Name,
                 }).ToList()
-            }).ToList();
+            }).ToListAsync();
     }
 
     public async Task<List<StudentDto>> GetStudentsByGroup(Guid teacherId, int groupId)
@@ -70,7 +70,7 @@ public class GroupService : IGroupService
 
         var teacher = GetTeacher(ctx, teacherId);
 
-        return teacher.SelectMany(u => u.Groups)
+        return await teacher.SelectMany(u => u.Groups)
             .Where(g => g.GroupID == groupId)
             .SelectMany(g => g.Users)
             .Where(u => u.Roles.Any(r => r == Role.Student)
@@ -84,7 +84,7 @@ public class GroupService : IGroupService
                     Id = g.GroupID,
                     Name = g.Name,
                 }).ToList()
-            }).ToList();
+            }).ToListAsync();
     }
 
     public async Task<List<StudentDto>> GetTeachersByGroup(Guid teacherId, int groupId)
@@ -93,7 +93,7 @@ public class GroupService : IGroupService
 
         var teacher = GetTeacher(ctx, teacherId);
 
-        return teacher.SelectMany(u => u.Groups)
+        return await teacher.SelectMany(u => u.Groups)
             .Where(g => g.GroupID == groupId)
             .SelectMany(g => g.Users)
             .Where(u => u.Roles.Any(r => r == Role.Teacher))
@@ -106,7 +106,7 @@ public class GroupService : IGroupService
                     Id = g.GroupID,
                     Name = g.Name,
                 }).ToList()
-            }).ToList();
+            }).ToListAsync();
     }
 
     public async Task<List<StudentDto>> SearchTeachers(string query)

@@ -36,24 +36,24 @@ public class TestQuizService : BaseDatabaseTest
         var inviteTokens = new GroupInviteTokenService(dpProvider);
         _teacherService = new GroupService(ContextFactory, inviteTokens);
     }
-    
+
     [Test]
     public async Task GetAllQuizzes_ReturnAllQuizzes()
     {
         await CleanUpDb();
-        
+
         var quizCount = await CreateMultipleQuizzes();
 
         var quizzes = await _quizService.GetAllQuizzes();
-        
+
         Assert.That(quizzes, Has.Count.EqualTo(quizCount));
     }
-    
+
     [Test]
     public async Task UpdateQuiz_ReturnUpdatedName()
     {
         await CleanUpDb();
-        
+
         await CreateMultipleQuizzes();
 
         var newQuizName = "My cool new name";
@@ -64,25 +64,25 @@ public class TestQuizService : BaseDatabaseTest
             Name = newQuizName,
             Questions = []
         };
-        
+
         await _quizService.UpdateQuiz(_createdBy, quizToUpdate);
 
         await using var dbContext = await ContextFactory.CreateDbContextAsync();
 
         var quiz = await dbContext.Quizzes.SingleAsync(x => x.QuizID == 10);
-        
+
         Assert.That(quiz.Name, Is.EqualTo(newQuizName));
     }
-    
+
     [Test]
     public async Task DeleteQuiz_QuizNotExistingAnymore()
     {
         await CleanUpDb();
-        
+
         await CreateMultipleQuizzes();
 
         const int deleteQuizId = 10;
-        
+
         await _quizService.DeleteQuiz(_createdBy, deleteQuizId);
 
         await using var dbContext = await ContextFactory.CreateDbContextAsync();
@@ -91,51 +91,51 @@ public class TestQuizService : BaseDatabaseTest
         {
             _ = dbContext.Quizzes.Single(x => x.QuizID == 10);
         });
-        
+
         Assert.That(ex.Message, Is.EqualTo("Sequence contains no elements"));
     }
-    
+
     [Test]
     public async Task AssignGroupToQuiz_AssignGroup()
     {
         await CleanUpDb();
-        
+
         await CreateMultipleQuizzes();
 
         await using var dbContext = await ContextFactory.CreateDbContextAsync();
-        
+
         var result = await dbContext.Groups.AddAsync(new Group
         {
             Name = "Fetzige Group"
         });
 
         await dbContext.SaveChangesAsync();
-        
+
         Assert.DoesNotThrowAsync(async () =>
         {
-            await _quizService.AssignGroupToQuiz(1, result.Entity.GroupID);
+            await _quizService.AssignGroupToQuiz(_createdBy, 1, result.Entity.GroupID);
         });
 
         var group = await dbContext.Groups
             .Include(x => x.Quizzes)
             .SingleAsync(x => x.GroupID == result.Entity.GroupID);
-        
+
         Assert.That(group.Quizzes, Has.Count.EqualTo(1));
     }
-    
+
     [Test]
     public async Task RemoveGroupFromQuiz_RemoveGroup()
     {
         await CleanUpDb();
-        
+
         await CreateMultipleQuizzes();
 
-        Group createdQuiz; 
+        Group createdQuiz;
 
         await using (var dbContext = await ContextFactory.CreateDbContextAsync())
         {
             var quiz = await dbContext.Quizzes.FirstAsync();
-        
+
             var result = await dbContext.Groups.AddAsync(new Group
             {
                 Name = "Fetzige Group",
@@ -143,38 +143,38 @@ public class TestQuizService : BaseDatabaseTest
             });
 
             createdQuiz = result.Entity;
-            
+
             await dbContext.SaveChangesAsync();
-            
+
             Assert.DoesNotThrowAsync(async () =>
             {
-                await _quizService.RemoveGroupFromQuiz(quiz.QuizID, createdQuiz.GroupID);
+                await _quizService.RemoveGroupFromQuiz(_createdBy, quiz.QuizID, createdQuiz.GroupID);
             });
         }
-        
+
         await using (var dbContext = await ContextFactory.CreateDbContextAsync())
         {
             var group = await dbContext.Groups
                 .Include(x => x.Quizzes)
                 .SingleAsync(x => x.GroupID == createdQuiz.GroupID);
-            
+
             Assert.That(group.Quizzes, Has.Count.EqualTo(0));
         }
     }
-    
+
     [Test]
     public async Task GetQuestionsFromQuiz_GetQuestions()
     {
         await CleanUpDb();
-        
+
         await CreateMultipleQuizzes();
 
-        Group createdQuiz; 
+        Group createdQuiz;
 
         await using (var dbContext = await ContextFactory.CreateDbContextAsync())
         {
             var quiz = await dbContext.Quizzes.FirstAsync();
-        
+
             var result = await dbContext.Groups.AddAsync(new Group
             {
                 Name = "Fetzige Group",
@@ -182,21 +182,21 @@ public class TestQuizService : BaseDatabaseTest
             });
 
             createdQuiz = result.Entity;
-            
+
             await dbContext.SaveChangesAsync();
-            
+
             Assert.DoesNotThrowAsync(async () =>
             {
-                await _quizService.RemoveGroupFromQuiz(quiz.QuizID, createdQuiz.GroupID);
+                await _quizService.RemoveGroupFromQuiz(_createdBy, quiz.QuizID, createdQuiz.GroupID);
             });
         }
-        
+
         await using (var dbContext = await ContextFactory.CreateDbContextAsync())
         {
             var group = await dbContext.Groups
                 .Include(x => x.Quizzes)
                 .SingleAsync(x => x.GroupID == createdQuiz.GroupID);
-            
+
             Assert.That(group.Quizzes, Has.Count.EqualTo(0));
         }
     }
@@ -215,9 +215,9 @@ public class TestQuizService : BaseDatabaseTest
 
             await dbContext.SaveChangesAsync();
         }
-        
+
         List<Task> tasks = [];
-        
+
         for (int i = 0; i < 100; i++)
         {
             tasks.Add(_quizService.CreateQuiz(_createdBy, new CreateQuizDto
@@ -231,7 +231,7 @@ public class TestQuizService : BaseDatabaseTest
 
         return tasks.Count;
     }
-    
+
     // private async Task<int> CreateMultipleQuestions()
     // {
     //     await using (var dbContext = await ContextFactory.CreateDbContextAsync())
@@ -362,7 +362,7 @@ public class TestQuizService : BaseDatabaseTest
         var creatorId = Guid.NewGuid();
         var quizId = await SeedQuizForUser(creatorId, creatorId, assignViaGroup: false);
         var attempt = await _quizService.StartOrResumeQuiz(creatorId, quizId);
-        await _quizService.CompleteAttempt(attempt.AttemptID);
+        await _quizService.CompleteAttempt(creatorId, attempt.AttemptID);
 
         var q = (await _quizService.GetQuizzes(creatorId)).Single(x => x.Id == quizId);
 
@@ -454,7 +454,7 @@ public class TestQuizService : BaseDatabaseTest
 
         await using var db = await ContextFactory.CreateDbContextAsync();
         var closed = await db.QuizAttempts.SingleAsync(a => a.AttemptID == first.AttemptID);
-        Assert.That(closed.Completed, Is.GreaterThan(DateTime.Now.AddMinutes(-1)));
+        Assert.That(closed.Completed, Is.GreaterThan(DateTime.UtcNow.AddMinutes(-1)));
     }
 
     [Test]
@@ -499,19 +499,19 @@ public class TestQuizService : BaseDatabaseTest
             {
                 UserID = _createdBy,
                 QuizID = quiz.QuizID,
-                Started = DateTime.Now
+                Started = DateTime.UtcNow
             };
             db.QuizAttempts.Add(attempt);
             await db.SaveChangesAsync();
             attemptId = attempt.AttemptID;
         }
 
-        await _quizService.CompleteAttempt(attemptId);
+        await _quizService.CompleteAttempt(_createdBy, attemptId);
 
         await using (var db = await ContextFactory.CreateDbContextAsync())
         {
             var updated = await db.QuizAttempts.SingleAsync(a => a.AttemptID == attemptId);
-            Assert.That(updated.Completed, Is.GreaterThan(DateTime.Now.AddMinutes(-1)));
+            Assert.That(updated.Completed, Is.GreaterThan(DateTime.UtcNow.AddMinutes(-1)));
         }
     }
 }

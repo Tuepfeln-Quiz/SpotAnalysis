@@ -1,5 +1,7 @@
-﻿namespace SpotAnalysis.Data.Models.Quizzes; 
-public class STQuestion {
+﻿namespace SpotAnalysis.Data.Models.Quizzes;
+
+public class STQuestion
+{
     [Key]
     [ForeignKey(nameof(QuestionID))]
     public int QuestionID { get; set; }

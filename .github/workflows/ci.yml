@@ -1,0 +1,74 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - '**.md'
+      - '.github/dependabot.yml'
+      - 'LICENSE'
+  pull_request:
+    branches: [main]
+    paths-ignore:
+      - '**.md'
+      - '.github/dependabot.yml'
+      - 'LICENSE'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_USER: spot_analysis
+          POSTGRES_PASSWORD: SpotAnalysis
+          POSTGRES_DB: SpotAnalysisTest
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U spot_analysis"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v5
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', '**/*.slnx') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
+
+      - name: Restore dependencies
+        run: dotnet restore SpotAnalysis.slnx
+
+      - name: Check formatting
+        run: dotnet format SpotAnalysis.slnx --verify-no-changes
+
+      - name: Build
+        run: dotnet build SpotAnalysis.slnx --no-restore --warnaserror
+
+      - name: Create test database
+        run: |
+          PGPASSWORD=SpotAnalysis psql -h localhost -U spot_analysis -d SpotAnalysisTest -c "SELECT 1;"
+
+      - name: Test
+        run: dotnet test SpotAnalysis.slnx --no-build --verbosity normal

@@ -500,13 +500,13 @@
 
     private async Task AddQuizToGroup(int quizId)
     {
-        await QuizService.AssignGroupToQuiz(quizId, Id);
+        await QuizService.AssignGroupToQuiz(_teacherId, quizId, Id);
         _quizzes = await GroupService.GetQuizzesByGroup(Id);
     }
 
     private async Task RemoveQuizFromGroup(int quizId)
     {
-        await QuizService.RemoveGroupFromQuiz(quizId, Id);
+        await QuizService.RemoveGroupFromQuiz(_teacherId, quizId, Id);
         await ReloadMembers();
     }
 

@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authentication;
+﻿using System.Diagnostics.CodeAnalysis;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
 using SpotAnalysis.Services.Services;
@@ -6,10 +7,14 @@ using System.Security.Claims;
 
 namespace SpotAnalysis.Web.Extensions;
 
-public static class EndpointExtensions {
-    public static WebApplication MapAuthEndpoints(this WebApplication app) {
-        app.MapPost("/api/auth/login", async (HttpContext context, [FromForm] string userName, [FromForm] string password, [FromForm] string? returnUrl, IUserService userService) => {
-            try {
+public static class EndpointExtensions
+{
+    public static WebApplication MapAuthEndpoints(this WebApplication app)
+    {
+        app.MapPost("/api/auth/login", async (HttpContext context, [FromForm] string userName, [FromForm] string password, [FromForm] string? returnUrl, IUserService userService) =>
+        {
+            try
+            {
                 var user = await userService.Login(userName, password);
 
                 var claims = new List<Claim>
@@ -18,7 +23,8 @@ public static class EndpointExtensions {
                     new Claim(ClaimTypes.NameIdentifier, user.UserID.ToString())
                 };
 
-                foreach (var role in user.Roles) {
+                foreach (var role in user.Roles)
+                {
                     claims.Add(new Claim(ClaimTypes.Role, role.ToString()));
                 }
 
@@ -27,14 +33,19 @@ public static class EndpointExtensions {
 
                 var redirect = IsLocalUrl(returnUrl) ? returnUrl : "/";
                 return Results.Redirect(redirect);
-            } catch (Exception) {
+            }
+            catch (Exception)
+            {
                 return Results.Redirect("/login?error=InvalidCredentials");
             }
         });
 
-        app.MapPost("/api/auth/register", async (HttpContext context, [FromForm] string userName, [FromForm] string password, [FromForm] string confirmPassword, [FromForm] string? returnUrl, IUserService userService) => {
-            try {
-                if (password != confirmPassword) {
+        app.MapPost("/api/auth/register", async (HttpContext context, [FromForm] string userName, [FromForm] string password, [FromForm] string confirmPassword, [FromForm] string? returnUrl, IUserService userService) =>
+        {
+            try
+            {
+                if (password != confirmPassword)
+                {
                     return Results.Redirect(BuildRegisterErrorUrl("PasswordsDoNotMatch", returnUrl));
                 }
 
@@ -48,7 +59,8 @@ public static class EndpointExtensions {
                     new Claim(ClaimTypes.NameIdentifier, user.UserID.ToString())
                 };
 
-                foreach (var role in user.Roles) {
+                foreach (var role in user.Roles)
+                {
                     claims.Add(new Claim(ClaimTypes.Role, role.ToString()));
                 }
 
@@ -58,16 +70,23 @@ public static class EndpointExtensions {
                 var redirect = IsLocalUrl(returnUrl) ? returnUrl : "/";
 
                 return Results.Redirect(redirect);
-            } catch (ArgumentException ex) when (ex.Message is "InvalidUserName" or "WeakPassword") {
+            }
+            catch (ArgumentException ex) when (ex.Message is "InvalidUserName" or "WeakPassword")
+            {
                 return Results.Redirect(BuildRegisterErrorUrl(ex.Message, returnUrl));
-            } catch (InvalidOperationException ex) when (ex.Message == "UserNameTaken") {
+            }
+            catch (InvalidOperationException ex) when (ex.Message == "UserNameTaken")
+            {
                 return Results.Redirect(BuildRegisterErrorUrl(ex.Message, returnUrl));
-            } catch (Exception) {
+            }
+            catch (Exception)
+            {
                 return Results.Redirect(BuildRegisterErrorUrl("RegistrationFailed", returnUrl));
             }
         });
 
-        app.MapPost("/api/auth/logout", async (HttpContext context) => {
+        app.MapPost("/api/auth/logout", async (HttpContext context) =>
+        {
             await context.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
             return Results.Redirect("/");
         });
@@ -75,12 +94,14 @@ public static class EndpointExtensions {
         return app;
     }
 
-    private static bool IsLocalUrl(string? url)
+    private static bool IsLocalUrl([NotNullWhen(true)] string? url)
         => !string.IsNullOrEmpty(url) && url.StartsWith('/') && !url.StartsWith("//");
 
-    private static string BuildRegisterErrorUrl(string error, string? returnUrl) {
+    private static string BuildRegisterErrorUrl(string error, string? returnUrl)
+    {
         var encodedError = Uri.EscapeDataString(error);
-        if (!IsLocalUrl(returnUrl)) {
+        if (!IsLocalUrl(returnUrl))
+        {
             return $"/register?error={encodedError}";
         }
 

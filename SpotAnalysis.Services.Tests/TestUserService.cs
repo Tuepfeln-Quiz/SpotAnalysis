@@ -22,12 +22,12 @@ public class TestUserService : BaseDatabaseTest
     private const string StudentName3 = "Student 3";
     private const string StudentName4 = "Student 4";
 
-    private const string StudentPassword3 = "password";
+    private const string StudentPassword3 = "Passw0rd!";
 
     #endregion
-    
+
     #region helpers
-    
+
     private static Random random = new Random();
     public static string RandomString(int length)
     {
@@ -35,7 +35,15 @@ public class TestUserService : BaseDatabaseTest
         return new string(Enumerable.Repeat(chars, length)
             .Select(s => s[random.Next(s.Length)]).ToArray());
     }
-    
+
+    // UserService.Register verlangt Policy: Klein+Groß+Ziffer+Sonderzeichen, ≥8 Zeichen.
+    public static string RandomPassword(int length)
+    {
+        if (length < 8) length = 8;
+        var core = RandomString(length - 4);
+        return "A1!a" + core;
+    }
+
     #endregion
     
     [OneTimeSetUp]
@@ -58,7 +66,7 @@ public class TestUserService : BaseDatabaseTest
             for (var i = 0; i < 100; i++)
             {
                 var uname = RandomString(12);
-                var password = RandomString(12);
+                var password = RandomPassword(12);
                 registeredUsers.Add((uname, password));
                 await _userService.Register(uname, password);
             }

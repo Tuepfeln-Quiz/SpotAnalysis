@@ -1,0 +1,132 @@
+@using SpotAnalysis.Web.Services
+@inject IMasterDataService MasterData
+
+<div class="modal-backdrop show"></div>
+<div class="modal d-block" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content" style="border-radius: var(--card-radius);">
+            <div class="modal-header border-0">
+                <h5 class="modal-title fw-bold">@(Dto.Id == 0 ? "Neue Reaktion" : "Reaktion bearbeiten")</h5>
+            </div>
+            <div class="modal-body">
+                @if (_chemicals is null || _observations is null)
+                {
+                    <p class="text-muted">Laden...</p>
+                }
+                else
+                {
+                    <EditForm Model="Dto" OnValidSubmit="SaveAsync">
+                        <DataAnnotationsValidator />
+
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label-custom">Chemikalie A</label>
+                                <InputSelect class="form-select input-custom" @bind-Value="Dto.Chemical1Id">
+                                    <option value="0">-- auswählen --</option>
+                                    @foreach (var c in _chemicals)
+                                    {
+                                        <option value="@c.Id">@c.Name (@ChemicalStringFormatter.Format(c.Formula))</option>
+                                    }
+                                </InputSelect>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label-custom">Chemikalie B</label>
+                                <InputSelect class="form-select input-custom" @bind-Value="Dto.Chemical2Id">
+                                    <option value="0">-- auswählen --</option>
+                                    @foreach (var c in _chemicals)
+                                    {
+                                        <option value="@c.Id">@c.Name (@ChemicalStringFormatter.Format(c.Formula))</option>
+                                    }
+                                </InputSelect>
+                            </div>
+                        </div>
+
+                        <div class="mb-3 mt-3">
+                            <label class="form-label-custom">Relevantes Produkt</label>
+                            <InputText class="form-control input-custom" @bind-Value="Dto.RelevantProduct" />
+                            <ValidationMessage For="() => Dto.RelevantProduct" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label-custom">Formel</label>
+                            <InputText class="form-control input-custom" @bind-Value="Dto.Formula" />
+                            <small class="text-muted">Vorschau: <ChemFormula Value="@Dto.Formula" /></small>
+                            <ValidationMessage For="() => Dto.Formula" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label-custom">Beobachtung</label>
+                            <div class="d-flex gap-2">
+                                <InputSelect class="form-select input-custom" @bind-Value="Dto.ObservationId">
+                                    <option value="">-- vorhandene wählen --</option>
+                                    @foreach (var o in _observations)
+                                    {
+                                        <option value="@o.Id">@o.Description</option>
+                                    }
+                                </InputSelect>
+                                <span class="align-self-center">oder</span>
+                                <InputText class="form-control input-custom"
+                                           placeholder="neue Beschreibung..."
+                                           @bind-Value="Dto.NewObservationDescription" />
+                            </div>
+                            <small class="text-muted">Eine vorhandene wählen ODER eine neue Beschreibung eingeben.</small>
+                        </div>
+
+                        @if (!string.IsNullOrEmpty(_saveError))
+                        {
+                            <div class="alert alert-danger">@_saveError</div>
+                        }
+
+                        <div class="d-flex justify-content-end gap-2 mt-4">
+                            <button type="button" class="btn btn-secondary" @onclick="OnCancel">Abbrechen</button>
+                            <button type="submit" class="btn btn-primary-purple" disabled="@_saving">
+                                @(_saving ? "Speichern..." : "Speichern")
+                            </button>
+                        </div>
+                    </EditForm>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public ReactionDetailDto Dto { get; set; } = default!;
+    [Parameter] public EventCallback OnSaved { get; set; }
+    [Parameter] public EventCallback OnCancel { get; set; }
+
+    private List<ChemicalDetailDto>? _chemicals;
+    private List<ObservationDetailDto>? _observations;
+    private string? _saveError;
+    private bool _saving;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _chemicals = await MasterData.GetChemicalsAsync();
+        _observations = await MasterData.GetObservationsAsync();
+    }
+
+    private async Task SaveAsync()
+    {
+        _saveError = null;
+        _saving = true;
+
+        try
+        {
+            if (Dto.Id == 0)
+                Dto.Id = await MasterData.CreateReactionAsync(Dto);
+            else
+                await MasterData.UpdateReactionAsync(Dto);
+
+            await OnSaved.InvokeAsync();
+        }
+        catch (InvalidOperationException ex)
+        {
+            _saveError = ex.Message;
+        }
+        finally
+        {
+            _saving = false;
+        }
+    }
+}

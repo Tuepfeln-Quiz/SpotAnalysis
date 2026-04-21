@@ -1,0 +1,84 @@
+@using SpotAnalysis.Web.Helpers
+
+<div class="color-picker position-relative" @onclick:stopPropagation="true">
+    <div class="d-flex gap-2 align-items-center">
+        <button type="button"
+                class="color-picker-swatch border @(ColorHelper.IsColorless(Value) ? "color-picker-swatch-colorless" : "")"
+                style="@(ColorHelper.IsColorless(Value) ? "" : $"background-color: {ColorHelper.GetCssColor(Value)};")"
+                title="Farbe aus Palette auswählen"
+                @onclick="TogglePalette"></button>
+        <input type="text" class="form-control input-custom"
+               placeholder="@Placeholder"
+               value="@Value"
+               @oninput="e => OnInput(e.Value?.ToString())" />
+    </div>
+
+    @if (_open)
+    {
+        <div class="color-picker-popover bg-white border rounded shadow p-3">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <strong class="small">Farbe auswählen</strong>
+                <button type="button" class="btn-close" aria-label="Schließen"
+                        style="font-size:0.7rem;" @onclick="() => _open = false"></button>
+            </div>
+            <div class="color-picker-grid">
+                @foreach (var name in ColorHelper.PaletteColors)
+                {
+                    var colorless = ColorHelper.IsColorless(name);
+                    <button type="button"
+                            class="color-picker-chip border @(IsSelected(name) ? "color-picker-chip-selected" : "")"
+                            title="@name"
+                            @onclick="() => SelectColor(name)">
+                        <span class="color-picker-chip-fill @(colorless ? "color-picker-chip-fill-colorless" : "")"
+                              style="@(colorless ? "" : $"background-color: {ColorHelper.GetCssColor(name)};")"></span>
+                        <span class="color-picker-chip-label">@name</span>
+                    </button>
+                }
+            </div>
+            <div class="text-muted small mt-2">
+                Nicht dabei? Einfach in das Feld tippen — bei unbekannten Farben wird ein Hinweis angezeigt.
+            </div>
+        </div>
+    }
+
+    @if (UnknownColorWarning(Value) is { } warn)
+    {
+        <div class="text-warning small mt-1">
+            <i class="bi bi-exclamation-triangle me-1"></i>@warn
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public string? Value { get; set; }
+    [Parameter] public EventCallback<string?> ValueChanged { get; set; }
+    [Parameter] public string? Placeholder { get; set; }
+
+    private bool _open;
+
+    private async Task OnInput(string? value)
+    {
+        Value = value;
+        await ValueChanged.InvokeAsync(value);
+    }
+
+    private async Task SelectColor(string name)
+    {
+        Value = name;
+        _open = false;
+        await ValueChanged.InvokeAsync(name);
+    }
+
+    private void TogglePalette() => _open = !_open;
+
+    private bool IsSelected(string name) =>
+        !string.IsNullOrWhiteSpace(Value)
+        && string.Equals(Value.Trim(), name, StringComparison.OrdinalIgnoreCase);
+
+    private static string? UnknownColorWarning(string? color)
+    {
+        if (string.IsNullOrWhiteSpace(color)) return null;
+        if (ColorHelper.IsKnown(color)) return null;
+        return $"\"{color.Trim()}\" ist keine bekannte Farbe — Icon wird grau dargestellt.";
+    }
+}

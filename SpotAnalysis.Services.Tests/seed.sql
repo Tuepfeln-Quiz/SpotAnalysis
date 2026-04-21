@@ -6,15 +6,36 @@ INSERT INTO "Users" ("UserName", "UserID", "PasswordHash", "Roles") VALUES
     ('Schueler2', 'f01c1e4f-c5e0-4f77-a3b3-f59f8b837553', '$argon2id$v=19$m=4096,t=4,p=4$Tx4c8ODFd0+js/Wfi4N1Uw==$H8mXKG+MXA0AiR2yMVIGf114j+eetQZqjF5KC+H1hgY=', ARRAY[2])
 ON CONFLICT ("UserID") DO NOTHING;
 
+INSERT INTO "Methods" ("MethodID", "Name") VALUES
+    (1, 'ph-Papier'),
+    (2, 'Flammenfärbung')
+ON CONFLICT ("MethodID") DO NOTHING;
+
 INSERT INTO "Chemicals" ("ChemicalID", "Type", "Name", "Formula", "Color") VALUES
-    (1, 0,'Silber(I)nitrat', 'AGNo3', 'Orange'),
-    (2, 0, 'Kalium', 'K', 'Rainbow')
+    (1, 0, 'Silber(I)nitrat',   'AgNO3', 'farblos'),
+    (2, 0, 'Kalium',             'K',     'silbrig'),
+    (3, 0, 'Eisen(III)chlorid', 'FeCl3', 'orange'),
+    (4, 1, 'Salzsäure',          'HCl',   'keine')
 ON CONFLICT ("ChemicalID") DO NOTHING;
 
+INSERT INTO "MethodOutputs" ("ChemicalID", "MethodID", "Color") VALUES
+    (3, 1, 'rot'),
+    (3, 2, 'gelb')
+ON CONFLICT ("ChemicalID", "MethodID") DO NOTHING;
+
 INSERT INTO "Observations" ("ObservationID", "Description") VALUES
-    (1, 'Some Observation')
+    (1, 'Some Observation'),
+    (2, 'Weißer Niederschlag')
 ON CONFLICT ("ObservationID") DO NOTHING;
 
+-- Hinweis: Seeded-Reactions dürfen nicht (1,2), (1,3) oder (1,4) sein, weil MasterDataService-Tests
+-- diese Kombinationen frisch anlegen (CreateReactionAsync_NormalizesChemicalOrder, DeleteReactionAsync_*).
 INSERT INTO "Reactions" ("ReactionID", "Chemical1ID", "Chemical2ID", "RelevantProduct", "Formula", "ObservationID") VALUES
-    (1, 1, 2, 'Cucumber', 'It Reacts', 1)
+    (1, 2, 3, 'Eisen(II)chlorid', 'K + FeCl3 -> KCl + FeCl2', 1)
 ON CONFLICT ("ReactionID") DO NOTHING;
+
+-- Identity-Sequences auf Max(ID) setzen, damit spätere Inserts ohne explizite ID keine Kollisionen werfen.
+SELECT setval(pg_get_serial_sequence('"Methods"',     'MethodID'),      COALESCE((SELECT MAX("MethodID")      FROM "Methods"),      1));
+SELECT setval(pg_get_serial_sequence('"Chemicals"',   'ChemicalID'),    COALESCE((SELECT MAX("ChemicalID")    FROM "Chemicals"),    1));
+SELECT setval(pg_get_serial_sequence('"Observations"','ObservationID'), COALESCE((SELECT MAX("ObservationID") FROM "Observations"), 1));
+SELECT setval(pg_get_serial_sequence('"Reactions"',   'ReactionID'),    COALESCE((SELECT MAX("ReactionID")    FROM "Reactions"),    1));

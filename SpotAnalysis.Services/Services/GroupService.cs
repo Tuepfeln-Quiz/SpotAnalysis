@@ -42,7 +42,7 @@ public class GroupService : IGroupService
 
         var isAdmin = await IsAdmin(ctx, userId);
 
-        return teacher.SelectMany(u => u.Groups)
+        return await AccessibleGroups(ctx, userId, isAdmin)
             .Select(g => new GroupDto
             {
                 Id = g.GroupID,
@@ -57,7 +57,7 @@ public class GroupService : IGroupService
 
         var isAdmin = await IsAdmin(ctx, userId);
 
-        return teacher.SelectMany(u => u.Groups)
+        return await AccessibleGroups(ctx, userId, isAdmin)
             .SelectMany(g => g.Users)
             .Distinct()
             .Where(u => u.UserID != userId)
@@ -79,7 +79,7 @@ public class GroupService : IGroupService
 
         var isAdmin = await IsAdmin(ctx, userId);
 
-        return teacher.SelectMany(u => u.Groups)
+        return await AccessibleGroups(ctx, userId, isAdmin)
             .Where(g => g.GroupID == groupId)
             .SelectMany(g => g.Users)
             .Where(u => u.Roles.Any(r => r == Role.Student)
@@ -102,7 +102,7 @@ public class GroupService : IGroupService
 
         var isAdmin = await IsAdmin(ctx, userId);
 
-        return teacher.SelectMany(u => u.Groups)
+        return await AccessibleGroups(ctx, userId, isAdmin)
             .Where(g => g.GroupID == groupId)
             .SelectMany(g => g.Users)
             .Where(u => u.Roles.Any(r => r == Role.Teacher))

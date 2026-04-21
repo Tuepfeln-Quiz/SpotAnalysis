@@ -22,7 +22,7 @@ public class TestUserService : BaseDatabaseTest
     private const string StudentName3 = "Student 3";
     private const string StudentName4 = "Student 4";
 
-    private const string StudentPassword3 = "password";
+    private const string StudentPassword3 = "Password1!";
 
     #endregion
 
@@ -58,7 +58,7 @@ public class TestUserService : BaseDatabaseTest
             for (var i = 0; i < 100; i++)
             {
                 var uname = RandomString(12);
-                var password = RandomString(12);
+                var password = RandomString(8) + "Aa1!";
                 registeredUsers.Add((uname, password));
                 await _userService.Register(uname, password);
             }

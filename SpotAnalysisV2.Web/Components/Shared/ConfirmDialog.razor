@@ -13,10 +13,17 @@
         }
 
         <div class="mt-6 flex justify-end gap-3">
-            <button type="button" @onclick="OnCancel" class="rounded-2xl border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">@CancelText</button>
+            <AppButton Variant="AppButton.ButtonVariant.Secondary"
+                       OnClick="OnCancel"
+                       Class="font-medium">
+                @CancelText
+            </AppButton>
             @if (ShowConfirmButton)
             {
-                <button type="button" @onclick="OnConfirm" class="rounded-2xl bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700">@ConfirmText</button>
+                <AppButton Variant="AppButton.ButtonVariant.Danger"
+                           OnClick="OnConfirm">
+                    @ConfirmText
+                </AppButton>
             }
         </div>
     </div>

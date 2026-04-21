@@ -7,15 +7,6 @@
     display: none;
 }
 
-.sandbox-icon-nav-link {
-    display: flex;
-    align-items: center;
-}
-
-.sandbox-nav-link {
-    text-decoration: none;
-}
-
 .sandbox-dropzone-filled {
     border-color: #3b82f6;
     background-color: white;

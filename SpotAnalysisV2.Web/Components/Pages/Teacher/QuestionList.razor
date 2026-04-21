@@ -8,17 +8,15 @@
 
 <div class="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50 p-8">
     <div class="mx-auto max-w-6xl">
-        <div class="mb-6 flex items-center justify-between gap-4">
-            <div>
-                <p class="text-sm font-medium text-blue-600">Lehrerbereich</p>
-                <h1 class="text-3xl font-bold text-gray-800">Fragenpool</h1>
-                <p class="mt-2 text-sm text-gray-500">Erstelle und bearbeite SpotTest- und Light-Fragen mit echten Datenbankdaten.</p>
-            </div>
-            <div class="flex gap-3">
+        <TeacherPageHeader SectionTextClass="text-blue-600"
+                           Title="Fragenpool"
+                           Description="Erstelle und bearbeite SpotTest- und Light-Fragen mit echten Datenbankdaten."
+                           DescriptionClass="mt-2 text-sm text-gray-500">
+            <Actions>
                 <button type="button" @onclick='() => Navigation.NavigateTo("/teacher")' class="rounded-2xl border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50">Zurück</button>
                 <button type="button" @onclick="CreateQuestion" class="rounded-2xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-blue-200 hover:bg-blue-700">Neue Frage</button>
-            </div>
-        </div>
+            </Actions>
+        </TeacherPageHeader>
 
         <div class="mb-5 grid gap-3 rounded-3xl border border-gray-200 bg-white p-4 shadow-lg md:grid-cols-[1fr_auto_auto_auto]">
              <input type="text"
@@ -100,26 +98,13 @@
 
         @if (_questionToDelete is not null)
         {
-            <div class="fixed inset-0 z-40 flex items-center justify-center bg-black/30 p-4">
-                <div class="w-full max-w-lg rounded-3xl bg-white p-6 shadow-2xl">
-                    <h3 class="text-xl font-semibold text-gray-800">Frage löschen?</h3>
-                    @if (_questionToDelete.QuizCount > 0)
-                    {
-                        <p class="mt-3 text-sm text-red-600">Diese Frage wird in @_questionToDelete.QuizCount Quiz(zes) verwendet und kann nicht gelöscht werden.</p>
-                    }
-                    else
-                    {
-                        <p class="mt-3 text-sm text-gray-500">Möchtest du die Frage <strong>@_questionToDelete.Title</strong> wirklich löschen?</p>
-                    }
-                    <div class="mt-6 flex justify-end gap-3">
-                        <button type="button" @onclick="CancelDelete" class="rounded-2xl border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">Abbrechen</button>
-                        @if (_questionToDelete.QuizCount == 0)
-                        {
-                            <button type="button" @onclick="DeleteQuestion" class="rounded-2xl bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700">Löschen</button>
-                        }
-                    </div>
-                </div>
-            </div>
+            <ConfirmDialog Title="Frage löschen?"
+                           Message="@GetQuestionDeleteMessage(_questionToDelete)"
+                           WarningMessage="@GetQuestionDeleteWarning(_questionToDelete)"
+                           WarningTextClass="text-red-600"
+                           ShowConfirmButton="@CanDeleteQuestion(_questionToDelete)"
+                           OnCancel="CancelDelete"
+                           OnConfirm="DeleteQuestion" />
         }
 
         @if (_deleteError is not null)
@@ -191,4 +176,16 @@
         => type == QuestionType.SpotTest
             ? "bg-gradient-to-br from-purple-100 to-fuchsia-100"
             : "bg-gradient-to-br from-blue-100 to-cyan-100";
+
+    private static bool CanDeleteQuestion(QuestionOverviewDto question) => question.QuizCount == 0;
+
+    private static string GetQuestionDeleteMessage(QuestionOverviewDto question)
+        => CanDeleteQuestion(question)
+            ? $"Möchtest du die Frage {question.Title} wirklich löschen?"
+            : string.Empty;
+
+    private static string? GetQuestionDeleteWarning(QuestionOverviewDto question)
+        => !CanDeleteQuestion(question)
+            ? $"Diese Frage wird in {question.QuizCount} Quiz(zes) verwendet und kann nicht gelöscht werden."
+            : null;
 }

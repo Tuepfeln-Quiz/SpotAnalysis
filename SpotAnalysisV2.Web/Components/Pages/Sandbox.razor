@@ -8,7 +8,7 @@
     <!-- Header -->
     <header class="bg-white shadow-sm px-6 py-4 flex items-center justify-between">
         <!-- Left - Home Button -->
-        <NavLink href="/" class="sandbox-icon-nav-link p-2 hover:bg-gray-100 rounded-lg transition-colors">
+        <NavLink href="/" class="flex items-center p-2 hover:bg-gray-100 rounded-lg transition-colors">
             <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
                 <polyline points="9 22 9 12 15 12 15 22"></polyline>
@@ -16,11 +16,7 @@
         </NavLink>
 
         <!-- Center - Navigation Buttons -->
-        <div class="absolute left-1/2 -translate-x-1/2 flex gap-3 z-10">
-            <div class="bg-blue-500 text-white px-6 py-2 rounded-lg font-medium">Sandbox</div>
-            <NavLink href="/reverse" class="sandbox-nav-link bg-gray-100 text-gray-700 px-6 py-2 rounded-lg font-medium hover:bg-gray-200 transition-colors">Reverse</NavLink>
-            <NavLink href="/uebungen" class="sandbox-nav-link bg-gray-100 text-gray-700 px-6 py-2 rounded-lg font-medium hover:bg-gray-200 transition-colors">Übungen</NavLink>
-        </div>
+        <ExperimentTabs ActiveTab="sandbox" ActiveTabClass="bg-blue-500 text-white" />
 
         <!-- Right - Profile -->
         <ProfileMenu ContainerClass="ml-auto" />

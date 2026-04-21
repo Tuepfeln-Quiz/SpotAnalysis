@@ -1,0 +1,35 @@
+<div class="fixed inset-0 z-40 flex items-center justify-center bg-black/30 p-4">
+    <div class="w-full max-w-md rounded-3xl bg-white p-6 shadow-2xl">
+        <h3 class="text-xl font-semibold text-gray-800">@Title</h3>
+
+        @if (!string.IsNullOrWhiteSpace(Message))
+        {
+            <p class="mt-3 text-sm text-gray-500">@Message</p>
+        }
+
+        @if (!string.IsNullOrWhiteSpace(WarningMessage))
+        {
+            <p class="mt-2 text-sm @WarningTextClass">@WarningMessage</p>
+        }
+
+        <div class="mt-6 flex justify-end gap-3">
+            <button type="button" @onclick="OnCancel" class="rounded-2xl border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">@CancelText</button>
+            @if (ShowConfirmButton)
+            {
+                <button type="button" @onclick="OnConfirm" class="rounded-2xl bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700">@ConfirmText</button>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public string Title { get; set; } = string.Empty;
+    [Parameter] public string? Message { get; set; }
+    [Parameter] public string? WarningMessage { get; set; }
+    [Parameter] public string WarningTextClass { get; set; } = "text-amber-700";
+    [Parameter] public string CancelText { get; set; } = "Abbrechen";
+    [Parameter] public string ConfirmText { get; set; } = "Löschen";
+    [Parameter] public bool ShowConfirmButton { get; set; } = true;
+    [Parameter] public EventCallback OnCancel { get; set; }
+    [Parameter] public EventCallback OnConfirm { get; set; }
+}

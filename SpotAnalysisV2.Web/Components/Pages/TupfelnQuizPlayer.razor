@@ -7,17 +7,13 @@
 
 <div class="size-full flex flex-col bg-gray-50" @onpointermove="HandleGlobalPointerMove" @onpointerup="HandleGlobalPointerUp" @onpointercancel="HandleGlobalPointerUp">
     <header class="bg-white shadow-sm px-6 py-4 flex items-center justify-between">
-        <NavLink href="/uebungen" class="tupfeln-icon-nav-link p-2 hover:bg-gray-100 rounded-lg transition-colors" aria-label="Zurück">
+        <NavLink href="/uebungen" class="flex items-center p-2 hover:bg-gray-100 rounded-lg transition-colors" aria-label="Zurück">
             <svg class="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M15 19l-7-7 7-7" />
             </svg>
         </NavLink>
 
-        <div class="absolute left-1/2 -translate-x-1/2 flex gap-3 z-10">
-            <NavLink href="/sandbox" class="tupfeln-nav-link bg-gray-100 text-gray-700 px-6 py-2 rounded-lg font-medium hover:bg-gray-200 transition-colors">Sandbox</NavLink>
-            <NavLink href="/reverse" class="tupfeln-nav-link bg-gray-100 text-gray-700 px-6 py-2 rounded-lg font-medium hover:bg-gray-200 transition-colors">Reverse</NavLink>
-            <NavLink href="/uebungen" class="tupfeln-nav-link bg-gray-100 text-gray-700 px-6 py-2 rounded-lg font-medium hover:bg-gray-200 transition-colors">Übungen</NavLink>
-        </div>
+        <ExperimentTabs />
 
         @if (IsInUebungContext)
         {
@@ -50,7 +46,7 @@
                 </div>
                 <div class="flex gap-3 justify-center">
                     <button @onclick="ResetAll" class="bg-gray-200 text-gray-700 px-6 py-3 rounded-lg font-medium hover:bg-gray-300">Nochmal versuchen</button>
-                    <NavLink href="/uebungen" class="tupfeln-nav-link bg-teal-500 text-white px-6 py-3 rounded-lg font-medium hover:bg-teal-600 text-center">Zurück</NavLink>
+                    <NavLink href="/uebungen" class="bg-teal-500 text-white px-6 py-3 rounded-lg font-medium hover:bg-teal-600 text-center">Zurück</NavLink>
                 </div>
             </div>
         </div>

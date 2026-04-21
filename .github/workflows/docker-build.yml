@@ -134,17 +134,3 @@ jobs:
       - name: Inspect image
         run: |
           docker buildx imagetools inspect ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.version }}
-
-  cleanup:
-    runs-on: ubuntu-latest
-    needs: merge
-    permissions:
-      packages: write
-    steps:
-      - name: Delete old untagged images
-        uses: actions/delete-package-versions@v5
-        with:
-          package-name: spotanalysis.web
-          package-type: container
-          min-versions-to-keep: 3
-          delete-only-untagged-versions: true

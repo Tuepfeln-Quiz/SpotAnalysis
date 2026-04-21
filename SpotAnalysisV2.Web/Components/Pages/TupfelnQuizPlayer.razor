@@ -7,16 +7,16 @@
 
 <div class="size-full flex flex-col bg-gray-50" @onpointermove="HandleGlobalPointerMove" @onpointerup="HandleGlobalPointerUp" @onpointercancel="HandleGlobalPointerUp">
     <header class="bg-white shadow-sm px-6 py-4 flex items-center justify-between">
-        <NavLink href="/uebungen" class="p-2 hover:bg-gray-100 rounded-lg transition-colors" style="display:flex;align-items:center;" aria-label="Zurück">
+        <NavLink href="/uebungen" class="tupfeln-icon-nav-link p-2 hover:bg-gray-100 rounded-lg transition-colors" aria-label="Zurück">
             <svg class="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M15 19l-7-7 7-7" />
             </svg>
         </NavLink>
 
         <div class="absolute left-1/2 -translate-x-1/2 flex gap-3 z-10">
-            <NavLink href="/sandbox" class="bg-gray-100 text-gray-700 px-6 py-2 rounded-lg font-medium hover:bg-gray-200 transition-colors" style="text-decoration:none;">Sandbox</NavLink>
-            <NavLink href="/reverse" class="bg-gray-100 text-gray-700 px-6 py-2 rounded-lg font-medium hover:bg-gray-200 transition-colors" style="text-decoration:none;">Reverse</NavLink>
-            <NavLink href="/uebungen" class="bg-gray-100 text-gray-700 px-6 py-2 rounded-lg font-medium hover:bg-gray-200 transition-colors" style="text-decoration:none;">Übungen</NavLink>
+            <NavLink href="/sandbox" class="tupfeln-nav-link bg-gray-100 text-gray-700 px-6 py-2 rounded-lg font-medium hover:bg-gray-200 transition-colors">Sandbox</NavLink>
+            <NavLink href="/reverse" class="tupfeln-nav-link bg-gray-100 text-gray-700 px-6 py-2 rounded-lg font-medium hover:bg-gray-200 transition-colors">Reverse</NavLink>
+            <NavLink href="/uebungen" class="tupfeln-nav-link bg-gray-100 text-gray-700 px-6 py-2 rounded-lg font-medium hover:bg-gray-200 transition-colors">Übungen</NavLink>
         </div>
 
         @if (IsInUebungContext)
@@ -50,7 +50,7 @@
                 </div>
                 <div class="flex gap-3 justify-center">
                     <button @onclick="ResetAll" class="bg-gray-200 text-gray-700 px-6 py-3 rounded-lg font-medium hover:bg-gray-300">Nochmal versuchen</button>
-                    <NavLink href="/uebungen" class="bg-teal-500 text-white px-6 py-3 rounded-lg font-medium hover:bg-teal-600 text-center" style="text-decoration:none;">Zurück</NavLink>
+                    <NavLink href="/uebungen" class="tupfeln-nav-link bg-teal-500 text-white px-6 py-3 rounded-lg font-medium hover:bg-teal-600 text-center">Zurück</NavLink>
                 </div>
             </div>
         </div>
@@ -62,7 +62,7 @@
                 <h1 class="text-xl mb-1">TÜPFELN — @_quizName</h1>
                 <p class="text-teal-100 text-sm">@quiz.Beschreibung · Frage @(CurrentIndexSafe + 1) von @totalQuestions</p>
 
-                <div class="fixed z-30 select-none" style="right:24px; top:98px; transform: translate(@($"{toolboxOffsetX}px"), @($"{toolboxOffsetY}px"));">
+                <div class="fixed z-30 select-none tupfeln-toolbox" style="transform: translate(@($"{toolboxOffsetX}px"), @($"{toolboxOffsetY}px"));">
                     <div class="relative w-36 h-36">
                         @for (var i = 0; i < activeToolDefs.Count; i++)
                         {
@@ -94,7 +94,7 @@
                 </div>
             </div>
 
-            <div class="grid gap-4 mb-6" style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));">
+            <div class="grid gap-4 mb-6 tupfeln-cards-grid">
                 @for (var i = 0; i < quiz.Unbekannte.Count; i++)
                 {
                     var sub = quiz.Unbekannte[i];

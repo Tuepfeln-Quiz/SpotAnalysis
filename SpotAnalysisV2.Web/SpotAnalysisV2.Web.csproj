@@ -17,4 +17,9 @@
     <ProjectReference Include="..\SpotAnalysis.Services\SpotAnalysis.Services.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Models\" />
+    <Folder Include="Services\" />
+  </ItemGroup>
+
 </Project>

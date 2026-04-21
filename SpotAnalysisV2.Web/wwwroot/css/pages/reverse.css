@@ -1,0 +1,21 @@
+.hide-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+
+.reverse-icon-nav-link {
+    display: flex;
+    align-items: center;
+}
+
+.reverse-nav-link {
+    text-decoration: none;
+}
+
+.reverse-image-tile-has-image {
+    background-color: #fafafa;
+}

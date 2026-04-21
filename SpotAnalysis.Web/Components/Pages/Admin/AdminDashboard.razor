@@ -1,0 +1,40 @@
+@page "/admin"
+@rendermode InteractiveServer
+
+@attribute [Authorize(Roles = "Admin")]
+
+<AuthorizeView Roles="Admin">
+    <NotAuthorized>
+        <PageTitle>Zugriff verweigert</PageTitle>
+
+        <div class="container py-4 flex-grow-1">
+            <div class="alert alert-danger text-center" role="alert">
+                <i class="bi bi-x-circle me-2"></i>
+                Sie haben keinen Zugriff auf diesen Bereich.
+            </div>
+        </div>
+    </NotAuthorized>
+    <Authorized>
+        <PageTitle>Adminbereich – Tüpfeln Digital</PageTitle>
+
+        <div class="container py-4 flex-grow-1">
+            <div class="row g-4 justify-content-center">
+                <div class="col-sm-6 col-lg-4">
+                    <div class="card card-interactive h-100" @onclick='() => Navigation.NavigateTo("/admin/overview")'>
+                        <div class="card-body text-center p-4">
+                            <div class="card-icon mb-3" style="background-color: #ede9fe;">
+                                <i class="bi bi-people-fill" style="color: #6b21a8; font-size: 2rem;"></i>
+                            </div>
+                            <h5 class="card-title fw-bold">Nutzerverwaltung</h5>
+                            <p class="card-text text-muted">Nutzer und Rollen verwalten</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </Authorized>
+</AuthorizeView>
+
+@code {
+    [Inject] private NavigationManager Navigation { get; set; } = default!;
+}

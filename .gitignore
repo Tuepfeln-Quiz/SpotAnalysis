@@ -63,3 +63,6 @@ nunit-*.xml
 
 *.sln.DotSettings.user
 /SpotAnalysis.Data/**/Migrations
+
+.env
+/logs/

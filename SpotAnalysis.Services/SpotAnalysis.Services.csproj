@@ -10,14 +10,19 @@
       <PackageReference Include="BouncyCastle.Cryptography" Version="2.6.2" />
       <PackageReference Include="Microsoft.AspNetCore.DataProtection.Abstractions" Version="10.0.6" />
       <PackageReference Include="Microsoft.AspNetCore.DataProtection.Extensions" Version="10.0.6" />
-        <ProjectReference Include="..\SpotAnalysis.Data\SpotAnalysis.Data.csproj" />
       <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.5" />
       <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="10.0.5" />
+      <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.1" />
     </ItemGroup>
 
     <ItemGroup>
       <ProjectReference Include="..\SpotAnalysis.Data\SpotAnalysis.Data.csproj" />
       <ProjectReference Include="..\ExcelImportExport\ExcelImportExport.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <EmbeddedResource Include="Scripts\SeedQuizData.sql" />
+      <EmbeddedResource Include="SeedData\Stammdaten.xlsx" />
     </ItemGroup>
 
 </Project>

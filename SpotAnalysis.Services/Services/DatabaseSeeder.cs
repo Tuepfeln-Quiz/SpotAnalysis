@@ -1,3 +1,4 @@
+using ExcelImportExport.Helper;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using SpotAnalysis.Data;
@@ -8,7 +9,8 @@ namespace SpotAnalysis.Services.Services;
 
 public class DatabaseSeeder(
     ILogger<DatabaseSeeder> logger,
-    IDbContextFactory<AnalysisContext> factory) : IDatabaseSeeder
+    IDbContextFactory<AnalysisContext> factory,
+    IXlsImportExportService xlsImportExportService) : IDatabaseSeeder
 {
     private const string DevPassword = "!Password1";
 
@@ -73,10 +75,67 @@ public class DatabaseSeeder(
         {
             UserID = newGuid,
             UserName = "Admin",
-            PasswordHash = new PasswordProvider.Password("admin", newGuid).ParamString(),
+            PasswordHash = new PasswordProvider.Password("admin123", newGuid).ParamString(),
         };
         adminUser.Roles.Add(Role.Admin);
         context.Users.Add(adminUser);
         await context.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task SeedMasterDataAsync(CancellationToken cancellationToken = default)
+    {
+        await using var context = await factory.CreateDbContextAsync(cancellationToken);
+
+        if (await context.Chemicals.AnyAsync(cancellationToken))
+        {
+            logger.LogInformation("Stammdaten-Seed übersprungen: Chemicals bereits vorhanden.");
+            return;
+        }
+
+        await using var stream = GetEmbeddedResource("SpotAnalysis.Services.SeedData.Stammdaten.xlsx");
+        await xlsImportExportService.ImportFromStreamAsync(stream, ExcelFormat.Xlsx);
+
+        logger.LogInformation(
+            "Stammdaten-Seed eingespielt: {Chemicals} Chemicals, {Reactions} Reactions, {Methods} Methods, {Observations} Observations.",
+            await context.Chemicals.CountAsync(cancellationToken),
+            await context.Reactions.CountAsync(cancellationToken),
+            await context.Methods.CountAsync(cancellationToken),
+            await context.Observations.CountAsync(cancellationToken));
+    }
+
+    public async Task SeedQuizDataAsync(CancellationToken cancellationToken = default)
+    {
+        await using var context = await factory.CreateDbContextAsync(cancellationToken);
+
+        // Precondition: Stammdaten (Reactions, Chemicals, Methods) müssen existieren.
+        // Ohne sie würden die FK-Referenzen im Skript scheitern.
+        var hasReactions  = await context.Reactions.AnyAsync(cancellationToken);
+        var hasChemicals  = await context.Chemicals.AnyAsync(cancellationToken);
+        var hasMethods    = await context.Methods.AnyAsync(cancellationToken);
+        if (!hasReactions || !hasChemicals || !hasMethods)
+        {
+            logger.LogWarning(
+                "Quiz-Seed übersprungen: Stammdaten fehlen (Reactions={HasReactions}, Chemicals={HasChemicals}, Methods={HasMethods}).",
+                hasReactions, hasChemicals, hasMethods);
+            return;
+        }
+
+        var script = await ReadEmbeddedTextAsync("SpotAnalysis.Services.Scripts.SeedQuizData.sql", cancellationToken);
+        await context.Database.ExecuteSqlRawAsync(script, cancellationToken);
+        logger.LogInformation("Quiz-Seed erfolgreich eingespielt.");
+    }
+
+    private static Stream GetEmbeddedResource(string resourceName)
+    {
+        var assembly = typeof(DatabaseSeeder).Assembly;
+        return assembly.GetManifestResourceStream(resourceName)
+            ?? throw new InvalidOperationException($"Embedded resource '{resourceName}' not found.");
+    }
+
+    private static async Task<string> ReadEmbeddedTextAsync(string resourceName, CancellationToken cancellationToken)
+    {
+        await using var stream = GetEmbeddedResource(resourceName);
+        using var reader = new StreamReader(stream);
+        return await reader.ReadToEndAsync(cancellationToken);
     }
 }

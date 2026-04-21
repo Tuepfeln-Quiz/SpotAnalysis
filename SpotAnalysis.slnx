@@ -1,4 +1,9 @@
 <Solution>
+  <Folder Name="/Solution Items/">
+    <File Path="compose.yaml" />
+    <File Path=".env" />
+    <File Path=".gitignore" />
+  </Folder>
   <Project Path="ExcelImportExport.Tests/ExcelImportExport.Tests.csproj" />
   <Project Path="ExcelImportExport/ExcelImportExport.csproj" />
   <Project Path="SpotAnalysis.Data/SpotAnalysis.Data.csproj" Id="b7bc0d4d-0a9f-4820-9fb5-f3552de99e2a" />

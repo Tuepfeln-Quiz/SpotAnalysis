@@ -25,9 +25,9 @@ public class TestAdminService : BaseDatabaseTest
     {
         await CleanUpDb();
 
-        await _userService.Register("RandomUser", "RandomPassword");
+        await _userService.Register("RandomUser", "RandomPassword12!");
 
-        var user = await _userService.Login("RandomUser", "RandomPassword");
+        var user = await _userService.Login("RandomUser", "RandomPassword12!");
 
         Assert.That(user, Is.Not.Null);
         Assert.That(user.Roles, Has.Count.EqualTo(1));
@@ -35,7 +35,7 @@ public class TestAdminService : BaseDatabaseTest
 
         await _adminService.AddRoleToUser(user.UserID, Role.Teacher);
 
-        user = await _userService.Login("RandomUser", "RandomPassword");
+        user = await _userService.Login("RandomUser", "RandomPassword12!");
 
         Assert.That(user, Is.Not.Null);
         Assert.That(user.Roles, Has.Count.EqualTo(2));
@@ -44,7 +44,7 @@ public class TestAdminService : BaseDatabaseTest
 
         await _adminService.RemoveRoleFromUser(user.UserID, Role.Teacher);
 
-        user = await _userService.Login("RandomUser", "RandomPassword");
+        user = await _userService.Login("RandomUser", "RandomPassword12!");
         Assert.That(user, Is.Not.Null);
         Assert.That(user.Roles, Has.Count.EqualTo(1));
         Assert.That(user.Roles, Contains.Item(Role.Student));
@@ -55,15 +55,15 @@ public class TestAdminService : BaseDatabaseTest
     {
         await CleanUpDb();
 
-        await _userService.Register("RandomUser", "RandomPassword");
+        await _userService.Register("RandomUser", "RandomPassword12!");
 
-        var user = await _userService.Login("RandomUser", "RandomPassword");
+        var user = await _userService.Login("RandomUser", "RandomPassword12!");
 
         Assert.That(user, Is.Not.Null);
 
         await _adminService.DeleteUser(user.UserID);
         Assert.ThrowsAsync<ArgumentException>(async () =>
-            await _userService.Login("RandomUser", "RandomPassword"));
+            await _userService.Login("RandomUser", "RandomPassword12!"));
     }
 
     [Test]
@@ -71,8 +71,8 @@ public class TestAdminService : BaseDatabaseTest
     {
         await CleanUpDb();
 
-        await _userService.Register("RandomUser", "RandomPassword");
-        var user = await _userService.Login("RandomUser", "RandomPassword");
+        await _userService.Register("RandomUser", "RandomPassword12!");
+        var user = await _userService.Login("RandomUser", "RandomPassword12!");
         Assert.That(user, Is.Not.Null);
 
         var students = await _adminService.GetUsersByRole(Role.Student);
@@ -80,7 +80,7 @@ public class TestAdminService : BaseDatabaseTest
         Assert.That(students.All(x => x.Roles.Contains(Role.Student.ToString())), Is.True);
 
         await _adminService.AddRoleToUser(user.UserID, Role.Admin);
-        user = await _userService.Login("RandomUser", "RandomPassword");
+        user = await _userService.Login("RandomUser", "RandomPassword12!");
         Assert.That(user, Is.Not.Null);
         Assert.That(user.Roles, Contains.Item(Role.Admin));
         var admins = await _adminService.GetUsersByRole(Role.Admin);
@@ -88,7 +88,7 @@ public class TestAdminService : BaseDatabaseTest
         Assert.That(admins.All(x => x.Roles.Contains(Role.Admin.ToString())), Is.True);
 
         await _adminService.AddRoleToUser(user.UserID, Role.Teacher);
-        user = await _userService.Login("RandomUser", "RandomPassword");
+        user = await _userService.Login("RandomUser", "RandomPassword12!");
         Assert.That(user, Is.Not.Null);
         Assert.That(user.Roles, Contains.Item(Role.Teacher));
         var teachers = await _adminService.GetUsersByRole(Role.Teacher);

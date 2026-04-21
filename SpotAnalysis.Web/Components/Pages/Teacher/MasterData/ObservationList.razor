@@ -1,0 +1,121 @@
+@inject IMasterDataService MasterData
+
+<div class="d-flex gap-2 mb-3 align-items-center flex-wrap">
+    <input type="text" class="form-control input-custom flex-grow-1"
+           placeholder="Suchen (ID oder Beschreibung)..."
+           @bind="_search" @bind:event="oninput" />
+    <button class="btn btn-primary-purple ms-auto" @onclick="NewObservation">
+        <i class="bi bi-plus-lg me-1"></i> Neue Beobachtung
+    </button>
+</div>
+
+@if (_items is null)
+{
+    <p class="text-muted">Laden...</p>
+}
+else if (!FilteredItems.Any())
+{
+    <p class="text-muted text-center py-5">Keine Beobachtungen gefunden.</p>
+}
+else
+{
+    <div class="d-flex flex-column gap-2">
+        @foreach (var o in FilteredItems)
+        {
+            <div class="list-row">
+                <div class="flex-grow-1">
+                    <div class="fw-semibold">
+                        <span class="text-muted small me-2">#@o.Id</span>
+                        @o.Description
+                    </div>
+                    <small class="text-muted">@o.References.Total Reaktion(en) nutzen diese Beobachtung</small>
+                </div>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-sm btn-edit" @onclick="() => Edit(o)">Bearbeiten</button>
+                    <span class="d-inline-block" tabindex="0" title="@DeleteTooltip(o.References)">
+                        <button class="btn btn-sm btn-delete"
+                                disabled="@(o.References.Total > 0)"
+                                style="@(o.References.Total > 0 ? "pointer-events: none;" : null)"
+                                @onclick="() => ConfirmDelete(o)">Löschen</button>
+                    </span>
+                </div>
+            </div>
+        }
+    </div>
+}
+
+<ReferenceWarning IsVisible="@(_toDelete is not null)"
+                  Title="Beobachtung löschen?"
+                  ConfirmQuestion="@($"Möchtest du \"{_toDelete?.Description}\" wirklich löschen?")"
+                  Report="_toDelete?.References"
+                  OnConfirm="DeleteConfirmed"
+                  OnCancel="() => _toDelete = null" />
+
+@if (_editing is not null)
+{
+    <ObservationEditor Dto="_editing" OnSaved="OnEditorSaved" OnCancel="() => _editing = null" />
+}
+
+@if (!string.IsNullOrEmpty(_error))
+{
+    <div class="alert alert-danger mt-3">@_error</div>
+}
+
+@code {
+    private List<ObservationDetailDto>? _items;
+    private string _search = "";
+    private ObservationDetailDto? _editing;
+    private ObservationDetailDto? _toDelete;
+    private string? _error;
+
+    protected override async Task OnInitializedAsync() => await ReloadAsync();
+
+    private async Task ReloadAsync()
+    {
+        _items = await MasterData.GetObservationsAsync();
+        StateHasChanged();
+    }
+
+    private IEnumerable<ObservationDetailDto> FilteredItems =>
+        _items?.Where(o =>
+            string.IsNullOrEmpty(_search) ||
+            o.Id.ToString().Contains(_search) ||
+            o.Description.Contains(_search, StringComparison.OrdinalIgnoreCase)
+        ) ?? [];
+
+    private void NewObservation() => _editing = new ObservationDetailDto();
+
+    private void Edit(ObservationDetailDto o) =>
+        _editing = new ObservationDetailDto { Id = o.Id, Description = o.Description, References = o.References };
+
+    private void ConfirmDelete(ObservationDetailDto o) => _toDelete = o;
+
+    private async Task DeleteConfirmed()
+    {
+        if (_toDelete is null) return;
+        try
+        {
+            await MasterData.DeleteObservationAsync(_toDelete.Id);
+            _toDelete = null;
+            await ReloadAsync();
+        }
+        catch (InvalidOperationException ex)
+        {
+            _error = ex.Message;
+            _toDelete = null;
+        }
+    }
+
+    private async Task OnEditorSaved()
+    {
+        _editing = null;
+        await ReloadAsync();
+    }
+
+    private static string? DeleteTooltip(ReferenceReport r)
+    {
+        if (r.Total == 0) return null;
+        var lines = r.Items.Select(i => $"• {i.Description}");
+        return "Löschen nicht möglich – wird verwendet in:\n" + string.Join("\n", lines);
+    }
+}

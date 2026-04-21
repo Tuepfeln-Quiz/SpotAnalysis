@@ -6,72 +6,47 @@
 
 @attribute [AllowAnonymous]
 
-<div class="row justify-content-center min-vh-100 align-items-center p-4">
-    <div class="col-lg-4 col-md-6 col-sm-10 pt-4 pb-4 border border-secondary rounded">
-        <form action="/api/auth/register" method="post">
-            <AntiforgeryToken />
-            <input type="hidden" name="returnUrl" value="@ReturnUrl" />
+<div class="login-page">
+    <div class="login-card">
+        <div class="login-body">
+            <h1 class="login-title">Registrieren</h1>
 
-            <div class="mb-3 text-center flex-column">
-                <h3>Register</h3>
-            </div>
+            <form action="/api/auth/register" method="post" class="login-form">
+                <AntiforgeryToken />
+                <input type="hidden" name="returnUrl" value="@ReturnUrl" />
 
-            <div class="mb-4">
-                <UsernameGenerator @bind-Value="_userName" InputName="userName" />
-                <label class="username-label text-gray"><b>* generate username</b></label>
-            </div>
-
-            <div class="mb-3">
-                <input type="password" name="password" @bind="_password" placeholder="Password" class="form-control" required />
-            </div>
-
-            <div class="mb-3">
-                <input type="password" name="confirmPassword" @bind="_confirmPassword" placeholder="Confirm Password" class="form-control" required />
-            </div>
-
-            @if (!string.IsNullOrEmpty(DisplayErrorMessage)) {
-                <div class="mb-3 text-center">
-                    <span class="text-danger">@DisplayErrorMessage</span>
+                <div class="login-field">
+                    <UsernameGenerator @bind-Value="_userName" InputName="userName" />
+                    <label class="username-label text-gray"><b>* Benutzername generieren</b></label>
                 </div>
-            }
 
-            <div class="d-grid gap-2">
-                <button type="submit" class="btn btn-primary">Register</button>
+                <div class="login-field">
+                    <input type="password" name="password" @bind="_password" class="form-control input-custom" placeholder="Passwort" required />
+                </div>
+
+                <div class="login-field">
+                    <input type="password" name="confirmPassword" @bind="_confirmPassword" class="form-control input-custom" placeholder="Passwort bestätigen" required />
+                </div>
+
+                @if (!string.IsNullOrEmpty(DisplayErrorMessage)) {
+                    <div class="login-error">
+                        <span>@DisplayErrorMessage</span>
+                    </div>
+                }
+
+                <div class="login-actions">
+                    <button type="submit" class="btn btn-primary-purple btn-lg login-submit">Registrieren</button>
+                </div>
+            </form>
+
+            <div class="login-footer-link">
+                <span>Bereits ein Konto?</span>
+                <a href="/login@(string.IsNullOrEmpty(ReturnUrl) ? "" : $"?returnUrl={Uri.EscapeDataString(ReturnUrl)}")">Zum Login</a>
             </div>
-        </form>
-        <div class="mt-3 text-center">
-            <p>Already have an account? <a href="/login@(string.IsNullOrEmpty(ReturnUrl) ? "" : $"?returnUrl={Uri.EscapeDataString(ReturnUrl)}")">Login here</a></p>
         </div>
     </div>
+    <div class="login-copy">© @DateTime.Now.Year – SpotAnalysis</div>
 </div>
-
-<style>
-    .form-control {
-    text-align: center;
-}
-
-.form-control::placeholder {
-    text-align: center;
-}
-
-/* Browser-Kompatibilität */
-.form-control::-webkit-input-placeholder {
-    text-align: center;
-}
-.form-control:-moz-placeholder {
-    text-align: center;
-}
-.form-control:-ms-input-placeholder {
-    text-align: center;
-}
-
-.username-label {
-    display: flex;
-    justify-content: flex-start;
-    margin-top: 0.25rem;
-    font-size: 0.875rem;
-}
-</style>
 
 @code {
     [SupplyParameterFromQuery(Name = "error")]

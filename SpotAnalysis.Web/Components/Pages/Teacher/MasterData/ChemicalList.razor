@@ -1,0 +1,148 @@
+@inject IMasterDataService MasterData
+
+<div class="d-flex gap-2 mb-3 align-items-center flex-wrap">
+    <input type="text" class="form-control input-custom flex-grow-1"
+           placeholder="Suchen (ID, Name, Formel)..."
+           @bind="_search" @bind:event="oninput" />
+    <button class="btn btn-pill @(_typeFilter is null ? "active" : "")"
+            @onclick="() => _typeFilter = null">Alle</button>
+    <button class="btn btn-pill @(_typeFilter == ChemicalType.Educt ? "active" : "")"
+            @onclick="() => _typeFilter = ChemicalType.Educt">Edukte</button>
+    <button class="btn btn-pill @(_typeFilter == ChemicalType.Additive ? "active" : "")"
+            @onclick="() => _typeFilter = ChemicalType.Additive">Zusatzstoffe</button>
+    <button class="btn btn-primary-purple ms-auto" @onclick="NewChemical">
+        <i class="bi bi-plus-lg me-1"></i> Neue Chemikalie
+    </button>
+</div>
+
+@if (_items is null)
+{
+    <p class="text-muted">Laden...</p>
+}
+else if (!FilteredItems.Any())
+{
+    <p class="text-muted text-center py-5">Keine Chemikalien gefunden.</p>
+}
+else
+{
+    <div class="d-flex flex-column gap-2">
+        @foreach (var c in FilteredItems)
+        {
+            <div class="list-row">
+                <div class="flex-grow-1">
+                    <div>
+                        <div class="d-flex align-items-center gap-2 mb-1">
+                            <span class="badge-type @(c.Type == ChemicalType.Educt ? "badge-st" : "badge-stl")">
+                                @(c.Type == ChemicalType.Educt ? "Edukt" : "Zusatzstoff")
+                            </span>
+                        </div>
+                        <div class="fw-semibold">
+                            <span class="text-muted small me-2">#@c.Id</span>
+                            @c.Name
+                        </div>
+                        <div class="text-muted small"><ChemFormula Value="@c.Formula" /></div>
+                    </div>
+                </div>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-sm btn-edit" @onclick="() => EditChemical(c)">Bearbeiten</button>
+                    <span class="d-inline-block" tabindex="0" title="@DeleteTooltip(c.References)">
+                        <button class="btn btn-sm btn-delete"
+                                disabled="@(c.References.Total > 0)"
+                                style="@(c.References.Total > 0 ? "pointer-events: none;" : null)"
+                                @onclick="() => ConfirmDelete(c)">Löschen</button>
+                    </span>
+                </div>
+            </div>
+        }
+    </div>
+}
+
+<ReferenceWarning IsVisible="@(_toDelete is not null)"
+                  Title="Chemikalie löschen?"
+                  ConfirmQuestion="@($"Möchtest du \"{_toDelete?.Name}\" wirklich löschen?")"
+                  Report="_toDelete?.References"
+                  OnConfirm="DeleteConfirmed"
+                  OnCancel="() => _toDelete = null" />
+
+@if (_editing is not null)
+{
+    <ChemicalEditor Dto="_editing"
+                    OnSaved="OnEditorSaved"
+                    OnCancel="() => _editing = null" />
+}
+
+@if (!string.IsNullOrEmpty(_error))
+{
+    <div class="alert alert-danger mt-3">@_error</div>
+}
+
+@code {
+    private List<ChemicalDetailDto>? _items;
+    private string _search = "";
+    private ChemicalType? _typeFilter;
+    private ChemicalDetailDto? _editing;
+    private ChemicalDetailDto? _toDelete;
+    private string? _error;
+
+    protected override async Task OnInitializedAsync() => await ReloadAsync();
+
+    private async Task ReloadAsync()
+    {
+        _items = await MasterData.GetChemicalsAsync();
+        StateHasChanged();
+    }
+
+    private IEnumerable<ChemicalDetailDto> FilteredItems =>
+        _items?.Where(c =>
+            (_typeFilter is null || c.Type == _typeFilter) &&
+            (string.IsNullOrEmpty(_search) ||
+             c.Id.ToString().Contains(_search) ||
+             c.Name.Contains(_search, StringComparison.OrdinalIgnoreCase) ||
+             c.Formula.Contains(_search, StringComparison.OrdinalIgnoreCase))
+        ) ?? [];
+
+    private void NewChemical() => _editing = new ChemicalDetailDto { Type = ChemicalType.Educt };
+
+    private void EditChemical(ChemicalDetailDto c) => _editing = Clone(c);
+
+    private void ConfirmDelete(ChemicalDetailDto c) => _toDelete = c;
+
+    private async Task DeleteConfirmed()
+    {
+        if (_toDelete is null) return;
+        try
+        {
+            await MasterData.DeleteChemicalAsync(_toDelete.Id);
+            _toDelete = null;
+            await ReloadAsync();
+        }
+        catch (InvalidOperationException ex)
+        {
+            _error = ex.Message;
+            _toDelete = null;
+        }
+    }
+
+    private async Task OnEditorSaved()
+    {
+        _editing = null;
+        await ReloadAsync();
+    }
+
+    private static ChemicalDetailDto Clone(ChemicalDetailDto src) => new()
+    {
+        Id = src.Id, Name = src.Name, Formula = src.Formula, Color = src.Color,
+        Type = src.Type, ImagePath = src.ImagePath,
+        MethodOutputs = src.MethodOutputs
+            .Select(m => new MethodOutputEntry { MethodId = m.MethodId, MethodName = m.MethodName, Color = m.Color })
+            .ToList(),
+        References = src.References
+    };
+
+    private static string? DeleteTooltip(ReferenceReport r)
+    {
+        if (r.Total == 0) return null;
+        var lines = r.Items.Select(i => $"• {i.Description}");
+        return "Löschen nicht möglich – wird verwendet in:\n" + string.Join("\n", lines);
+    }
+}

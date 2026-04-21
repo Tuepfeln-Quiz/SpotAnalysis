@@ -1,11 +1,12 @@
 using ExcelImportExport.Helper;
+using SpotAnalysis.Services.DTOs;
 
 namespace SpotAnalysis.Services.Services;
 
 public interface IXlsImportExportService
 {
-    Task ImportFromFileAsync(string filePath);
-    Task ImportFromStreamAsync(Stream stream, ExcelFormat format);
+    Task<ImportResult> ImportFromFileAsync(string filePath);
+    Task<ImportResult> ImportFromStreamAsync(Stream stream, ExcelFormat format);
     Task ExportToFileAsync(string filePath);
     Task ExportToStreamAsync(Stream stream, ExcelFormat format);
 }

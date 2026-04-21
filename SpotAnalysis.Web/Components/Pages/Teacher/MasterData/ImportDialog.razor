@@ -1,0 +1,108 @@
+@using ExcelImportExport.Helper
+
+@inject IXlsImportExportService XlsService
+
+<div class="modal-backdrop show"></div>
+<div class="modal d-block" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius: var(--card-radius);">
+            <div class="modal-header border-0">
+                <h5 class="modal-title fw-bold">Excel-Import</h5>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-warning small">
+                    Der Import ergänzt neue Einträge und überschreibt bestehende anhand des Namens.
+                    <strong>Es wird nichts gelöscht.</strong> Bilder werden nicht importiert.
+                </div>
+
+                <InputFile OnChange="OnFileSelected" accept=".xlsx,.xls" />
+                @if (_file is not null)
+                {
+                    <div class="small text-muted mt-1">
+                        @_file.Name — @(Math.Round(_file.Size / 1024.0, 1)) KB
+                    </div>
+                }
+
+                @if (!string.IsNullOrEmpty(_error))
+                {
+                    <div class="alert alert-danger mt-3">@_error</div>
+                }
+                @if (_result is not null)
+                {
+                    <div class="alert alert-success mt-3 mb-0">
+                        <div class="fw-semibold mb-2">
+                            <i class="bi bi-check-circle me-1"></i>Import erfolgreich
+                        </div>
+                        <ul class="small mb-0 ps-3">
+                            <li>Chemikalien: @_result.ChemicalsAdded neu, @_result.ChemicalsUpdated überschrieben, @_result.ChemicalsSkipped übersprungen</li>
+                            <li>Reaktionen: @_result.ReactionsAdded neu, @_result.ReactionsUpdated überschrieben, @_result.ReactionsSkipped übersprungen</li>
+                            <li>Beobachtungen: @_result.ObservationsAdded neu, @_result.ObservationsSkipped übersprungen</li>
+                        </ul>
+                    </div>
+                }
+
+                <div class="d-flex justify-content-end gap-2 mt-4">
+                    <button class="btn btn-secondary" @onclick="OnCancel">Schließen</button>
+                    <button class="btn btn-primary-purple"
+                            disabled="@(_file is null || _importing)"
+                            @onclick="ImportAsync">
+                        @(_importing ? "Importiere..." : "Importieren")
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public EventCallback OnCancel { get; set; }
+    [Parameter] public EventCallback OnImported { get; set; }
+
+    private const long MaxImportBytes = 10 * 1024 * 1024;
+    private IBrowserFile? _file;
+    private bool _importing;
+    private string? _error;
+    private ImportResult? _result;
+
+    private void OnFileSelected(InputFileChangeEventArgs e)
+    {
+        _error = null; _result = null;
+        var f = e.File;
+        if (f.Size > MaxImportBytes)
+        {
+            _error = "Datei ist größer als 10 MB.";
+            _file = null;
+            return;
+        }
+        _file = f;
+    }
+
+    private async Task ImportAsync()
+    {
+        if (_file is null) return;
+        _importing = true; _error = null; _result = null;
+
+        try
+        {
+            using var stream = _file.OpenReadStream(MaxImportBytes);
+            using var copy = new MemoryStream();
+            await stream.CopyToAsync(copy);
+            copy.Position = 0;
+
+            var format = Path.GetExtension(_file.Name).Equals(".xls", StringComparison.OrdinalIgnoreCase)
+                ? ExcelFormat.Xls
+                : ExcelFormat.Xlsx;
+
+            _result = await XlsService.ImportFromStreamAsync(copy, format);
+            await OnImported.InvokeAsync();
+        }
+        catch (Exception ex)
+        {
+            _error = "Fehler beim Import: " + ex.Message;
+        }
+        finally
+        {
+            _importing = false;
+        }
+    }
+}

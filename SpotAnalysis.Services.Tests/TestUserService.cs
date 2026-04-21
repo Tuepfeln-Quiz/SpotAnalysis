@@ -1,4 +1,4 @@
-﻿using System.Security.Authentication;
+using System.Security.Authentication;
 using System.Security.Cryptography;
 using Microsoft.Extensions.Logging;
 using NSubstitute;

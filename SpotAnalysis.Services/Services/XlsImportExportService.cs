@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using SpotAnalysis.Data;
 using SpotAnalysis.Data.Enums;
 using SpotAnalysis.Data.Models;
+using SpotAnalysis.Services.DTOs;
 
 namespace SpotAnalysis.Services.Services;
 
@@ -21,32 +22,36 @@ public class XlsImportExportService : IXlsImportExportService
 
     // ── Import ──────────────────────────────────────────────────────────
 
-    public async Task ImportFromFileAsync(string filePath)
+    public async Task<ImportResult> ImportFromFileAsync(string filePath)
     {
         using var reader = ExcelImporter.Open(filePath);
-        await ImportCoreAsync(reader);
+        return await ImportCoreAsync(reader);
     }
 
-    public async Task ImportFromStreamAsync(Stream stream, ExcelFormat format)
+    public async Task<ImportResult> ImportFromStreamAsync(Stream stream, ExcelFormat format)
     {
         using var reader = ExcelImporter.Open(stream, format);
-        await ImportCoreAsync(reader);
+        return await ImportCoreAsync(reader);
     }
 
-    private async Task ImportCoreAsync(WorkbookReader reader)
+    private async Task<ImportResult> ImportCoreAsync(WorkbookReader reader)
     {
+        var result = new ImportResult();
+
         var educts = reader.ReadSheet<Educt>();
         var additives = reader.ReadSheet<Additive>();
         var combinations = reader.ReadSheet<Combination>();
 
         var methods = await UpsertMethodsAsync();
-        var chemicals = await UpsertEductsAsync(educts, methods);
-        var additiveChemicals = await UpsertAdditivesAsync(additives);
+        var chemicals = await UpsertEductsAsync(educts, methods, result);
+        var additiveChemicals = await UpsertAdditivesAsync(additives, result);
 
         foreach (var kvp in additiveChemicals)
             chemicals[kvp.Key] = kvp.Value;
 
-        await UpsertCombinationsAsync(combinations, chemicals);
+        await UpsertCombinationsAsync(combinations, chemicals, result);
+
+        return result;
     }
 
     private async Task<Dictionary<string, Method>> UpsertMethodsAsync()
@@ -71,7 +76,7 @@ public class XlsImportExportService : IXlsImportExportService
     }
 
     private async Task<Dictionary<string, Chemical>> UpsertEductsAsync(
-        List<Educt> educts, Dictionary<string, Method> methods)
+        List<Educt> educts, Dictionary<string, Method> methods, ImportResult result)
     {
         var names = educts.Select(e => e.Substance).Where(n => n != null).ToList();
         var existing = await _context.Chemicals
@@ -83,13 +88,18 @@ public class XlsImportExportService : IXlsImportExportService
         {
             if (string.IsNullOrWhiteSpace(educt.Substance)) continue;
 
-            if (!existing.TryGetValue(educt.Substance, out var chemical))
+            var isNew = !existing.TryGetValue(educt.Substance, out var chemical);
+            var baseChanged = false;
+            var newFormula = educt.Formula ?? "";
+            var newColor = educt.InherentColor ?? "keine";
+
+            if (isNew)
             {
                 chemical = new Chemical
                 {
                     Name = educt.Substance,
-                    Formula = educt.Formula ?? "",
-                    Color = educt.InherentColor ?? "keine",
+                    Formula = newFormula,
+                    Color = newColor,
                     Type = ChemicalType.Educt
                 };
                 _context.Chemicals.Add(chemical);
@@ -97,23 +107,32 @@ public class XlsImportExportService : IXlsImportExportService
             }
             else
             {
-                chemical.Formula = educt.Formula ?? "";
-                chemical.Color = educt.InherentColor ?? "keine";
-                chemical.Type = ChemicalType.Educt;
+                if (chemical!.Formula != newFormula) { chemical.Formula = newFormula; baseChanged = true; }
+                if (chemical.Color != newColor)     { chemical.Color = newColor; baseChanged = true; }
+                if (chemical.Type != ChemicalType.Educt) { chemical.Type = ChemicalType.Educt; baseChanged = true; }
             }
 
+            var methodsChanged = false;
             foreach (var (methodName, value) in educt.GetMethodValues())
             {
                 if (methods.TryGetValue(methodName, out var method))
-                    UpsertMethodOutput(chemical, method, value);
+                {
+                    if (UpsertMethodOutput(chemical!, method, value))
+                        methodsChanged = true;
+                }
             }
+
+            if (isNew)                              result.ChemicalsAdded++;
+            else if (baseChanged || methodsChanged) result.ChemicalsUpdated++;
+            else                                    result.ChemicalsSkipped++;
         }
 
         await _context.SaveChangesAsync();
         return existing;
     }
 
-    private async Task<Dictionary<string, Chemical>> UpsertAdditivesAsync(List<Additive> additives)
+    private async Task<Dictionary<string, Chemical>> UpsertAdditivesAsync(
+        List<Additive> additives, ImportResult result)
     {
         var names = additives.Select(a => a.Name).Where(n => n != null).ToList();
         var existing = await _context.Chemicals
@@ -124,22 +143,30 @@ public class XlsImportExportService : IXlsImportExportService
         {
             if (string.IsNullOrWhiteSpace(additive.Name)) continue;
 
-            if (!existing.TryGetValue(additive.Name, out var chemical))
+            var isNew = !existing.TryGetValue(additive.Name, out var chemical);
+            var changed = false;
+            var newFormula = additive.Formula ?? "";
+
+            if (isNew)
             {
                 chemical = new Chemical
                 {
                     Name = additive.Name,
-                    Formula = additive.Formula ?? "",
+                    Formula = newFormula,
                     Color = "keine",
                     Type = ChemicalType.Additive
                 };
                 _context.Chemicals.Add(chemical);
                 existing[additive.Name] = chemical;
+                result.ChemicalsAdded++;
             }
             else
             {
-                chemical.Formula = additive.Formula ?? "";
-                chemical.Type = ChemicalType.Additive;
+                if (chemical!.Formula != newFormula) { chemical.Formula = newFormula; changed = true; }
+                if (chemical.Type != ChemicalType.Additive) { chemical.Type = ChemicalType.Additive; changed = true; }
+
+                if (changed) result.ChemicalsUpdated++;
+                else         result.ChemicalsSkipped++;
             }
         }
 
@@ -147,29 +174,30 @@ public class XlsImportExportService : IXlsImportExportService
         return existing;
     }
 
-    private void UpsertMethodOutput(Chemical chemical, Method method, string? color)
+    /// <summary>Gibt true zurück, wenn tatsächlich geschrieben wurde (neu oder geänderte Farbe).</summary>
+    private bool UpsertMethodOutput(Chemical chemical, Method method, string? color)
     {
-        if (string.IsNullOrWhiteSpace(color)) return;
+        if (string.IsNullOrWhiteSpace(color)) return false;
 
         var existing = chemical.MethodOutputs
             .FirstOrDefault(mo => mo.MethodID == method.MethodID);
 
         if (existing != null)
         {
+            if (existing.Color == color) return false;
             existing.Color = color;
+            return true;
         }
-        else
+
+        chemical.MethodOutputs.Add(new MethodOutput
         {
-            var output = new MethodOutput
-            {
-                ChemicalID = chemical.ChemicalID,
-                MethodID = method.MethodID,
-                Color = color,
-                Chemical = chemical,
-                Method = method
-            };
-            chemical.MethodOutputs.Add(output);
-        }
+            ChemicalID = chemical.ChemicalID,
+            MethodID = method.MethodID,
+            Color = color,
+            Chemical = chemical,
+            Method = method
+        });
+        return true;
     }
 
     private static Chemical? FindChemical(Dictionary<string, Chemical> chemicals, string? name)
@@ -182,7 +210,7 @@ public class XlsImportExportService : IXlsImportExportService
     }
 
     private async Task UpsertCombinationsAsync(
-        List<Combination> combinations, Dictionary<string, Chemical> chemicals)
+        List<Combination> combinations, Dictionary<string, Chemical> chemicals, ImportResult result)
     {
         var observationTexts = combinations
             .Select(c => c.Observation)
@@ -202,6 +230,11 @@ public class XlsImportExportService : IXlsImportExportService
                 var obs = new Observation { Description = text };
                 _context.Observations.Add(obs);
                 existingObservations[text] = obs;
+                result.ObservationsAdded++;
+            }
+            else
+            {
+                result.ObservationsSkipped++;
             }
         }
 
@@ -234,10 +267,25 @@ public class XlsImportExportService : IXlsImportExportService
 
             if (existingReactions.TryGetValue(key, out var reaction))
             {
-                reaction.RelevantProduct = combo.Product;
-                reaction.Formula = combo.Formula ?? "";
-                if (observation != null)
-                    reaction.ObservationID = observation.ObservationID;
+                var newProduct = combo.Product;
+                var newFormula = combo.Formula ?? "";
+                var newObsId = observation?.ObservationID ?? reaction.ObservationID;
+
+                var changed = reaction.RelevantProduct != newProduct
+                              || reaction.Formula != newFormula
+                              || reaction.ObservationID != newObsId;
+
+                if (changed)
+                {
+                    reaction.RelevantProduct = newProduct;
+                    reaction.Formula = newFormula;
+                    reaction.ObservationID = newObsId;
+                    result.ReactionsUpdated++;
+                }
+                else
+                {
+                    result.ReactionsSkipped++;
+                }
             }
             else
             {
@@ -247,6 +295,7 @@ public class XlsImportExportService : IXlsImportExportService
                     Formula = combo.Formula ?? "",
                     ObservationID = observation?.ObservationID ?? 0
                 };
+                result.ReactionsAdded++;
                 _context.Reactions.Add(reaction);
                 existingReactions[key] = reaction;
             }

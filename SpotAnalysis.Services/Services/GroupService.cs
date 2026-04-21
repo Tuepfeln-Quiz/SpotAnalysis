@@ -19,21 +19,30 @@ public class GroupService : IGroupService
         _inviteTokens = inviteTokens;
     }
 
-    private static IQueryable<User> GetTeacher(AnalysisContext ctx, Guid teacherId)
+    // Admins see/manage all groups; teachers only the ones they are a member of.
+    private static async Task<bool> IsAdmin(AnalysisContext ctx, Guid userId)
     {
+        return await ctx.Users
+            .AnyAsync(u => u.UserID == userId && u.Roles.Any(r => r == Role.Admin));
+    }
+
+    private static IQueryable<Group> AccessibleGroups(AnalysisContext ctx, Guid userId, bool isAdmin)
+    {
+        if (isAdmin) return ctx.Groups;
         return ctx.Users
-            .Where(u => u.UserID == teacherId && u.Roles.Any(r => r == Role.Teacher));
+            .Where(u => u.UserID == userId && u.Roles.Any(r => r == Role.Teacher))
+            .SelectMany(u => u.Groups);
     }
 
     #region Queries
 
-    public async Task<List<GroupDto>> GetGroups(Guid teacherId)
+    public async Task<List<GroupDto>> GetGroups(Guid userId)
     {
         await using var ctx = await _factory.CreateDbContextAsync();
 
-        var teacher = GetTeacher(ctx, teacherId);
+        var isAdmin = await IsAdmin(ctx, userId);
 
-        return await teacher.SelectMany(u => u.Groups)
+        return await AccessibleGroups(ctx, userId, isAdmin)
             .Select(g => new GroupDto
             {
                 Id = g.GroupID,
@@ -42,16 +51,16 @@ public class GroupService : IGroupService
             }).ToListAsync();
     }
 
-    public async Task<List<StudentDto>> GetStudents(Guid teacherId)
+    public async Task<List<StudentDto>> GetStudents(Guid userId)
     {
         await using var ctx = await _factory.CreateDbContextAsync();
 
-        var teacher = GetTeacher(ctx, teacherId);
+        var isAdmin = await IsAdmin(ctx, userId);
 
-        return await teacher.SelectMany(u => u.Groups)
+        return await AccessibleGroups(ctx, userId, isAdmin)
             .SelectMany(g => g.Users)
             .Distinct()
-            .Where(u => u.UserID != teacherId)
+            .Where(u => u.UserID != userId)
             .Select(u => new StudentDto
             {
                 Id = u.UserID,
@@ -64,13 +73,13 @@ public class GroupService : IGroupService
             }).ToListAsync();
     }
 
-    public async Task<List<StudentDto>> GetStudentsByGroup(Guid teacherId, int groupId)
+    public async Task<List<StudentDto>> GetStudentsByGroup(Guid userId, int groupId)
     {
         await using var ctx = await _factory.CreateDbContextAsync();
 
-        var teacher = GetTeacher(ctx, teacherId);
+        var isAdmin = await IsAdmin(ctx, userId);
 
-        return await teacher.SelectMany(u => u.Groups)
+        return await AccessibleGroups(ctx, userId, isAdmin)
             .Where(g => g.GroupID == groupId)
             .SelectMany(g => g.Users)
             .Where(u => u.Roles.Any(r => r == Role.Student)
@@ -87,13 +96,13 @@ public class GroupService : IGroupService
             }).ToListAsync();
     }
 
-    public async Task<List<StudentDto>> GetTeachersByGroup(Guid teacherId, int groupId)
+    public async Task<List<StudentDto>> GetTeachersByGroup(Guid userId, int groupId)
     {
         await using var ctx = await _factory.CreateDbContextAsync();
 
-        var teacher = GetTeacher(ctx, teacherId);
+        var isAdmin = await IsAdmin(ctx, userId);
 
-        return await teacher.SelectMany(u => u.Groups)
+        return await AccessibleGroups(ctx, userId, isAdmin)
             .Where(g => g.GroupID == groupId)
             .SelectMany(g => g.Users)
             .Where(u => u.Roles.Any(r => r == Role.Teacher))
@@ -179,10 +188,15 @@ public class GroupService : IGroupService
 
     #region CRUD
 
-    public async Task CreateGroup(Guid teacherId, ConfigGroupDto group)
+    public async Task CreateGroup(Guid userId, ConfigGroupDto group)
     {
         await using var ctx = await _factory.CreateDbContextAsync();
-        var user = await GetTeacher(ctx, teacherId).SingleAsync();
+
+        var actor = await ctx.Users.SingleAsync(u => u.UserID == userId);
+        var isTeacher = actor.Roles.Contains(Role.Teacher);
+        var isAdmin = actor.Roles.Contains(Role.Admin);
+        if (!isTeacher && !isAdmin)
+            throw new UnauthorizedAccessException("User is neither teacher nor admin.");
 
         var qGroup = new Group
         {
@@ -190,19 +204,24 @@ public class GroupService : IGroupService
             Description = group.Description,
         };
 
-        qGroup.Users.Add(user);
+        // Only auto-add the creator as a member if they are a teacher.
+        // Pure admins create groups without becoming a member (they see all groups anyway).
+        if (isTeacher)
+            qGroup.Users.Add(actor);
+
         ctx.Groups.Add(qGroup);
 
         await ctx.SaveChangesAsync();
     }
 
-    public async Task UpdateGroup(Guid teacherId, ConfigGroupDto group)
+    public async Task UpdateGroup(Guid userId, ConfigGroupDto group)
     {
         await using var ctx = await _factory.CreateDbContextAsync();
 
-        var teacher = GetTeacher(ctx, teacherId);
+        var isAdmin = await IsAdmin(ctx, userId);
 
-        var qGroup = await teacher.SelectMany(u => u.Groups).SingleAsync(g => g.Name == group.Name);
+        var qGroup = await AccessibleGroups(ctx, userId, isAdmin)
+            .SingleAsync(g => g.Name == group.Name);
 
         qGroup.Description = group.Description;
         qGroup.Name = group.Name;
@@ -210,13 +229,13 @@ public class GroupService : IGroupService
         await ctx.SaveChangesAsync();
     }
 
-    public async Task DeleteGroup(Guid teacherId, int groupId)
+    public async Task DeleteGroup(Guid userId, int groupId)
     {
         await using var ctx = await _factory.CreateDbContextAsync();
 
-        var teacherQuery = GetTeacher(ctx, teacherId);
-        var group = await teacherQuery
-            .SelectMany(u => u.Groups)
+        var isAdmin = await IsAdmin(ctx, userId);
+
+        var group = await AccessibleGroups(ctx, userId, isAdmin)
             .Include(g => g.Users)
             .Include(g => g.Quizzes)
             .SingleAsync(g => g.GroupID == groupId);
@@ -230,28 +249,32 @@ public class GroupService : IGroupService
 
     #endregion
 
-    #region Membership (teacher-authorized)
+    #region Membership (teacher/admin-authorized)
 
-    public async Task AssignUserToGroup(Guid teacherId, Guid userId, int groupId)
+    public async Task AssignUserToGroup(Guid actorId, Guid userId, int groupId)
     {
         await using var ctx = await _factory.CreateDbContextAsync();
+
+        var isAdmin = await IsAdmin(ctx, actorId);
+
         var user = await ctx.Users.SingleAsync(u => u.UserID == userId);
-        var teacher = GetTeacher(ctx, teacherId);
-        var group = await teacher.SelectMany(u => u.Groups).SingleAsync(g => g.GroupID == groupId);
+        var group = await AccessibleGroups(ctx, actorId, isAdmin)
+            .SingleAsync(g => g.GroupID == groupId);
+
         group.Users.Add(user);
 
         await ctx.SaveChangesAsync();
     }
 
-    public async Task RemoveUserFromGroup(Guid teacherId, Guid userId, int groupId)
+    public async Task RemoveUserFromGroup(Guid actorId, Guid userId, int groupId)
     {
         await using var ctx = await _factory.CreateDbContextAsync();
 
+        var isAdmin = await IsAdmin(ctx, actorId);
+
         var user = await ctx.Users.SingleAsync(u => u.UserID == userId);
-        var teacher = GetTeacher(ctx, teacherId);
-        var group = await teacher
-            .SelectMany(u => u.Groups)
-            .Include(u => u.Users)
+        var group = await AccessibleGroups(ctx, actorId, isAdmin)
+            .Include(g => g.Users)
             .SingleAsync(g => g.GroupID == groupId);
 
         group.Users.Remove(user);

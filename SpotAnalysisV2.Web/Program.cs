@@ -36,10 +36,14 @@ using (var scope = app.Services.CreateAsyncScope())
     var seeder = scope.ServiceProvider.GetRequiredService<IDatabaseSeeder>();
     try
     {
+        await seeder.SeedAdminAsync();
+        await seeder.SeedMasterDataAsync();
+
         if (app.Environment.IsDevelopment())
+        {
             await seeder.SeedDevUserAsync();
-        else
-            await seeder.SeedAdminAsync();
+            await seeder.SeedQuizDataAsync();
+        }
     }
     catch (Exception ex)
     {

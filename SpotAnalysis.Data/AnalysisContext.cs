@@ -4,6 +4,8 @@ namespace SpotAnalysis.Data;
 
 public class AnalysisContext : DbContext {
 
+    private static readonly DateTime UncompletedAttemptSentinelUtc = DateTime.SpecifyKind(DateTime.MinValue, DateTimeKind.Utc);
+
     #region DBSets
 
     #region Users, Roles, Groups
@@ -56,6 +58,60 @@ public class AnalysisContext : DbContext {
     // Für Migrations: --startup-project SpotAnalysis.Web (siehe EF-MIGRATIONS.md)
     public AnalysisContext(DbContextOptions<AnalysisContext> options)
         : base(options) {
+    }
+
+    public override int SaveChanges(bool acceptAllChangesOnSuccess)
+    {
+        NormalizeDateTimesToUtc();
+        return base.SaveChanges(acceptAllChangesOnSuccess);
+    }
+
+    public override Task<int> SaveChangesAsync(bool acceptAllChangesOnSuccess, CancellationToken cancellationToken = default)
+    {
+        NormalizeDateTimesToUtc();
+        return base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken);
+    }
+
+    private void NormalizeDateTimesToUtc()
+    {
+        foreach (var entry in ChangeTracker.Entries().Where(e => e.State is EntityState.Added or EntityState.Modified))
+        {
+            foreach (var property in entry.Properties)
+            {
+                var clrType = property.Metadata.ClrType;
+
+                if (clrType == typeof(DateTime))
+                {
+                    if (property.CurrentValue is DateTime value)
+                    {
+                        property.CurrentValue = NormalizeDateTime(value);
+                    }
+                }
+                else if (clrType == typeof(DateTime?))
+                {
+                    if (property.CurrentValue is DateTime nullableValue)
+                    {
+                        property.CurrentValue = NormalizeDateTime(nullableValue);
+                    }
+                }
+            }
+        }
+    }
+
+    private static DateTime NormalizeDateTime(DateTime value)
+    {
+        if (value == DateTime.MinValue)
+        {
+            return UncompletedAttemptSentinelUtc;
+        }
+
+        return value.Kind switch
+        {
+            DateTimeKind.Utc => value,
+            DateTimeKind.Local => value.ToUniversalTime(),
+            DateTimeKind.Unspecified => DateTime.SpecifyKind(value, DateTimeKind.Utc),
+            _ => value
+        };
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder) {

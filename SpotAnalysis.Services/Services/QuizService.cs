@@ -10,6 +10,8 @@ namespace SpotAnalysis.Services.Services;
 
 public class QuizService(ILogger<QuizService> logger, IDbContextFactory<AnalysisContext> factory) : IQuizService
 {
+    private static readonly DateTime UncompletedAttemptSentinelUtc = DateTime.SpecifyKind(DateTime.MinValue, DateTimeKind.Utc);
+
     public async Task<List<QuizOverviewDto>> GetAllQuizzes()
     {
         await using var dbContext = await factory.CreateDbContextAsync();
@@ -196,11 +198,11 @@ public class QuizService(ILogger<QuizService> logger, IDbContextFactory<Analysis
                 LastAttemptStatus =
                     x.LatestAttempt == null
                         ? LastAttemptStatus.NotStarted
-                        : x.LatestAttempt.Completed == default
+                        : x.LatestAttempt.Completed == UncompletedAttemptSentinelUtc
                             ? LastAttemptStatus.InProgress
                             : LastAttemptStatus.Completed,
                 LastCompletedAt =
-                    x.LatestAttempt != null && x.LatestAttempt.Completed != default
+                    x.LatestAttempt != null && x.LatestAttempt.Completed != UncompletedAttemptSentinelUtc
                         ? x.LatestAttempt.Completed
                         : (DateTime?)null
             })
@@ -280,7 +282,7 @@ public class QuizService(ILogger<QuizService> logger, IDbContextFactory<Analysis
     private static async Task<QuizAttempt> GetOpenAttempt(AnalysisContext context, Guid userId, int quizId)
     {
         var attempt = await context.QuizAttempts
-            .Where(a => a.UserID == userId && a.QuizID == quizId && a.Completed == default)
+            .Where(a => a.UserID == userId && a.QuizID == quizId && a.Completed == UncompletedAttemptSentinelUtc)
             .OrderByDescending(a => a.AttemptID)
             .FirstOrDefaultAsync();
 
@@ -618,7 +620,7 @@ public class QuizService(ILogger<QuizService> logger, IDbContextFactory<Analysis
             throw new UnauthorizedAccessException("User has no access to this quiz.");
 
         var openAttempt = await db.QuizAttempts
-            .Where(a => a.UserID == userId && a.QuizID == quizId && a.Completed == default)
+            .Where(a => a.UserID == userId && a.QuizID == quizId && a.Completed == UncompletedAttemptSentinelUtc)
             .OrderByDescending(a => a.AttemptID)
             .FirstOrDefaultAsync();
 
@@ -628,7 +630,7 @@ public class QuizService(ILogger<QuizService> logger, IDbContextFactory<Analysis
             {
                 UserID = userId,
                 QuizID = quizId,
-                Started = DateTime.Now
+                Started = DateTime.UtcNow
             };
             db.QuizAttempts.Add(openAttempt);
             await db.SaveChangesAsync();
@@ -770,19 +772,19 @@ public class QuizService(ILogger<QuizService> logger, IDbContextFactory<Analysis
             throw new UnauthorizedAccessException("User has no access to this quiz.");
 
         var openAttempt = await db.QuizAttempts
-            .Where(a => a.UserID == userId && a.QuizID == quizId && a.Completed == default)
+            .Where(a => a.UserID == userId && a.QuizID == quizId && a.Completed == UncompletedAttemptSentinelUtc)
             .OrderByDescending(a => a.AttemptID)
             .FirstOrDefaultAsync();
         if (openAttempt is not null)
         {
-            openAttempt.Completed = DateTime.Now;
+            openAttempt.Completed = DateTime.UtcNow;
         }
 
         var fresh = new QuizAttempt
         {
             UserID = userId,
             QuizID = quizId,
-            Started = DateTime.Now
+            Started = DateTime.UtcNow
         };
         db.QuizAttempts.Add(fresh);
         await db.SaveChangesAsync();
@@ -794,7 +796,7 @@ public class QuizService(ILogger<QuizService> logger, IDbContextFactory<Analysis
     {
         await using var db = await factory.CreateDbContextAsync();
         var attempt = await db.QuizAttempts.SingleAsync(a => a.AttemptID == attemptId);
-        attempt.Completed = DateTime.Now;
+        attempt.Completed = DateTime.UtcNow;
         await db.SaveChangesAsync();
     }
 

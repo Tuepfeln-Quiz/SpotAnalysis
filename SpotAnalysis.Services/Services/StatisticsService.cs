@@ -8,6 +8,8 @@ using SpotAnalysis.Services.DTOs;
 namespace SpotAnalysis.Services.Services;
 public class StatisticsService(IDbContextFactory<AnalysisContext> factory) : IStatisticsService
 {
+    private static readonly DateTime UncompletedAttemptSentinelUtc = DateTime.SpecifyKind(DateTime.MinValue, DateTimeKind.Utc);
+
     public async Task<int> CreateAttemptAsync(Guid userId, int quizId)
     {
         await using var context = await factory.CreateDbContextAsync();
@@ -16,8 +18,8 @@ public class StatisticsService(IDbContextFactory<AnalysisContext> factory) : ISt
         {
             UserID = userId,
             QuizID = quizId,
-            Started = DateTime.Now,
-            Completed = DateTime.MinValue 
+            Started = DateTime.UtcNow,
+            Completed = UncompletedAttemptSentinelUtc
         };
         
         context.QuizAttempts.Add(attempt);
@@ -72,7 +74,7 @@ public class StatisticsService(IDbContextFactory<AnalysisContext> factory) : ISt
         var attempt = await context.QuizAttempts.FindAsync(attemptId);
         if (attempt != null)
         {
-            attempt.Completed = DateTime.Now;
+            attempt.Completed = DateTime.UtcNow;
             await context.SaveChangesAsync();
         }
     }
@@ -81,7 +83,7 @@ public class StatisticsService(IDbContextFactory<AnalysisContext> factory) : ISt
         await using var context = await factory.CreateDbContextAsync();
         
         var attempts = await context.QuizAttempts
-            .Where(a => a.UserID == userId && a.Completed != DateTime.MinValue)
+            .Where(a => a.UserID == userId && a.Completed != UncompletedAttemptSentinelUtc)
             .Include(a => a.STResults).ThenInclude(r => r.ChemicalResults)
             .Include(a => a.STLResults)
             .Include(a => a.Quiz).ThenInclude(q => q.QuizQuestions)
@@ -119,7 +121,7 @@ public class StatisticsService(IDbContextFactory<AnalysisContext> factory) : ISt
         await using var context = await factory.CreateDbContextAsync();
         
         var attempts = await context.QuizAttempts
-            .Where(a => a.UserID == userId && a.Completed != DateTime.MinValue)
+            .Where(a => a.UserID == userId && a.Completed != UncompletedAttemptSentinelUtc)
             .Include(a => a.STResults).ThenInclude(r => r.ChemicalResults)
             .Include(a => a.STLResults)
             .Include(a => a.Quiz).ThenInclude(q => q.QuizQuestions).ThenInclude(qq => qq.Question)
@@ -133,7 +135,7 @@ public class StatisticsService(IDbContextFactory<AnalysisContext> factory) : ISt
             QuizName = a.Quiz.Name,
             QuizType = DetermineQuizType(a),
             Started = a.Started,
-            Completed = a.Completed == DateTime.MinValue ? null : a.Completed,
+            Completed = a.Completed == UncompletedAttemptSentinelUtc ? null : a.Completed,
             CorrectAnswers = CalculateCorrect(a),
             TotalQuestions = CalculateTotal(a)
         }).ToList();
@@ -159,7 +161,7 @@ public class StatisticsService(IDbContextFactory<AnalysisContext> factory) : ISt
             .ToListAsync();
 
         var attempts = await context.QuizAttempts
-            .Where(a => authorizedStudentIds.Contains(a.UserID) && a.Completed != DateTime.MinValue)
+            .Where(a => authorizedStudentIds.Contains(a.UserID) && a.Completed != UncompletedAttemptSentinelUtc)
             .Include(a => a.STResults).ThenInclude(r => r.ChemicalResults)
             .Include(a => a.STLResults)
             .ToListAsync();
@@ -175,7 +177,7 @@ public class StatisticsService(IDbContextFactory<AnalysisContext> factory) : ISt
                 var totalCorrect = studentAttempts.Sum(CalculateCorrect);
                 var totalQuestions = studentAttempts.Sum(CalculateTotal);
                 var lastAttemptAt = studentAttempts
-                    .Where(a => a.Completed != DateTime.MinValue)
+                    .Where(a => a.Completed != UncompletedAttemptSentinelUtc)
                     .OrderByDescending(a => a.Completed)
                     .Select(a => (DateTime?)a.Completed)
                     .FirstOrDefault();
@@ -206,7 +208,7 @@ public class StatisticsService(IDbContextFactory<AnalysisContext> factory) : ISt
         }
 
         var attempts = await context.QuizAttempts
-            .Where(a => a.UserID == studentId && a.Completed != DateTime.MinValue)
+            .Where(a => a.UserID == studentId && a.Completed != UncompletedAttemptSentinelUtc)
             .Include(a => a.STResults).ThenInclude(r => r.ChemicalResults)
             .Include(a => a.STLResults)
             .Include(a => a.Quiz).ThenInclude(q => q.QuizQuestions).ThenInclude(qq => qq.Question)
@@ -220,7 +222,7 @@ public class StatisticsService(IDbContextFactory<AnalysisContext> factory) : ISt
             QuizName = a.Quiz.Name,
             QuizType = DetermineQuizType(a),
             Started = a.Started,
-            Completed = a.Completed == DateTime.MinValue ? null : a.Completed,
+            Completed = a.Completed == UncompletedAttemptSentinelUtc ? null : a.Completed,
             CorrectAnswers = CalculateCorrect(a),
             TotalQuestions = CalculateTotal(a)
         }).ToList();

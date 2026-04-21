@@ -1,0 +1,24 @@
+<div class="experiment-tabs">
+    @foreach (var tab in Tabs)
+    {
+        if (string.Equals(ActiveTab, tab.Key, StringComparison.OrdinalIgnoreCase))
+        {
+            <span class="experiment-tab experiment-tab-active @ActiveTabClass">@tab.Label</span>
+            continue;
+        }
+
+        <NavLink href="@tab.Href" class="experiment-tab experiment-tab-link">@tab.Label</NavLink>
+    }
+</div>
+
+@code {
+    [Parameter] public string? ActiveTab { get; set; }
+    [Parameter] public string ActiveTabClass { get; set; } = "bg-teal-500 text-white";
+
+    private static readonly (string Key, string Label, string Href)[] Tabs =
+    [
+        ("sandbox", "Sandbox", "/sandbox"),
+        ("reverse", "Reverse", "/reverse"),
+        ("uebungen", "Übungen", "/uebungen")
+    ];
+}

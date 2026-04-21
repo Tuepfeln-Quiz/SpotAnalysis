@@ -1,0 +1,20 @@
+<div class="@ContainerClass">
+    <div>
+        <p class="text-sm font-medium @SectionTextClass">@Section</p>
+        <h1 class="text-3xl font-bold text-gray-800">@Title</h1>
+        <p class="@DescriptionClass">@Description</p>
+    </div>
+    <div class="flex gap-3">
+        @Actions
+    </div>
+</div>
+
+@code {
+    [Parameter] public string Section { get; set; } = "Lehrerbereich";
+    [Parameter] public string SectionTextClass { get; set; } = "text-teal-600";
+    [Parameter] public string Title { get; set; } = string.Empty;
+    [Parameter] public string Description { get; set; } = string.Empty;
+    [Parameter] public string ContainerClass { get; set; } = "mb-6 flex items-center justify-between gap-4";
+    [Parameter] public string DescriptionClass { get; set; } = "mt-1 text-sm text-gray-500";
+    [Parameter] public RenderFragment? Actions { get; set; }
+}

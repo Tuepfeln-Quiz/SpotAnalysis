@@ -21,15 +21,15 @@ public class UserService(ILogger<UserService> logger, IDbContextFactory<Analysis
             return null;
         }
         await using var context = await factory.CreateDbContextAsync();
-        
+
         var user = context.Users.FirstOrDefault(u => u.UserName == userName);
         if (user == null) return null;
-      
+
         var newHash = new PasswordProvider.Password(newPassword, user.UserID).ParamString();
         user.PasswordHash = newHash;
-        
+
         await context.SaveChangesAsync();
-        
+
         return user;
     }
 
@@ -43,13 +43,13 @@ public class UserService(ILogger<UserService> logger, IDbContextFactory<Analysis
 
         await using var context = await factory.CreateDbContextAsync();
         var user = await context.Users.SingleOrDefaultAsync(u => u.UserName.ToLower() == userName.ToLower());
-        
+
         if (user == null)
         {
             logger.LogWarning("No user was found with user name: {userName}", userName);
             throw new ArgumentException("No user was found with given user name");
         }
-        
+
         if (string.IsNullOrEmpty(user.PasswordHash))
         {
             logger.LogWarning("The password was null or empty");
@@ -69,7 +69,7 @@ public class UserService(ILogger<UserService> logger, IDbContextFactory<Analysis
 
         return user;
     }
-    
+
     public async Task Register(string userName, string password, string? email, Guid? userId)
     {
         if (string.IsNullOrWhiteSpace(userName) || userName.Length > 128)
@@ -85,7 +85,7 @@ public class UserService(ILogger<UserService> logger, IDbContextFactory<Analysis
         var newGuid = userId ?? Guid.NewGuid();
 
         var passwordString = new PasswordProvider.Password(password, newGuid).ParamString();
-        
+
         await using var context = await factory.CreateDbContextAsync();
 
         var normalizedUserName = userName.Trim();
@@ -103,7 +103,7 @@ public class UserService(ILogger<UserService> logger, IDbContextFactory<Analysis
         };
         newUser.Roles.Add(Role.Student);
         context.Users.Add(newUser);
-        
+
         await context.SaveChangesAsync();
     }
 }

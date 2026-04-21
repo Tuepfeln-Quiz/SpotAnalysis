@@ -35,7 +35,11 @@ INSERT INTO "Reactions" ("ReactionID", "Chemical1ID", "Chemical2ID", "RelevantPr
 ON CONFLICT ("ReactionID") DO NOTHING;
 
 -- Identity-Sequences auf Max(ID) setzen, damit spätere Inserts ohne explizite ID keine Kollisionen werfen.
-SELECT setval(pg_get_serial_sequence('"Methods"',     'MethodID'),      COALESCE((SELECT MAX("MethodID")      FROM "Methods"),      1));
-SELECT setval(pg_get_serial_sequence('"Chemicals"',   'ChemicalID'),    COALESCE((SELECT MAX("ChemicalID")    FROM "Chemicals"),    1));
-SELECT setval(pg_get_serial_sequence('"Observations"','ObservationID'), COALESCE((SELECT MAX("ObservationID") FROM "Observations"), 1));
-SELECT setval(pg_get_serial_sequence('"Reactions"',   'ReactionID'),    COALESCE((SELECT MAX("ReactionID")    FROM "Reactions"),    1));
+-- DO-Block + PERFORM, damit ExecuteSqlRawAsync nicht über den SELECT-Return-Wert stolpert.
+DO $$
+BEGIN
+    PERFORM setval('"Methods_MethodID_seq"',           (SELECT COALESCE(MAX("MethodID"),      0) FROM "Methods"));
+    PERFORM setval('"Chemicals_ChemicalID_seq"',       (SELECT COALESCE(MAX("ChemicalID"),    0) FROM "Chemicals"));
+    PERFORM setval('"Observations_ObservationID_seq"', (SELECT COALESCE(MAX("ObservationID"), 0) FROM "Observations"));
+    PERFORM setval('"Reactions_ReactionID_seq"',       (SELECT COALESCE(MAX("ReactionID"),    0) FROM "Reactions"));
+END $$;

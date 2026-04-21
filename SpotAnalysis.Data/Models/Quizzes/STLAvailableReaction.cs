@@ -5,10 +5,11 @@
 /// </summary>
 
 [PrimaryKey(nameof(QuestionID), nameof(ReactionID))]
-public class STLAvailableReaction {
+public class STLAvailableReaction
+{
     public int QuestionID { get; set; }
     public int ReactionID { get; set; }
-    
+
     [ForeignKey(nameof(QuestionID))]
     [DeleteBehavior(DeleteBehavior.Restrict)]
     public STLQuestion STLQuestion { get; set; } = null!;

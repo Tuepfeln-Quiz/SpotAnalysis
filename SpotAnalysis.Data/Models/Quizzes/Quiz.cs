@@ -1,6 +1,7 @@
 ﻿namespace SpotAnalysis.Data.Models.Quizzes;
 
-public class Quiz {
+public class Quiz
+{
     [Key]
     public int QuizID { get; set; }
 

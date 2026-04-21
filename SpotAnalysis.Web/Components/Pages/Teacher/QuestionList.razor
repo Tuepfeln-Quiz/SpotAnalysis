@@ -1,8 +1,5 @@
 @page "/teacher/questions"
 @rendermode InteractiveServer
-@using SpotAnalysis.Data.Enums
-@using SpotAnalysis.Services.DTOs
-@using SpotAnalysis.Services.Services
 @using SpotAnalysis.Web.Services
 
 @attribute [Authorize(Roles = "Teacher, Admin")]
@@ -130,7 +127,9 @@
 @code {
     [Inject] private IQuizService QuizService { get; set; } = default!;
     [Inject] private NavigationManager Navigation { get; set; } = default!;
+    [CascadingParameter] private Task<AuthenticationState> AuthState { get; set; } = default!;
 
+    private Guid _teacherId;
     private List<QuestionOverviewDto>? _questions;
     private string _searchTerm = "";
     private QuestionType? _typeFilter;
@@ -140,6 +139,8 @@
 
     protected override async Task OnInitializedAsync()
     {
+        var auth = await AuthState;
+        _teacherId = Guid.Parse(auth.User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
         _questions = await QuizService.GetQuestions();
     }
 
@@ -178,7 +179,7 @@
         _deleteError = null;
         try
         {
-            await QuizService.DeleteQuestion(_questionToDelete.Id);
+            await QuizService.DeleteQuestion(_teacherId, _questionToDelete.Id);
             _questionToDelete = null;
             _questions = await QuizService.GetQuestions();
         }

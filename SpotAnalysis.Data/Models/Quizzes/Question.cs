@@ -1,4 +1,6 @@
-﻿namespace SpotAnalysis.Data.Models.Quizzes;
+﻿using System.Diagnostics.CodeAnalysis;
+
+namespace SpotAnalysis.Data.Models.Quizzes;
 
 /// <summary>
 /// A question that contains info about the QuestionType, a description. One question may be used in multiple Quizzes.
@@ -6,7 +8,8 @@
 /// </summary>
 
 [Index(nameof(Type))]
-public class Question {
+public class Question
+{
     [Key]
     public int QuestionID { get; set; }
 
@@ -33,6 +36,6 @@ public class Question {
     public virtual STLQuestion? STLQuestion { get; set; } = null!;
 
     [DeleteBehavior(DeleteBehavior.Restrict)]
-    public virtual STQuestion? STQuestion {  get; set; } = null!;
+    public virtual STQuestion? STQuestion { get; set; } = null!;
     public virtual ICollection<QuizQuestion> QuizQuestions { get; set; } = [];
 }

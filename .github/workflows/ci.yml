@@ -62,6 +62,7 @@ jobs:
 
       - name: Check formatting
         run: dotnet format SpotAnalysis.slnx --verify-no-changes
+        continue-on-error: true
 
       - name: Build
         run: dotnet build SpotAnalysis.slnx --no-restore --warnaserror

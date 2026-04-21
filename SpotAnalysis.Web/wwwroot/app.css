@@ -432,15 +432,6 @@ h1:focus {
     justify-content: center;
 }
 
-.home-btn {
-    padding: 0.25rem;
-}
-
-.home-icon {
-    height: 44px;
-    width: auto;
-    display: block;
-}
 .user-greeting {
     margin-left: auto;  
     font-weight: 500;

@@ -7,16 +7,16 @@
 
 <div class="size-full flex flex-col bg-gray-50">
     <header class="bg-white shadow-sm px-6 py-4 flex items-center justify-between">
-        <NavLink href="/uebungen" class="p-2 hover:bg-gray-100 rounded-lg transition-colors" style="display: flex; align-items: center;" aria-label="Zurück">
+        <NavLink href="/uebungen" class="icon-nav-link p-2 hover:bg-gray-100 rounded-lg transition-colors" aria-label="Zurück">
             <svg class="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M15 19l-7-7 7-7" />
             </svg>
         </NavLink>
 
         <div class="absolute left-1/2 -translate-x-1/2 flex gap-3 z-10">
-            <NavLink href="/sandbox" class="bg-gray-100 text-gray-700 px-6 py-2 rounded-lg font-medium hover:bg-gray-200 transition-colors" style="text-decoration: none;">Sandbox</NavLink>
-            <NavLink href="/reverse" class="bg-gray-100 text-gray-700 px-6 py-2 rounded-lg font-medium hover:bg-gray-200 transition-colors" style="text-decoration: none;">Reverse</NavLink>
-            <NavLink href="/uebungen" class="bg-gray-100 text-gray-700 px-6 py-2 rounded-lg font-medium hover:bg-gray-200 transition-colors" style="text-decoration: none;">Übungen</NavLink>
+            <NavLink href="/sandbox" class="light-nav-link bg-gray-100 text-gray-700 px-6 py-2 rounded-lg font-medium hover:bg-gray-200 transition-colors">Sandbox</NavLink>
+            <NavLink href="/reverse" class="light-nav-link bg-gray-100 text-gray-700 px-6 py-2 rounded-lg font-medium hover:bg-gray-200 transition-colors">Reverse</NavLink>
+            <NavLink href="/uebungen" class="light-nav-link bg-gray-100 text-gray-700 px-6 py-2 rounded-lg font-medium hover:bg-gray-200 transition-colors">Übungen</NavLink>
         </div>
 
         <ProfileMenu ContainerClass="ml-auto" />
@@ -49,7 +49,7 @@
                 </div>
                 <div class="flex gap-3">
                     <button @onclick="HandleRestart" class="flex-1 py-3 rounded-lg font-medium bg-yellow-500 text-white hover:bg-yellow-600 transition-colors">Nochmal</button>
-                    <NavLink href="/uebungen" class="flex-1 py-3 rounded-lg font-medium bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors text-center" style="text-decoration: none;">Zurück</NavLink>
+                    <NavLink href="/uebungen" class="light-nav-link flex-1 py-3 rounded-lg font-medium bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors text-center">Zurück</NavLink>
                 </div>
             </div>
         </div>
@@ -498,147 +498,129 @@
 
     private string GetPhColor(string phLevel)
     {
-        return phLevel switch
+        return (phLevel ?? "").ToLowerInvariant() switch
         {
-            "-" => "bg-gray-200",
-            "1" => "bg-red-600",
-            "2" => "bg-red-500",
-            "3" => "bg-red-400",
-            "4" => "bg-red-300",
-            "5" => "bg-orange-300",
-            "6" => "bg-yellow-300",
-            "7" => "bg-green-300",
-            "8" => "bg-green-400",
-            "9" => "bg-green-500",
-            "10" => "bg-green-600",
-            "11" => "bg-blue-300",
-            "12" => "bg-blue-400",
+            "rot" => "bg-red-400",
+            "orange" => "bg-orange-300",
+            "gelb" => "bg-yellow-300",
+            "grün" => "bg-green-400",
+            "blau" => "bg-blue-400",
             _ => "bg-gray-200",
         };
     }
 
     private string GetFlameColor(string flameColor)
     {
-        return flameColor switch
+        return (flameColor ?? "").ToLowerInvariant() switch
         {
-            "Keine" => "bg-gray-200",
-            "Blassblau" => "bg-blue-200",
-            "Gelb" => "bg-yellow-300",
-            "Orangefunken" => "bg-orange-400",
-            "Grün" => "bg-green-400",
-            "Rot-Orange" => "bg-orange-500",
-            "Blau" => "bg-blue-400",
-            _ => "bg-gray-300",
+            "rot" => "bg-red-400",
+            "orange" => "bg-orange-400",
+            "orangefunken" => "bg-orange-400",
+            "grün" => "bg-green-400",
+            "violett" => "bg-violet-400",
+            "blau" => "bg-blue-400",
+            "blassblau" => "bg-blue-200",
+            "gelb" => "bg-yellow-300",
+            "rot-orange" => "bg-orange-500",
+            _ => "bg-gray-200",
         };
     }
 
     private string GetElementColor(string elementColor)
     {
-        var normalized = (elementColor ?? string.Empty).ToLowerInvariant();
-        return normalized switch
-        {
-            var v when v.Contains("weiß") => "bg-gray-100",
-            var v when v.Contains("schwarz") => "bg-black",
-            var v when v.Contains("gelbgrün") => "bg-lime-300",
-            var v when v.Contains("gelb") => "bg-yellow-300",
-            var v when v.Contains("grau") => "bg-gray-400",
-            var v when v.Contains("rotbraun") => "bg-orange-700",
-            var v when v.Contains("grün") => "bg-green-400",
-            var v when v.Contains("blau") => "bg-blue-400",
-            var v when v.Contains("rot") => "bg-red-400",
-            var v when v.Contains("orange") => "bg-orange-400",
-            var v when v.Contains("farblos") => "bg-white",
-            _ => "bg-white",
-        };
+        var v = (elementColor ?? string.Empty).ToLowerInvariant();
+        if (v.Contains("orange")) return "bg-orange-400";
+        if (v.Contains("weiß")) return "bg-gray-100";
+        if (v.Contains("schwarz")) return "bg-gray-900";
+        if (v.Contains("gelbgrün")) return "bg-lime-300";
+        if (v.Contains("gelb")) return "bg-yellow-300";
+        if (v.Contains("grau")) return "bg-gray-400";
+        if (v.Contains("rotbraun")) return "bg-orange-700";
+        if (v.Contains("grün")) return "bg-green-400";
+        if (v.Contains("blau")) return "bg-blue-400";
+        if (v.Contains("rot")) return "bg-red-400";
+        return "bg-gray-200";
     }
 
     private string GetPhColorHex(string phLevel)
     {
-        return phLevel switch
+        return (phLevel ?? "").ToLowerInvariant() switch
         {
-            "-" => "#000000",
-            "1" => "#dc2626",
-            "2" => "#ef4444",
-            "3" => "#f87171",
-            "4" => "#fca5a5",
-            "5" => "#fed7aa",
-            "6" => "#fef08a",
-            "7" => "#bbf7d0",
-            "8" => "#86efac",
-            "9" => "#4ade80",
-            "10" => "#16a34a",
-            "11" => "#bfdbfe",
-            "12" => "#93c5fd",
-            _ => "#e5e7eb",
+            "rot" => "#ef4444",
+            "orange" => "#fb923c",
+            "gelb" => "#fef08a",
+            "grün" => "#4ade80",
+            "blau" => "#60a5fa",
+            _ => "#9ca3af",
         };
     }
 
     private string GetFlameColorHex(string flameColor)
     {
-        return flameColor switch
+        return (flameColor ?? "").ToLowerInvariant() switch
         {
-            "Keine" => "#000000",
-            "Blassblau" => "#bfdbfe",
-            "Gelb" => "#fcd34d",
-            "Orangefunken" => "#fb923c",
-            "Grün" => "#4ade80",
-            "Rot-Orange" => "#f97316",
-            "Blau" => "#60a5fa",
-            _ => "#d1d5db",
+            "rot" => "#ef4444",
+            "orange" => "#fb923c",
+            "orangefunken" => "#fb923c",
+            "grün" => "#4ade80",
+            "violett" => "#a78bfa",
+            "blau" => "#60a5fa",
+            "blassblau" => "#bfdbfe",
+            "gelb" => "#fcd34d",
+            "rot-orange" => "#f97316",
+            _ => "#9ca3af",
         };
     }
 
     private string GetElementColorHex(string elementColor)
     {
-        var normalized = (elementColor ?? string.Empty).ToLowerInvariant();
-        return normalized switch
-        {
-            var v when v.Contains("weiß") => "#f3f4f6",
-            var v when v.Contains("schwarz") => "#111827",
-            var v when v.Contains("gelbgrün") => "#bef264",
-            var v when v.Contains("gelb") => "#fde047",
-            var v when v.Contains("grau") => "#9ca3af",
-            var v when v.Contains("rotbraun") => "#c2410c",
-            var v when v.Contains("grün") => "#4ade80",
-            var v when v.Contains("blau") => "#60a5fa",
-            var v when v.Contains("rot") => "#f87171",
-            var v when v.Contains("orange") => "#fb923c",
-            var v when v.Contains("farblos") => "#000000",
-            _ => "#000000",
-        };
+        var v = (elementColor ?? string.Empty).ToLowerInvariant();
+        if (v.Contains("orange")) return "#fb923c";
+        if (v.Contains("weiß")) return "#f3f4f6";
+        if (v.Contains("schwarz")) return "#111827";
+        if (v.Contains("gelbgrün")) return "#bef264";
+        if (v.Contains("gelb")) return "#fde047";
+        if (v.Contains("grau")) return "#9ca3af";
+        if (v.Contains("rotbraun")) return "#c2410c";
+        if (v.Contains("grün")) return "#4ade80";
+        if (v.Contains("blau")) return "#60a5fa";
+        if (v.Contains("rot")) return "#f87171";
+        return "#9ca3af";
     }
 
-    private bool ShouldShowPhStrip(string phLevel) => !string.IsNullOrWhiteSpace(phLevel);
-    private bool ShouldShowFlameStrip(string flameColor) => !string.IsNullOrWhiteSpace(flameColor);
-    private bool ShouldShowElementColorStrip(string elementColor) => !string.IsNullOrWhiteSpace(elementColor);
+    private bool ShouldShowPhStrip(string phLevel) => true;
+    private bool ShouldShowFlameStrip(string flameColor) => true;
+    private bool ShouldShowElementColorStrip(string elementColor) => true;
 
     private string GetPhDisplayText(string phLevel)
     {
-        return phLevel switch
+        if (string.IsNullOrWhiteSpace(phLevel) || phLevel == "-") return "Keine";
+        return phLevel.ToLowerInvariant() switch
         {
-            "1" or "2" or "3" or "4" => "Rot",
-            "5" => "Orange",
-            "6" => "Gelb",
-            "7" or "8" or "9" or "10" => "Grün",
-            "11" or "12" => "Blau",
-            _ => "Keine"
+            "rot" => "Rot",
+            "orange" => "Orange",
+            "gelb" => "Gelb",
+            "grün" => "Grün",
+            "blau" => "Blau",
+            _ => phLevel
         };
     }
 
     private string GetFlameDisplayText(string flameColor)
     {
-        return string.Equals(flameColor, "None", StringComparison.OrdinalIgnoreCase)
-            || string.Equals(flameColor, "Keine", StringComparison.OrdinalIgnoreCase)
-            ? "Keine"
-            : flameColor;
+        if (string.IsNullOrWhiteSpace(flameColor)
+            || string.Equals(flameColor, "keine", StringComparison.OrdinalIgnoreCase))
+            return "Keine";
+        return flameColor;
     }
 
     private string GetElementColorDisplayText(string elementColor)
     {
-        return string.IsNullOrWhiteSpace(elementColor)
-            || string.Equals(elementColor, "Farblos", StringComparison.OrdinalIgnoreCase)
-            ? "Keine"
-            : elementColor;
+        if (string.IsNullOrWhiteSpace(elementColor)
+            || string.Equals(elementColor, "keine", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(elementColor, "farblos", StringComparison.OrdinalIgnoreCase))
+            return "Keine";
+        return elementColor;
     }
 
     private sealed class LightFrage

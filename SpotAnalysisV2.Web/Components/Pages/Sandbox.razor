@@ -1,23 +1,14 @@
 @page "/sandbox"
 @using Microsoft.AspNetCore.Components.Routing
 @rendermode InteractiveServer
-
-<style>
-    .hide-scrollbar {
-        -ms-overflow-style: none;
-        scrollbar-width: none;
-    }
-
-    .hide-scrollbar::-webkit-scrollbar {
-        display: none;
-    }
-</style>
+@attribute [Authorize]
+@inject IChemistryDataService ChemistryData
 
 <div class="size-full flex flex-col bg-gray-50">
     <!-- Header -->
     <header class="bg-white shadow-sm px-6 py-4 flex items-center justify-between">
         <!-- Left - Home Button -->
-        <NavLink href="/" class="p-2 hover:bg-gray-100 rounded-lg transition-colors" style="display: flex; align-items: center;">
+        <NavLink href="/" class="sandbox-icon-nav-link p-2 hover:bg-gray-100 rounded-lg transition-colors">
             <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
                 <polyline points="9 22 9 12 15 12 15 22"></polyline>
@@ -27,8 +18,8 @@
         <!-- Center - Navigation Buttons -->
         <div class="absolute left-1/2 -translate-x-1/2 flex gap-3 z-10">
             <div class="bg-blue-500 text-white px-6 py-2 rounded-lg font-medium">Sandbox</div>
-            <NavLink href="/reverse" class="bg-gray-100 text-gray-700 px-6 py-2 rounded-lg font-medium hover:bg-gray-200 transition-colors" style="text-decoration: none;">Reverse</NavLink>
-            <NavLink href="/uebungen" class="bg-gray-100 text-gray-700 px-6 py-2 rounded-lg font-medium hover:bg-gray-200 transition-colors" style="text-decoration: none;">Übungen</NavLink>
+            <NavLink href="/reverse" class="sandbox-nav-link bg-gray-100 text-gray-700 px-6 py-2 rounded-lg font-medium hover:bg-gray-200 transition-colors">Reverse</NavLink>
+            <NavLink href="/uebungen" class="sandbox-nav-link bg-gray-100 text-gray-700 px-6 py-2 rounded-lg font-medium hover:bg-gray-200 transition-colors">Übungen</NavLink>
         </div>
 
         <!-- Right - Profile -->
@@ -49,8 +40,7 @@
                          @ondragover:preventDefault
                          @ondragleave="HandleDragLeave1">
                         <h3 class="text-sm font-medium mb-2">Edukt 1</h3>
-                        <div class="w-full border-2 border-dashed rounded-lg p-3 min-h-[140px] flex items-center justify-center transition-all text-left cursor-pointer @(isDragOver1 ? "bg-blue-100 border-blue-400" : "")"
-                             style="@(box1Edukt != null ? "border-color: #3b82f6; background-color: white; border-style: solid;" : "border-color: #d1d5db; background-color: #f9fafb;")"
+                        <div class="w-full border-2 border-dashed rounded-lg p-3 min-h-[140px] flex items-center justify-center transition-all text-left cursor-pointer @(isDragOver1 ? "bg-blue-100 border-blue-400" : "") @(box1Edukt != null ? "sandbox-dropzone-filled" : "sandbox-dropzone-empty")"
                              @onclick="() => PlaceEdukt(1)">
                             @if (box1Edukt != null)
                             {
@@ -116,8 +106,7 @@
                          @ondragover:preventDefault
                          @ondragleave="HandleDragLeave2">
                         <h3 class="text-sm font-medium mb-2">Edukt 2</h3>
-                        <div class="w-full border-2 border-dashed rounded-lg p-3 min-h-[140px] flex items-center justify-center transition-all text-left cursor-pointer @(isDragOver2 ? "bg-blue-100 border-blue-400" : "")"
-                             style="@(box2Edukt != null ? "border-color: #3b82f6; background-color: white; border-style: solid;" : "border-color: #d1d5db; background-color: #f9fafb;")"
+                        <div class="w-full border-2 border-dashed rounded-lg p-3 min-h-[140px] flex items-center justify-center transition-all text-left cursor-pointer @(isDragOver2 ? "bg-blue-100 border-blue-400" : "") @(box2Edukt != null ? "sandbox-dropzone-filled" : "sandbox-dropzone-empty")"
                              @onclick="() => PlaceEdukt(2)">
                             @if (box2Edukt != null)
                             {
@@ -404,14 +393,13 @@
 @code {
     private class Edukt
     {
-        public string Id { get; set; }
+        public int Id { get; set; }
         public string Name { get; set; }
         public string Type { get; set; }
         public string Color { get; set; }
         public string PhLevel { get; set; }
         public string FlameColor { get; set; }
         public string ElementColor { get; set; }
-        public string Description { get; set; }
     }
 
     private class MixLog
@@ -424,38 +412,58 @@
         public DateTime Timestamp { get; set; }
     }
 
-    private List<Edukt> edukte = new()
-    {
-        new Edukt { Id = "1", Name = "H2", Type = "Hydrogen", Color = "bg-blue-100 border-blue-300", PhLevel = "7", FlameColor = "Pale Blue", ElementColor = "Farblos", Description = "Colorless gas" },
-        new Edukt { Id = "2", Name = "O2", Type = "Oxygen", Color = "bg-red-100 border-red-300", PhLevel = "7", FlameColor = "None", ElementColor = "Farblos", Description = "Colorless gas" },
-        new Edukt { Id = "3", Name = "NaCl", Type = "Salt", Color = "bg-gray-100 border-gray-300", PhLevel = "7", FlameColor = "Yellow", ElementColor = "Weiß", Description = "White crystals" },
-        new Edukt { Id = "4", Name = "N2", Type = "Nitrogen", Color = "bg-purple-100 border-purple-300", PhLevel = "7", FlameColor = "None", ElementColor = "Farblos", Description = "Inert gas" },
-        new Edukt { Id = "5", Name = "C", Type = "Carbon", Color = "bg-slate-200 border-slate-400", PhLevel = "-", FlameColor = "Red-Orange", ElementColor = "Schwarz", Description = "Black solid" },
-        new Edukt { Id = "6", Name = "S", Type = "Sulfur", Color = "bg-yellow-100 border-yellow-300", PhLevel = "-", FlameColor = "Blue", ElementColor = "Gelb", Description = "Yellow solid" },
-        new Edukt { Id = "7", Name = "Fe", Type = "Iron", Color = "bg-gray-200 border-gray-400", PhLevel = "-", FlameColor = "Orange sparks", ElementColor = "Grau", Description = "Metallic gray" },
-        new Edukt { Id = "8", Name = "Cu", Type = "Copper", Color = "bg-orange-200 border-orange-400", PhLevel = "-", FlameColor = "Green", ElementColor = "Rotbraun", Description = "Reddish metal" },
-        new Edukt { Id = "9", Name = "Cl2", Type = "Chlorine", Color = "bg-green-200 border-green-400", PhLevel = "-", FlameColor = "None", ElementColor = "Gelbgrün", Description = "Yellow-green gas" },
-        new Edukt { Id = "10", Name = "CO2", Type = "Carbon Dioxide", Color = "bg-gray-100 border-gray-300", PhLevel = "5.6", FlameColor = "None", ElementColor = "Farblos", Description = "Colorless gas" },
-        new Edukt { Id = "11", Name = "H2O", Type = "Water", Color = "bg-cyan-100 border-cyan-300", PhLevel = "7", FlameColor = "None", ElementColor = "Farblos", Description = "Clear liquid" },
-        new Edukt { Id = "12", Name = "NH3", Type = "Ammonia", Color = "bg-blue-200 border-blue-400", PhLevel = "11", FlameColor = "None", ElementColor = "Farblos", Description = "Pungent gas" },
-    };
+    private List<Edukt> edukte = [];
+    private List<LabReactionDto> _allReactions = [];
 
     private Edukt box1Edukt;
     private Edukt box2Edukt;
     private MixLog? currentMixLog;
     private List<MixLog> mixLogs = new();
     private string searchQuery = "";
-    private List<Edukt> filteredEdukte = new();
+    private List<Edukt> filteredEdukte = [];
     private Edukt selectedEdukt;
     private Edukt draggedEdukt;
     private bool isDragOver1;
     private bool isDragOver2;
     private bool isHistoryVisible;
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
+        var chemicals = await ChemistryData.GetAllChemicalsAsync();
+        _allReactions = await ChemistryData.GetAllReactionsAsync();
+        edukte = chemicals.Select(MapChemical).ToList();
         filteredEdukte = edukte;
         isHistoryVisible = false;
+    }
+
+    private static Edukt MapChemical(LabChemicalDto c)
+    {
+        var ph = c.MethodOutputs.TryGetValue("pH-Papier", out var p) ? p : "-";
+        var flame = c.MethodOutputs.TryGetValue("Flammenfärbung", out var f) ? f : "Keine";
+        return new Edukt
+        {
+            Id = c.ChemicalID,
+            Name = c.Name,
+            Type = c.Formula,
+            Color = BuildCardColorClass(c.Color),
+            PhLevel = ph,
+            FlameColor = flame,
+            ElementColor = c.Color,
+        };
+    }
+
+    private static string BuildCardColorClass(string color)
+    {
+        return color.ToLowerInvariant() switch
+        {
+            var c when c.Contains("gelb") => "bg-yellow-100 border-yellow-300",
+            var c when c.Contains("grün") => "bg-green-100 border-green-300",
+            var c when c.Contains("blau") => "bg-blue-100 border-blue-300",
+            var c when c.Contains("rot") => "bg-red-100 border-red-300",
+            var c when c.Contains("orange") => "bg-orange-100 border-orange-300",
+            var c when c.Contains("braun") => "bg-amber-100 border-amber-300",
+            _ => "bg-gray-100 border-gray-300"
+        };
     }
 
     private void HandleSearch(string query)
@@ -463,8 +471,7 @@
         searchQuery = query;
         filteredEdukte = edukte.Where(e =>
             e.Name.Contains(query, StringComparison.OrdinalIgnoreCase) ||
-            e.Type.Contains(query, StringComparison.OrdinalIgnoreCase) ||
-            e.Description.Contains(query, StringComparison.OrdinalIgnoreCase)
+            e.Type.Contains(query, StringComparison.OrdinalIgnoreCase)
         ).ToList();
         StateHasChanged();
     }
@@ -490,41 +497,37 @@
 
     private void HandleMix()
     {
-        if (box1Edukt != null && box2Edukt != null)
+        if (box1Edukt == null || box2Edukt == null) return;
+
+        var reaction = _allReactions.FirstOrDefault(r =>
+            (r.Chemical1ID == box1Edukt.Id && r.Chemical2ID == box2Edukt.Id) ||
+            (r.Chemical1ID == box2Edukt.Id && r.Chemical2ID == box1Edukt.Id));
+
+        var result = reaction?.RelevantProduct ?? "Keine Reaktion bekannt";
+        var formula = reaction?.Formula ?? $"{box1Edukt.Name} + {box2Edukt.Name} → ?";
+
+        var log = new MixLog
         {
-            var result = $"{box1Edukt.Name}{box2Edukt.Name}";
-            var formula = $"{box1Edukt.Name} + {box2Edukt.Name} → {result}";
+            Id = DateTime.Now.Ticks.ToString(),
+            Edukt1 = box1Edukt,
+            Edukt2 = box2Edukt,
+            Result = result,
+            Formula = formula,
+            Timestamp = DateTime.Now
+        };
 
-            var log = new MixLog
-            {
-                Id = DateTime.Now.Ticks.ToString(),
-                Edukt1 = box1Edukt,
-                Edukt2 = box2Edukt,
-                Result = result,
-                Formula = formula,
-                Timestamp = DateTime.Now
-            };
+        if (currentMixLog != null)
+            mixLogs.Insert(0, currentMixLog);
 
-            if (currentMixLog != null)
-            {
-                mixLogs.Insert(0, currentMixLog);
-            }
-
-            currentMixLog = log;
-        }
+        currentMixLog = log;
     }
 
     private IEnumerable<MixLog> GetVisibleMixLogs()
     {
         if (currentMixLog != null)
-        {
             yield return currentMixLog;
-        }
-
         foreach (var log in mixLogs)
-        {
             yield return log;
-        }
     }
 
     private bool IsCurrentMix(MixLog log) => currentMixLog?.Id == log.Id;
@@ -555,44 +558,18 @@
         StateHasChanged();
     }
 
-    private void HandleDragOver1()
-    {
-        isDragOver1 = true;
-        StateHasChanged();
-    }
-
-    private void HandleDragOver2()
-    {
-        isDragOver2 = true;
-        StateHasChanged();
-    }
-
-    private void HandleDragLeave1()
-    {
-        isDragOver1 = false;
-        StateHasChanged();
-    }
-
-    private void HandleDragLeave2()
-    {
-        isDragOver2 = false;
-        StateHasChanged();
-    }
-
-    private void HandleDragLeaveSearch()
-    {
-        StateHasChanged();
-    }
+    private void HandleDragOver1() { isDragOver1 = true; StateHasChanged(); }
+    private void HandleDragOver2() { isDragOver2 = true; StateHasChanged(); }
+    private void HandleDragLeave1() { isDragOver1 = false; StateHasChanged(); }
+    private void HandleDragLeave2() { isDragOver2 = false; StateHasChanged(); }
+    private void HandleDragLeaveSearch() { StateHasChanged(); }
 
     private void HandleDrop(DragEventArgs e, int boxNumber)
     {
         if (draggedEdukt != null)
         {
-            if (boxNumber == 1)
-                box1Edukt = draggedEdukt;
-            else if (boxNumber == 2)
-                box2Edukt = draggedEdukt;
-
+            if (boxNumber == 1) box1Edukt = draggedEdukt;
+            else if (boxNumber == 2) box2Edukt = draggedEdukt;
             draggedEdukt = null;
             isDragOver1 = false;
             isDragOver2 = false;
@@ -614,17 +591,8 @@
     private void HandleReturnToListDrop(DragEventArgs e)
     {
         if (draggedEdukt == null) return;
-
-        if (box1Edukt?.Id == draggedEdukt.Id)
-        {
-            box1Edukt = null;
-        }
-
-        if (box2Edukt?.Id == draggedEdukt.Id)
-        {
-            box2Edukt = null;
-        }
-
+        if (box1Edukt?.Id == draggedEdukt.Id) box1Edukt = null;
+        if (box2Edukt?.Id == draggedEdukt.Id) box2Edukt = null;
         selectedEdukt = null;
         draggedEdukt = null;
         isDragOver1 = false;
@@ -634,149 +602,129 @@
 
     private string GetPhColor(string phLevel)
     {
-        return phLevel switch
+        return (phLevel ?? "").ToLowerInvariant() switch
         {
-            "-" => "bg-white",
-            "1" => "bg-red-600",
-            "2" => "bg-red-500",
-            "3" => "bg-red-400",
-            "4" => "bg-red-300",
-            "5" => "bg-orange-300",
-            "6" => "bg-yellow-300",
-            "7" => "bg-green-300",
-            "8" => "bg-green-400",
-            "9" => "bg-green-500",
-            "10" => "bg-green-600",
-            "11" => "bg-blue-300",
-            "12" => "bg-blue-400",
-            _ => "bg-white",
+            "rot" => "bg-red-400",
+            "orange" => "bg-orange-300",
+            "gelb" => "bg-yellow-300",
+            "grün" => "bg-green-400",
+            "blau" => "bg-blue-400",
+            _ => "bg-gray-200",
         };
     }
 
     private string GetFlameColor(string flameColor)
     {
-        return flameColor switch
+        return (flameColor ?? "").ToLowerInvariant() switch
         {
-            "None" => "bg-white",
-            "Pale Blue" => "bg-blue-200",
-            "Yellow" => "bg-yellow-300",
-            "Orange sparks" => "bg-orange-400",
-            "Green" => "bg-green-400",
-            "Red-Orange" => "bg-orange-500",
-            "Blue" => "bg-blue-400",
-            _ => "bg-white",
+            "rot" => "bg-red-400",
+            "orange" => "bg-orange-400",
+            "orangefunken" => "bg-orange-400",
+            "grün" => "bg-green-400",
+            "violett" => "bg-violet-400",
+            "blau" => "bg-blue-400",
+            "blassblau" => "bg-blue-200",
+            "gelb" => "bg-yellow-300",
+            "rot-orange" => "bg-orange-500",
+            _ => "bg-gray-200",
         };
     }
 
     private string GetElementColor(string elementColor)
     {
-        return elementColor switch
-        {
-            "Farblos" => "bg-white",
-            "Weiß" => "bg-gray-100",
-            "Schwarz" => "bg-black",
-            "Gelb" => "bg-yellow-300",
-            "Grau" => "bg-gray-400",
-            "Rotbraun" => "bg-orange-700",
-            "Gelbgrün" => "bg-lime-300",
-            _ => "bg-white",
-        };
+        var v = (elementColor ?? string.Empty).ToLowerInvariant();
+        if (v.Contains("orange")) return "bg-orange-400";
+        if (v.Contains("weiß")) return "bg-gray-100";
+        if (v.Contains("schwarz")) return "bg-gray-900";
+        if (v.Contains("gelbgrün")) return "bg-lime-300";
+        if (v.Contains("gelb")) return "bg-yellow-300";
+        if (v.Contains("grau")) return "bg-gray-400";
+        if (v.Contains("rotbraun")) return "bg-orange-700";
+        if (v.Contains("grün")) return "bg-green-400";
+        if (v.Contains("blau")) return "bg-blue-400";
+        if (v.Contains("rot")) return "bg-red-400";
+        return "bg-gray-200";
     }
 
     private string GetPhColorHex(string phLevel)
     {
-        return phLevel switch
+        return (phLevel ?? "").ToLowerInvariant() switch
         {
-            "-" => "#000000",
-            "1" => "#dc2626",
-            "2" => "#ef4444",
-            "3" => "#f87171",
-            "4" => "#fca5a5",
-            "5" => "#fed7aa",
-            "6" => "#fef08a",
-            "7" => "#bbf7d0",
-            "8" => "#86efac",
-            "9" => "#4ade80",
-            "10" => "#16a34a",
-            "11" => "#bfdbfe",
-            "12" => "#93c5fd",
-            _ => "#000000",
+            "rot" => "#ef4444",
+            "orange" => "#fb923c",
+            "gelb" => "#fef08a",
+            "grün" => "#4ade80",
+            "blau" => "#60a5fa",
+            _ => "#9ca3af",
         };
     }
 
     private string GetFlameColorHex(string flameColor)
     {
-        return flameColor switch
+        return (flameColor ?? "").ToLowerInvariant() switch
         {
-            "None" => "#000000",
-            "Pale Blue" => "#bfdbfe",
-            "Yellow" => "#fcd34d",
-            "Orange sparks" => "#fb923c",
-            "Green" => "#4ade80",
-            "Red-Orange" => "#f97316",
-            "Blue" => "#60a5fa",
-            _ => "#d1d5db",
+            "rot" => "#ef4444",
+            "orange" => "#fb923c",
+            "orangefunken" => "#fb923c",
+            "grün" => "#4ade80",
+            "violett" => "#a78bfa",
+            "blau" => "#60a5fa",
+            "blassblau" => "#bfdbfe",
+            "gelb" => "#fcd34d",
+            "rot-orange" => "#f97316",
+            _ => "#9ca3af",
         };
     }
 
     private string GetElementColorHex(string elementColor)
     {
-        return elementColor switch
+        var v = (elementColor ?? string.Empty).ToLowerInvariant();
+        if (v.Contains("orange")) return "#fb923c";
+        if (v.Contains("weiß")) return "#f3f4f6";
+        if (v.Contains("schwarz")) return "#111827";
+        if (v.Contains("gelbgrün")) return "#bef264";
+        if (v.Contains("gelb")) return "#fde047";
+        if (v.Contains("grau")) return "#9ca3af";
+        if (v.Contains("rotbraun")) return "#c2410c";
+        if (v.Contains("grün")) return "#4ade80";
+        if (v.Contains("blau")) return "#60a5fa";
+        if (v.Contains("rot")) return "#f87171";
+        return "#9ca3af";
+    }
+
+    private bool ShouldShowPhStrip(string phLevel) => true;
+    private bool ShouldShowFlameStrip(string flameColor) => true;
+    private bool ShouldShowElementColorStrip(string elementColor) => true;
+
+    private string GetPhDisplayText(string phLevel)
+    {
+        if (string.IsNullOrWhiteSpace(phLevel) || phLevel == "-") return "Keine";
+        return (phLevel).ToLowerInvariant() switch
         {
-            "Farblos" => "#000000",
-            "Kein" => "#000000",
-            "Weiß" => "#f3f4f6",
-            "Schwarz" => "#111827",
-            "Gelb" => "#fde047",
-            "Grau" => "#9ca3af",
-            "Rotbraun" => "#c2410c",
-            "Gelbgrün" => "#bef264",
-            _ => "#000000",
+            "rot" => "Rot",
+            "orange" => "Orange",
+            "gelb" => "Gelb",
+            "grün" => "Grün",
+            "blau" => "Blau",
+            _ => phLevel
         };
     }
 
     private string GetFlameDisplayText(string flameColor)
     {
-        return string.Equals(flameColor, "None", StringComparison.OrdinalIgnoreCase)
-            || string.Equals(flameColor, "Keine", StringComparison.OrdinalIgnoreCase)
-            ? "Keine"
-            : flameColor;
+        if (string.IsNullOrWhiteSpace(flameColor)
+            || string.Equals(flameColor, "keine", StringComparison.OrdinalIgnoreCase))
+            return "Keine";
+        return flameColor;
     }
 
     private string GetElementColorDisplayText(string elementColor)
     {
-        return string.IsNullOrWhiteSpace(elementColor)
-            || string.Equals(elementColor, "Farblos", StringComparison.OrdinalIgnoreCase)
-            ? "Keine"
-            : elementColor;
-    }
-
-    private bool ShouldShowPhStrip(string phLevel)
-    {
-        return !string.IsNullOrWhiteSpace(phLevel);
-    }
-
-    private string GetPhDisplayText(string phLevel)
-    {
-        return phLevel switch
-        {
-            "1" or "2" or "3" or "4" => "Rot",
-            "5" => "Orange",
-            "6" => "Gelb",
-            "7" or "8" or "9" or "10" => "Grün",
-            "11" or "12" => "Blau",
-            _ => "Keine"
-        };
-    }
-
-    private bool ShouldShowFlameStrip(string flameColor)
-    {
-        return !string.IsNullOrWhiteSpace(flameColor);
-    }
-
-    private bool ShouldShowElementColorStrip(string elementColor)
-    {
-        return !string.IsNullOrWhiteSpace(elementColor);
+        if (string.IsNullOrWhiteSpace(elementColor)
+            || string.Equals(elementColor, "keine", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(elementColor, "farblos", StringComparison.OrdinalIgnoreCase))
+            return "Keine";
+        return elementColor;
     }
 
     private void ToggleHistory()

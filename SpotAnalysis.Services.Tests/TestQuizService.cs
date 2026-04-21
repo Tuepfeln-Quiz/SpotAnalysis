@@ -454,7 +454,7 @@ public class TestQuizService : BaseDatabaseTest
 
         await using var db = await ContextFactory.CreateDbContextAsync();
         var closed = await db.QuizAttempts.SingleAsync(a => a.AttemptID == first.AttemptID);
-        Assert.That(closed.Completed, Is.GreaterThan(DateTime.Now.AddMinutes(-1)));
+        Assert.That(closed.Completed, Is.GreaterThan(DateTime.UtcNow.AddMinutes(-1)));
     }
 
     [Test]
@@ -499,7 +499,7 @@ public class TestQuizService : BaseDatabaseTest
             {
                 UserID = _createdBy,
                 QuizID = quiz.QuizID,
-                Started = DateTime.Now
+                Started = DateTime.UtcNow
             };
             db.QuizAttempts.Add(attempt);
             await db.SaveChangesAsync();
@@ -511,7 +511,7 @@ public class TestQuizService : BaseDatabaseTest
         await using (var db = await ContextFactory.CreateDbContextAsync())
         {
             var updated = await db.QuizAttempts.SingleAsync(a => a.AttemptID == attemptId);
-            Assert.That(updated.Completed, Is.GreaterThan(DateTime.Now.AddMinutes(-1)));
+            Assert.That(updated.Completed, Is.GreaterThan(DateTime.UtcNow.AddMinutes(-1)));
         }
     }
 }

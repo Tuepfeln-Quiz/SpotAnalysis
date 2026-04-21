@@ -17,7 +17,7 @@ public class StatisticsService(IDbContextFactory<AnalysisContext> factory) : ISt
         {
             UserID = userId,
             QuizID = quizId,
-            Started = DateTime.Now,
+            Started = DateTime.UtcNow,
             Completed = DateTime.MinValue
         };
 
@@ -73,7 +73,7 @@ public class StatisticsService(IDbContextFactory<AnalysisContext> factory) : ISt
         var attempt = await context.QuizAttempts.FindAsync(attemptId);
         if (attempt != null)
         {
-            attempt.Completed = DateTime.Now;
+            attempt.Completed = DateTime.UtcNow;
             await context.SaveChangesAsync();
         }
     }

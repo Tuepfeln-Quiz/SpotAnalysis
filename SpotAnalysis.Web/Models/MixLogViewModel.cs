@@ -9,5 +9,5 @@ public class MixLogViewModel
     public string Chemical2Name { get; set; } = "";
     public LabReactionDto? Reaction { get; set; }
     public bool? IsCorrect { get; set; }
-    public DateTime Timestamp { get; set; } = DateTime.Now;
+    public DateTime Timestamp { get; set; } = DateTime.UtcNow;
 }

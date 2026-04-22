@@ -394,9 +394,9 @@
     private void Edit() => Navigation.NavigateTo($"{BaseRoute}/{GroupId}/edit");
     private void BackToList() => Navigation.NavigateTo(BaseRoute);
 
-    private void GenerateInvite()
+    private async Task GenerateInvite()
     {
-        var token = InviteTokens.CreateToken(GroupId);
+        var token = await InviteTokens.CreateToken(GroupId);
         var baseUrl = Navigation.BaseUri.TrimEnd('/');
         _inviteLink = $"{baseUrl}/join/{token}";
         _inviteExpiresAt = DateTime.UtcNow.AddMinutes(15);

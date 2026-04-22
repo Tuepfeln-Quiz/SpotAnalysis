@@ -64,12 +64,7 @@
                                         <option value="@o.Id">@o.Description</option>
                                     }
                                 </InputSelect>
-                                <span class="align-self-center">oder</span>
-                                <InputText class="form-control input-custom"
-                                           placeholder="neue Beschreibung..."
-                                           @bind-Value="Dto.NewObservationDescription" />
                             </div>
-                            <small class="text-muted">Eine vorhandene wählen ODER eine neue Beschreibung eingeben.</small>
                         </div>
 
                         @if (!string.IsNullOrEmpty(_saveError))

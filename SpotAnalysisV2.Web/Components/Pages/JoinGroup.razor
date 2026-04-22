@@ -1,0 +1,93 @@
+@page "/join/{Token}"
+@rendermode InteractiveServer
+@attribute [Authorize]
+@inject IGroupService GroupService
+
+<PageTitle>Gruppe beitreten – SpotAnalysis</PageTitle>
+
+<div class="min-h-screen bg-gradient-to-br from-gray-50 via-white to-teal-50 p-8">
+    <div class="mx-auto max-w-2xl rounded-3xl bg-white p-8 shadow-xl">
+        @if (_state == State.Loading)
+        {
+            <div class="text-center">
+                <h1 class="text-2xl font-bold text-gray-800">Beitritt wird bearbeitet…</h1>
+                <p class="mt-2 text-sm text-gray-500">Bitte kurz warten.</p>
+            </div>
+        }
+        else if (_state == State.Success)
+        {
+            <div class="text-center">
+                <div class="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-green-100 text-green-700">✓</div>
+                <h1 class="text-2xl font-bold text-gray-800">Erfolgreich beigetreten</h1>
+                <p class="mt-2 text-sm text-gray-500">Du bist der Gruppe erfolgreich beigetreten.</p>
+                <a href="/" class="join-link-reset mt-6 inline-flex rounded-2xl bg-teal-500 px-4 py-3 text-sm font-semibold text-white hover:bg-teal-600">Zur Startseite</a>
+            </div>
+        }
+        else if (_state == State.AlreadyMember)
+        {
+            <div class="text-center">
+                <div class="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-blue-100 text-blue-700">i</div>
+                <h1 class="text-2xl font-bold text-gray-800">Bereits Mitglied</h1>
+                <p class="mt-2 text-sm text-gray-500">Du bist bereits Mitglied dieser Gruppe.</p>
+                <a href="/" class="join-link-reset mt-6 inline-flex rounded-2xl bg-teal-500 px-4 py-3 text-sm font-semibold text-white hover:bg-teal-600">Zur Startseite</a>
+            </div>
+        }
+        else
+        {
+            <div class="text-center">
+                <div class="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-red-100 text-red-700">!</div>
+                <h1 class="text-2xl font-bold text-gray-800">Beitritt nicht möglich</h1>
+                <p class="mt-2 text-sm text-red-600">@_errorMessage</p>
+                <a href="/" class="join-link-reset mt-6 inline-flex rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm font-semibold text-gray-700 hover:bg-gray-50">Zur Startseite</a>
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter] public string Token { get; set; } = string.Empty;
+    [CascadingParameter] private Task<AuthenticationState> AuthState { get; set; } = default!;
+
+    private enum State { Loading, Success, AlreadyMember, Error }
+    private State _state = State.Loading;
+    private string _errorMessage = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (!RendererInfo.IsInteractive) return;
+        if (_state != State.Loading) return;
+
+        var auth = await AuthState;
+        var userIdClaim = auth.User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? auth.User.FindFirst("sub")?.Value;
+        if (!Guid.TryParse(userIdClaim, out var userId))
+        {
+            _errorMessage = "Benutzerprofil konnte nicht gelesen werden. Bitte neu einloggen.";
+            _state = State.Error;
+            return;
+        }
+
+        var result = await GroupService.JoinGroupByToken(userId, Token);
+        switch (result)
+        {
+            case JoinGroupResult.Success:
+                _state = State.Success;
+                break;
+            case JoinGroupResult.AlreadyMember:
+                _state = State.AlreadyMember;
+                break;
+            case JoinGroupResult.TokenExpired:
+            case JoinGroupResult.TokenInvalid:
+                _errorMessage = "Dieser Einladungslink ist ungültig oder abgelaufen. Bitte deine Lehrkraft um einen neuen Link.";
+                _state = State.Error;
+                break;
+            case JoinGroupResult.GroupNotFound:
+                _errorMessage = "Die zugehörige Gruppe existiert nicht mehr.";
+                _state = State.Error;
+                break;
+            case JoinGroupResult.UserNotFound:
+                _errorMessage = "Benutzerprofil konnte nicht gefunden werden.";
+                _state = State.Error;
+                break;
+        }
+    }
+}

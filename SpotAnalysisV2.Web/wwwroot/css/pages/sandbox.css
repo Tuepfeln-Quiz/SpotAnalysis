@@ -1,0 +1,19 @@
+.hide-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+
+.sandbox-dropzone-filled {
+    border-color: #3b82f6;
+    background-color: white;
+    border-style: solid;
+}
+
+.sandbox-dropzone-empty {
+    border-color: #d1d5db;
+    background-color: #f9fafb;
+}

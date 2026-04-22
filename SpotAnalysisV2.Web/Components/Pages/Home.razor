@@ -1,0 +1,98 @@
+﻿@page "/"
+@rendermode InteractiveServer
+
+<div class="size-full flex flex-col bg-gradient-to-br from-gray-50 to-gray-100">
+    <!-- Header -->
+    <header class="bg-white shadow-sm px-6 h-24 flex items-center justify-center relative">
+        <!-- Center - Title -->
+        <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
+            <AppLogo Href="/"
+                     ShowText="true"
+                     ImageClass="app-logo-image app-logo-image-header"
+                     FallbackClass="app-logo-fallback-header" />
+        </div>
+
+        <!-- Right - Profile Icon -->
+        <div class="absolute right-6 top-1/2 -translate-y-1/2 z-20">
+            <ProfileMenu />
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-1 flex items-center justify-center p-8">
+        <div class="max-w-4xl w-full">
+            <!-- Welcome Section -->
+            <div class="text-center mb-12">
+                <h2 class="text-4xl font-bold text-gray-800 mb-4">Willkommen bei SpotAnalysis</h2>
+                <p class="text-lg text-gray-600 max-w-2xl mx-auto">
+                    Ihre umfassende Chemie-Lernplattform. Wählen Sie unten ein Modul aus, um mit chemischen Reaktionen zu experimentieren.
+                </p>
+            </div>
+
+            <!-- Main Buttons Grid -->
+            <div class="grid grid-cols-2 gap-6">
+                <!-- Sandbox Button -->
+                <NavLink href="/sandbox" class="home-link-reset group bg-white hover:bg-blue-50 shadow-lg rounded-2xl p-8 transition-all hover:shadow-xl hover:scale-105 border-2 border-transparent hover:border-blue-500">
+                    <div class="flex items-start gap-4">
+                        <div class="p-3 rounded-xl bg-gradient-to-br from-sky-500 to-indigo-500 text-white shadow-md ring-1 ring-white/40">
+                            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M10 2v7l-4 7a3 3 0 002.6 4.5h6.8A3 3 0 0018 16l-4-7V2" />
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6" />
+                            </svg>
+                        </div>
+                        <div class="text-left flex-1">
+                            <h3 class="text-2xl font-bold text-gray-800 mb-2">Sandbox</h3>
+                            <p class="text-gray-600 text-sm">Experimentieren Sie frei mit chemischen Elementen. Mischen Sie beliebige Kombinationen und beobachten Sie die Ergebnisse.</p>
+                        </div>
+                    </div>
+                </NavLink>
+
+                <!-- Reverse Button -->
+                <NavLink href="/reverse" class="home-link-reset group bg-white hover:bg-purple-50 shadow-lg rounded-2xl p-8 transition-all hover:shadow-xl hover:scale-105 border-2 border-transparent hover:border-purple-500">
+                    <div class="flex items-start gap-4">
+                        <div class="p-3 rounded-xl bg-gradient-to-br from-violet-500 to-fuchsia-500 text-white shadow-md ring-1 ring-white/40">
+                            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M4 12a8 8 0 0113.66-5.66L20 8.68" />
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M20 4v5h-5" />
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M20 12a8 8 0 01-13.66 5.66L4 15.32" />
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M4 20v-5h5" />
+                            </svg>
+                        </div>
+                        <div class="text-left flex-1">
+                            <h3 class="text-2xl font-bold text-gray-800 mb-2">Reverse</h3>
+                            <p class="text-gray-600 text-sm">Elemente sind vorausgewählt. Raten Sie, was das Ergebnis sein wird, bevor Sie mischen.</p>
+                        </div>
+                    </div>
+                </NavLink>
+
+                <AuthorizeView>
+                    <Authorized>
+                        <!-- Übungen Button (full width) -->
+                        <NavLink href="/uebungen" class="home-link-reset col-span-2 group bg-white hover:bg-teal-50 shadow-lg rounded-2xl p-8 transition-all hover:shadow-xl hover:scale-105 border-2 border-transparent hover:border-teal-500">
+                            <div class="flex items-start gap-4">
+                                <div class="p-3 rounded-xl bg-gradient-to-br from-teal-500 to-cyan-500 text-white shadow-md ring-1 ring-white/40">
+                                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 3h6l1 2h3v16H5V5h3l1-2z" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 10l2 2 4-4" />
+                                    </svg>
+                                </div>
+                                <div class="text-left flex-1">
+                                    <h3 class="text-2xl font-bold text-gray-800 mb-2">Meine Quizzes</h3>
+                                    <p class="text-gray-600 text-sm">Von Ihren Gruppen und Lehrpersonen zugewiesene Quizzes direkt aus der Datenbank starten.</p>
+                                </div>
+                                <svg class="w-6 h-6 text-gray-400 group-hover:text-teal-600 transition-colors self-center ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                                </svg>
+                            </div>
+                        </NavLink>
+                    </Authorized>
+                </AuthorizeView>
+            </div>
+
+            <!-- Footer Info -->
+            <div class="mt-12 text-center">
+                <p class="text-sm text-gray-500">Jedes Modul bietet einzigartige Herausforderungen, um chemische Reaktionen zu meistern</p>
+            </div>
+        </div>
+    </main>
+</div>

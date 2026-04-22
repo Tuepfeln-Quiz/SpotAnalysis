@@ -1,0 +1,89 @@
+@page "/quiz/{QuizId:int}"
+@rendermode InteractiveServer
+@attribute [Authorize]
+@inject IQuizService QuizService
+@inject NavigationManager Navigation
+
+<PageTitle>Quiz starten – SpotAnalysis</PageTitle>
+
+<div class="min-h-screen bg-gradient-to-br from-gray-50 via-white to-teal-50 p-8">
+    <div class="mx-auto max-w-2xl rounded-3xl bg-white p-8 shadow-xl">
+        @if (!string.IsNullOrWhiteSpace(_error))
+        {
+            <h1 class="text-2xl font-bold text-gray-800">Quiz konnte nicht geöffnet werden</h1>
+            <p class="mt-3 text-sm text-red-600">@_error</p>
+            <div class="mt-6">
+                <NavLink href="/uebungen" class="quiz-link-reset rounded-2xl bg-teal-500 px-4 py-3 text-sm font-semibold text-white hover:bg-teal-600">
+                    Zurück zu meinen Quizzes
+                </NavLink>
+            </div>
+        }
+        else
+        {
+            <div class="text-center">
+                <div class="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-teal-100 text-teal-700">
+                    <svg class="h-7 w-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M8 2v8l3 6v6h2v-6l3-6V2H8z" />
+                    </svg>
+                </div>
+                <h1 class="text-2xl font-bold text-gray-800">Quiz wird gestartet…</h1>
+                <p class="mt-2 text-sm text-gray-500">Passende Oberfläche wird geladen.</p>
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter] public int QuizId { get; set; }
+    [CascadingParameter] private Task<AuthenticationState> AuthState { get; set; } = default!;
+
+    private string? _error;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var auth = await AuthState;
+            var userIdClaim = auth.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
+                            ?? auth.User.FindFirst("sub")?.Value;
+
+            if (!Guid.TryParse(userIdClaim, out var userId))
+            {
+                _error = "Benutzer konnte nicht ermittelt werden.";
+                return;
+            }
+
+            var quiz = await QuizService.StartOrResumeQuiz(userId, QuizId);
+            var orderedQuestions = quiz.Questions.OrderBy(q => q.Order).ToList();
+            var firstQuestion = orderedQuestions.FirstOrDefault();
+
+            if (firstQuestion is null)
+            {
+                _error = "Dieses Quiz enthält keine Fragen.";
+                return;
+            }
+
+            if (firstQuestion.Type == SpotAnalysis.Data.Enums.QuestionType.SpotTest)
+            {
+                Navigation.NavigateTo($"/tupfeln/player/{QuizId}?q=0&score=0", forceLoad: false);
+                return;
+            }
+
+            if (firstQuestion.Type == SpotAnalysis.Data.Enums.QuestionType.SpotTestLight)
+            {
+                Navigation.NavigateTo($"/light/player/{QuizId}?q=0&score=0", forceLoad: false);
+                return;
+            }
+
+            _error = "Unbekannter Fragetyp.";
+        }
+        catch (UnauthorizedAccessException)
+        {
+            _error = "Du hast keinen Zugriff auf dieses Quiz.";
+        }
+        catch (Exception ex)
+        {
+            _error = ex.Message;
+        }
+    }
+}

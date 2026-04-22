@@ -1,0 +1,39 @@
+<button type="@Type"
+        @onclick="OnClick"
+        disabled="@Disabled"
+        class="@GetCssClass()">
+    @ChildContent
+</button>
+
+@code {
+    [Parameter] public ButtonVariant Variant { get; set; } = ButtonVariant.Secondary;
+    [Parameter] public string Type { get; set; } = "button";
+    [Parameter] public bool Disabled { get; set; }
+    [Parameter] public string Class { get; set; } = string.Empty;
+    [Parameter] public string CustomVariantClass { get; set; } = string.Empty;
+    [Parameter] public EventCallback OnClick { get; set; }
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    private string GetCssClass()
+    {
+        const string baseClass = "rounded-2xl px-4 py-2 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-60";
+        var variantClass = Variant switch
+        {
+            ButtonVariant.Primary => "bg-teal-600 text-white shadow-lg shadow-teal-200 hover:bg-teal-700",
+            ButtonVariant.Secondary => "border border-gray-200 bg-white text-gray-700 hover:bg-gray-50",
+            ButtonVariant.Danger => "border border-red-200 bg-red-50 text-red-700 hover:bg-red-100",
+            ButtonVariant.Custom => CustomVariantClass,
+            _ => "border border-gray-200 bg-white text-gray-700 hover:bg-gray-50"
+        };
+
+        return $"{baseClass} {variantClass} {Class}";
+    }
+
+    public enum ButtonVariant
+    {
+        Primary,
+        Secondary,
+        Danger,
+        Custom
+    }
+}

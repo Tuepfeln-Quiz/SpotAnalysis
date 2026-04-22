@@ -1,0 +1,12 @@
+.hide-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+
+.reverse-image-tile-has-image {
+    background-color: #fafafa;
+}

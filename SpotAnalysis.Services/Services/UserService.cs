@@ -33,6 +33,34 @@ public class UserService(ILogger<UserService> logger, IDbContextFactory<Analysis
         return user;
     }
 
+    public async Task<User> UpdateProfile(Guid userId, string userName, string? newPassword = null)
+    {
+        if (string.IsNullOrWhiteSpace(userName) || userName.Trim().Length > 128)
+            throw new ArgumentException("InvalidUserName");
+
+        if (!string.IsNullOrWhiteSpace(newPassword) && !PasswordRegex.IsMatch(newPassword))
+            throw new ArgumentException("WeakPassword");
+
+        await using var context = await factory.CreateDbContextAsync();
+        var normalizedUserName = userName.Trim();
+
+        var user = await context.Users.SingleOrDefaultAsync(u => u.UserID == userId);
+        if (user is null)
+            throw new InvalidOperationException("UserNotFound");
+
+        var exists = await context.Users.AnyAsync(u => u.UserID != userId && u.UserName.ToLower() == normalizedUserName.ToLower());
+        if (exists)
+            throw new InvalidOperationException("UserNameTaken");
+
+        user.UserName = normalizedUserName;
+
+        if (!string.IsNullOrWhiteSpace(newPassword))
+            user.PasswordHash = new PasswordProvider.Password(newPassword, user.UserID).ParamString();
+
+        await context.SaveChangesAsync();
+        return user;
+    }
+
     public async Task<User> Login(string userName, string password)
     {
         if (string.IsNullOrEmpty(userName) || string.IsNullOrEmpty(password))

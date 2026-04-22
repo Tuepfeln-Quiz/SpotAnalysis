@@ -1,0 +1,8 @@
+.tupfeln-toolbox {
+    right: 24px;
+    top: 98px;
+}
+
+.tupfeln-cards-grid {
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}

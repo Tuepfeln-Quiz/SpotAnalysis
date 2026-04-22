@@ -1,0 +1,107 @@
+@page "/teacher/groups/new"
+@page "/teacher/groups/{Id:int}/edit"
+@rendermode InteractiveServer
+@attribute [Authorize(Roles = "Admin,Teacher")]
+@inject IGroupService GroupService
+@inject NavigationManager Navigation
+
+<PageTitle>@(IsEdit ? "Gruppe bearbeiten" : "Neue Gruppe") – SpotAnalysis</PageTitle>
+
+<div class="min-h-screen bg-gradient-to-br from-gray-50 via-white to-amber-50 p-8">
+    <div class="mx-auto max-w-3xl rounded-3xl bg-white p-8 shadow-xl">
+        <div class="mb-6">
+            <p class="text-sm font-medium text-amber-600">Lehrerbereich</p>
+            <h1 class="text-3xl font-bold text-gray-800">@(IsEdit ? "Gruppe bearbeiten" : "Neue Gruppe")</h1>
+            <p class="mt-2 text-sm text-gray-500">Lege Name und Beschreibung deiner Gruppe fest.</p>
+        </div>
+
+        <EditForm Model="_model" OnValidSubmit="Save" class="space-y-5">
+            <DataAnnotationsValidator />
+
+            <div>
+                <label class="mb-2 block text-sm font-medium text-gray-700">Name</label>
+                <InputText class="w-full rounded-2xl border border-gray-300 px-4 py-3 outline-none focus:border-amber-400 focus:ring-4 focus:ring-amber-100" @bind-Value="_model.Name" />
+                <ValidationMessage For="() => _model.Name" class="text-sm text-red-600" />
+            </div>
+
+            <div>
+                <label class="mb-2 block text-sm font-medium text-gray-700">Beschreibung</label>
+                <InputTextArea rows="4" class="w-full rounded-2xl border border-gray-300 px-4 py-3 outline-none focus:border-amber-400 focus:ring-4 focus:ring-amber-100" @bind-Value="_model.Description" />
+            </div>
+
+            @if (!string.IsNullOrWhiteSpace(_error))
+            {
+                <div class="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">@_error</div>
+            }
+
+            <div class="flex justify-end gap-3 pt-2">
+                <button type="button" @onclick="Cancel" class="rounded-2xl border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">Abbrechen</button>
+                <button type="submit" class="rounded-2xl bg-amber-500 px-5 py-2 text-sm font-semibold text-white hover:bg-amber-600">Speichern</button>
+            </div>
+        </EditForm>
+    </div>
+</div>
+
+@code {
+    [Parameter] public int? Id { get; set; }
+    [CascadingParameter] private Task<AuthenticationState> AuthState { get; set; } = default!;
+
+    private bool IsEdit => Id.HasValue;
+    private FormModel _model = new();
+    private string? _error;
+    private Guid _teacherId;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        var auth = await AuthState;
+        _teacherId = Guid.Parse(auth.User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+
+        if (IsEdit)
+        {
+            var groups = await GroupService.GetGroups(_teacherId);
+            var current = groups.FirstOrDefault(g => g.Id == Id!.Value);
+            if (current is null)
+            {
+                Navigation.NavigateTo("/teacher/groups");
+                return;
+            }
+
+            _model.Name = current.Name;
+            _model.Description = current.Description ?? string.Empty;
+        }
+    }
+
+    private async Task Save()
+    {
+        _error = null;
+        try
+        {
+            var dto = new ConfigGroupDto
+            {
+                Name = _model.Name,
+                Description = string.IsNullOrWhiteSpace(_model.Description) ? null : _model.Description
+            };
+
+            if (IsEdit)
+                await GroupService.UpdateGroup(_teacherId, dto);
+            else
+                await GroupService.CreateGroup(_teacherId, dto);
+
+            Navigation.NavigateTo("/teacher/groups");
+        }
+        catch (Exception ex)
+        {
+            _error = $"Speichern fehlgeschlagen: {ex.Message}";
+        }
+    }
+
+    private void Cancel() => Navigation.NavigateTo("/teacher/groups");
+
+    private class FormModel
+    {
+        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "Name erforderlich")]
+        [System.ComponentModel.DataAnnotations.StringLength(200)]
+        public string Name { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
+    }
+}

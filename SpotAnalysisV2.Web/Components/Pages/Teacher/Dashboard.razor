@@ -1,0 +1,68 @@
+@page "/teacher"
+@rendermode InteractiveServer
+@attribute [Authorize(Roles = "Admin,Teacher")]
+@inject NavigationManager Navigation
+
+<PageTitle>Lehrerbereich – SpotAnalysis</PageTitle>
+
+<div class="min-h-screen bg-gradient-to-br from-gray-50 via-white to-teal-50 p-8">
+    <div class="mx-auto max-w-6xl">
+        <TeacherPageHeader SectionTextClass="text-teal-600"
+                           Title="Verwaltung"
+                           Description="Gruppen, Quizzes und Fragen mit echter Datenbanklogik verwalten."
+                           ContainerClass="mb-8 flex items-center justify-between gap-4"
+                           DescriptionClass="mt-2 text-gray-500">
+            <Actions>
+                <NavLink href="/" class="dashboard-link-reset rounded-2xl border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50">
+                    Zurück zur Startseite
+                </NavLink>
+            </Actions>
+        </TeacherPageHeader>
+
+        <div class="grid gap-6 md:grid-cols-3">
+            <TeacherFeatureCard BorderClass="border-purple-100"
+                                HoverBorderClass="hover:border-purple-300"
+                                HoverBackgroundClass="hover:bg-purple-50"
+                                IconBackgroundClass="bg-gradient-to-br from-violet-500 to-fuchsia-500"
+                                Title="Quizzes"
+                                Description="Quizzes erstellen, bearbeiten und Gruppen zuweisen."
+                                OnClick='() => Navigation.NavigateTo("/teacher/quizzes")'>
+                <Icon>
+                    <svg class="h-7 w-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M7 4h8l4 4v12a2 2 0 01-2 2H7a2 2 0 01-2-2V6a2 2 0 012-2z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 4v4h4M9 12h6M9 16h4" />
+                    </svg>
+                </Icon>
+            </TeacherFeatureCard>
+
+            <TeacherFeatureCard BorderClass="border-blue-100"
+                                HoverBorderClass="hover:border-blue-300"
+                                HoverBackgroundClass="hover:bg-blue-50"
+                                IconBackgroundClass="bg-gradient-to-br from-sky-500 to-indigo-500"
+                                Title="Fragenpool"
+                                Description="SpotTest- und Light-Fragen anlegen und pflegen."
+                                OnClick='() => Navigation.NavigateTo("/teacher/questions")'>
+                <Icon>
+                    <svg class="h-7 w-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M7 8h10M7 12h6M7 16h10" />
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 4h14a2 2 0 012 2v13a1 1 0 01-1.707.707L16 16H5a2 2 0 01-2-2V6a2 2 0 012-2z" />
+                    </svg>
+                </Icon>
+            </TeacherFeatureCard>
+
+            <TeacherFeatureCard BorderClass="border-amber-100"
+                                HoverBorderClass="hover:border-amber-300"
+                                HoverBackgroundClass="hover:bg-amber-50"
+                                IconBackgroundClass="bg-gradient-to-br from-amber-400 to-orange-500"
+                                Title="Gruppen"
+                                Description="Gruppen, Lehrkräfte, Schüler und Quiz-Zuordnungen verwalten."
+                                OnClick='() => Navigation.NavigateTo("/teacher/groups")'>
+                <Icon>
+                    <svg class="h-7 w-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M16 10a3 3 0 11-6 0 3 3 0 016 0zM7 20a6 6 0 0112 0M6 12a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0zM1 20a5 5 0 066-4" />
+                    </svg>
+                </Icon>
+            </TeacherFeatureCard>
+        </div>
+    </div>
+</div>

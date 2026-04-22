@@ -1,0 +1,410 @@
+@page "/teacher/questions/create"
+@page "/teacher/questions/{QuestionId:int}/edit"
+@rendermode InteractiveServer
+@attribute [Authorize(Roles = "Admin,Teacher")]
+@inject IQuizService QuizService
+@inject IChemistryDataService ChemistryData
+@inject NavigationManager Navigation
+
+<PageTitle>@(_isEdit ? "Frage bearbeiten" : "Neue Frage") – SpotAnalysis</PageTitle>
+
+<div class="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50 p-8">
+    <div class="mx-auto max-w-6xl rounded-[28px] border border-white/70 bg-white/95 p-7 shadow-2xl shadow-blue-100/60">
+        <div class="mb-6">
+            <p class="text-sm font-medium text-blue-600">Lehrerbereich</p>
+            <h1 class="text-3xl font-bold text-gray-800">@(_isEdit ? "Frage bearbeiten" : "Neue Frage")</h1>
+            <p class="mt-1 text-sm text-gray-500">Erstelle präzise SpotTest- und Light-Fragen mit klaren Auswahloptionen.</p>
+        </div>
+
+        <div class="space-y-6">
+            <div class="rounded-3xl border border-gray-200 bg-gradient-to-br from-white to-blue-50/40 p-5">
+                <label class="mb-2 block text-sm font-medium text-gray-800">Fragetyp</label>
+                <div class="flex gap-2">
+                    <button type="button"
+                            @onclick='() => SetType(QuestionType.SpotTest)'
+                            disabled="@_isEdit"
+                            class="rounded-xl px-4 py-2 text-sm font-semibold transition @(_questionType == QuestionType.SpotTest ? "bg-purple-700 text-white shadow" : "border border-gray-200 bg-white text-gray-700 hover:bg-gray-50") @(_isEdit ? "cursor-not-allowed opacity-70" : string.Empty)">
+                        SpotTest
+                    </button>
+                    <button type="button"
+                            @onclick='() => SetType(QuestionType.SpotTestLight)'
+                            disabled="@_isEdit"
+                            class="rounded-xl px-4 py-2 text-sm font-semibold transition @(_questionType == QuestionType.SpotTestLight ? "bg-blue-600 text-white shadow" : "border border-gray-200 bg-white text-gray-700 hover:bg-gray-50") @(_isEdit ? "cursor-not-allowed opacity-70" : string.Empty)">
+                        Light
+                    </button>
+                </div>
+            </div>
+
+            <div class="rounded-3xl border border-gray-200 bg-white p-5 shadow-sm">
+                <label class="mb-2 block text-sm font-medium text-gray-800">Titel</label>
+                <p class="mb-2 text-sm text-gray-400">Interner Titel (nur für Lehrer sichtbar, nicht für Schüler)</p>
+                <input type="text"
+                       class="w-full rounded-2xl border border-gray-300 bg-white px-4 py-3 outline-none transition focus:border-blue-400 focus:ring-4 focus:ring-blue-100"
+                       placeholder="z.B. Tüpfeln Q1 - drei Unbekannte"
+                       @bind="_title" />
+            </div>
+
+            <div class="rounded-3xl border border-gray-200 bg-white p-5 shadow-sm">
+                <label class="mb-2 block text-sm font-medium text-gray-800">Beschreibung / Aufgabenstellung</label>
+                <textarea rows="4"
+                          class="w-full rounded-2xl border border-gray-300 bg-white px-4 py-3 outline-none transition focus:border-blue-400 focus:ring-4 focus:ring-blue-100"
+                          placeholder="@(_questionType == QuestionType.SpotTest ? "z.B. Identifiziere die drei unbekannten Chemikalien." : "z.B. Welche Reaktion ergibt Natriumchlorid?")"
+                          @bind="_description"></textarea>
+            </div>
+
+            @if (_questionType == QuestionType.SpotTest)
+            {
+                <div class="space-y-5">
+                    <div>
+                        <label class="mb-1 block text-base font-semibold text-gray-800">1. Zu identifizierende Edukte</label>
+                        <p class="mb-3 text-sm text-gray-400">Die unbekannten Stoffe, die der Schüler herausfinden muss</p>
+                        <div class="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
+                            @if (_selectedEducts.Count > 0)
+                            {
+                                <div class="mb-3 flex flex-wrap gap-2">
+                                    @foreach (var chem in _selectedEducts)
+                                    {
+                                        <span class="inline-flex items-center gap-2 rounded-full bg-purple-50 px-3 py-1 text-sm text-purple-700">
+                                            <span>@chem.Formula</span>
+                                            <span class="text-purple-400">(@chem.Name)</span>
+                                            <button type="button" @onclick='() => RemoveEduct(chem.Id)' class="font-bold text-purple-500 hover:text-purple-700">×</button>
+                                        </span>
+                                    }
+                                </div>
+                            }
+                            <select class="w-full rounded-2xl border border-gray-300 bg-white px-4 py-3 outline-none focus:border-blue-400" value="" @onchange="OnEductSelected">
+                                <option value="">+ Edukt hinzufügen...</option>
+                                @foreach (var chem in _eductsAvailable.Where(c => !_selectedEducts.Any(s => s.Id == c.Id)))
+                                {
+                                    <option value="@chem.Id">@chem.Formula – @chem.Name</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="mb-1 block text-base font-semibold text-gray-800">2. Verfügbare Zusatzstoffe</label>
+                        <p class="mb-3 text-sm text-gray-400">Reagenzien wie HCl, NaOH etc., die der Schüler zum Testen verwenden kann</p>
+                        <div class="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
+                            @if (_selectedAdditives.Count > 0)
+                            {
+                                <div class="mb-3 flex flex-wrap gap-2">
+                                    @foreach (var chem in _selectedAdditives)
+                                    {
+                                        <span class="inline-flex items-center gap-2 rounded-full bg-blue-50 px-3 py-1 text-sm text-blue-700">
+                                            <span>@chem.Formula</span>
+                                            <span class="text-blue-400">(@chem.Name)</span>
+                                            <button type="button" @onclick='() => RemoveAdditive(chem.Id)' class="font-bold text-blue-500 hover:text-blue-700">×</button>
+                                        </span>
+                                    }
+                                </div>
+                            }
+                            <select class="w-full rounded-2xl border border-gray-300 bg-white px-4 py-3 outline-none focus:border-blue-400" value="" @onchange="OnAdditiveSelected">
+                                <option value="">+ Zusatzstoff hinzufügen...</option>
+                                @foreach (var chem in _additivesAvailable.Where(c => !_selectedAdditives.Any(s => s.Id == c.Id)))
+                                {
+                                    <option value="@chem.Id">@chem.Formula – @chem.Name</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="mb-1 block text-base font-semibold text-gray-800">3. Verfügbare Methoden</label>
+                        <p class="mb-3 text-sm text-gray-400">Analysemethoden, die dem Schüler zur Verfügung stehen</p>
+                        <div class="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
+                            @if (_selectedMethods.Count > 0)
+                            {
+                                <div class="mb-3 flex flex-wrap gap-2">
+                                    @foreach (var method in _selectedMethods)
+                                    {
+                                        <span class="inline-flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-1 text-sm text-emerald-700">
+                                            <span>@method.Name</span>
+                                            <button type="button" @onclick='() => RemoveMethod(method.Id)' class="font-bold text-emerald-500 hover:text-emerald-700">×</button>
+                                        </span>
+                                    }
+                                </div>
+                            }
+                            <select class="w-full rounded-2xl border border-gray-300 bg-white px-4 py-3 outline-none focus:border-blue-400" value="" @onchange="OnMethodSelected">
+                                <option value="">+ Methode hinzufügen...</option>
+                                @foreach (var method in _allMethods.Where(m => !_selectedMethods.Any(s => s.Id == m.Id)))
+                                {
+                                    <option value="@method.Id">@method.Name</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="space-y-5">
+                    <div>
+                        <label class="mb-1 block text-base font-semibold text-gray-800">Korrekte Reaktion</label>
+                        <p class="mb-3 text-sm text-gray-400">Die richtige Antwort auf die Frage</p>
+                        <select class="w-full rounded-2xl border border-gray-300 bg-white px-4 py-3 outline-none focus:border-blue-400" @bind="_selectedReactionId">
+                            <option value="0">Reaktion auswählen...</option>
+                            @foreach (var reaction in _allReactions)
+                            {
+                                <option value="@reaction.ReactionID">@reaction.Formula</option>
+                            }
+                        </select>
+                        @if (_selectedReactionId > 0)
+                        {
+                            var selected = _allReactions.FirstOrDefault(r => r.ReactionID == _selectedReactionId);
+                            if (selected is not null)
+                            {
+                                <div class="mt-3 rounded-2xl border border-blue-100 bg-blue-50 px-4 py-3 text-sm text-blue-800">
+                                    <div class="font-semibold">Gewählte Reaktion</div>
+                                    <div class="mt-1">@selected.Formula</div>
+                                    <div class="mt-1 text-blue-600">Beobachtung: @selected.ObservationDescription</div>
+                                </div>
+                            }
+                        }
+                    </div>
+
+                    <div>
+                        <label class="mb-1 block text-base font-semibold text-gray-800">Auswahl-Optionen</label>
+                        <p class="mb-3 text-sm text-gray-400">Reaktionen, die dem Schüler als Optionen angezeigt werden</p>
+                        <div class="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
+                            @if (_selectedReactionId > 0)
+                            {
+                                var correct = _allReactions.FirstOrDefault(r => r.ReactionID == _selectedReactionId);
+                                if (correct is not null)
+                                {
+                                    <div class="mb-2 flex items-center justify-between rounded-2xl bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+                                        <span>@correct.Formula</span>
+                                        <span class="font-semibold">Richtig</span>
+                                    </div>
+                                }
+                            }
+                            @foreach (var reactionId in _selectedDistractors)
+                            {
+                                var reaction = _allReactions.FirstOrDefault(r => r.ReactionID == reactionId);
+                                if (reaction is not null)
+                                {
+                                    <div class="mb-2 flex items-center justify-between rounded-2xl bg-gray-50 px-4 py-3 text-sm text-gray-700">
+                                        <span>@reaction.Formula</span>
+                                        <button type="button" @onclick='() => RemoveDistractor(reactionId)' class="font-bold text-red-500 hover:text-red-700">×</button>
+                                    </div>
+                                }
+                            }
+                            <select class="mt-2 w-full rounded-2xl border border-gray-300 bg-white px-4 py-3 outline-none focus:border-blue-400" value="" @onchange="OnDistractorSelected">
+                                <option value="">+ Reaktion als Auswahloption hinzufügen...</option>
+                                @foreach (var reaction in _allReactions.Where(r => r.ReactionID != _selectedReactionId && !_selectedDistractors.Contains(r.ReactionID)))
+                                {
+                                    <option value="@reaction.ReactionID">@reaction.Formula</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            }
+
+            @if (_errorMessage is not null)
+            {
+                <div class="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">@_errorMessage</div>
+            }
+
+            <div class="flex justify-end gap-3 pt-2">
+                <button type="button" @onclick="Cancel" class="rounded-xl border border-gray-300 bg-white px-5 py-3 text-sm font-semibold text-gray-700 transition hover:bg-gray-50">Abbrechen</button>
+                <button type="button" @onclick="Save" disabled="@_saving" class="rounded-xl bg-gradient-to-r from-purple-700 to-fuchsia-600 px-5 py-3 text-sm font-semibold text-white shadow-md transition hover:from-purple-800 hover:to-fuchsia-700 disabled:cursor-not-allowed disabled:opacity-70">
+                    @(_saving ? "Speichern..." : "Frage speichern")
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public int? QuestionId { get; set; }
+    [SupplyParameterFromQuery] public string? Type { get; set; }
+    [CascadingParameter] private Task<AuthenticationState> AuthState { get; set; } = default!;
+
+    private bool _isEdit => QuestionId.HasValue;
+    private QuestionType _questionType = QuestionType.SpotTest;
+    private string _title = string.Empty;
+    private string _description = string.Empty;
+
+    private record ChemicalItem(int Id, string Name, string Formula, string Color);
+    private record MethodItem(int Id, string Name);
+
+    private List<ChemicalItem> _eductsAvailable = new();
+    private List<ChemicalItem> _additivesAvailable = new();
+    private List<MethodItem> _allMethods = new();
+    private List<ChemicalItem> _selectedEducts = new();
+    private List<ChemicalItem> _selectedAdditives = new();
+    private List<MethodItem> _selectedMethods = new();
+
+    private List<LabReactionDto> _allReactions = new();
+    private int _selectedReactionId;
+    private List<int> _selectedDistractors = new();
+
+    private bool _saving;
+    private string? _errorMessage;
+    private Guid _teacherId;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var auth = await AuthState;
+        _teacherId = Guid.Parse(auth.User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+
+        if (_isEdit && Enum.TryParse<QuestionType>(Type, out var parsedType))
+            _questionType = parsedType;
+
+        var chemicals = await ChemistryData.GetAllChemicalsAsync();
+        _eductsAvailable = chemicals
+            .Where(c => c.Type == ChemicalType.Educt)
+            .Select(c => new ChemicalItem(c.ChemicalID, c.Name, c.Formula, c.Color))
+            .ToList();
+        _additivesAvailable = chemicals
+            .Where(c => c.Type == ChemicalType.Additive)
+            .Select(c => new ChemicalItem(c.ChemicalID, c.Name, c.Formula, c.Color))
+            .ToList();
+
+        _allReactions = await ChemistryData.GetAllReactionsAsync();
+        var methods = await ChemistryData.GetAllMethodsAsync();
+        _allMethods = methods.Select(m => new MethodItem(m.Id, m.Name)).ToList();
+
+        if (_isEdit)
+            await LoadExistingQuestion();
+    }
+
+    private async Task LoadExistingQuestion()
+    {
+        var detail = await QuizService.GetQuestionDetail(QuestionId!.Value);
+        _title = detail.Title;
+        _description = detail.Description;
+        _questionType = detail.Type;
+
+        if (_questionType == QuestionType.SpotTest)
+        {
+            _selectedEducts = detail.Chemicals.Where(c => !c.IsAdditive).Select(c => new ChemicalItem(c.Id, c.Name, c.Formula, c.Color)).ToList();
+            _selectedAdditives = detail.Chemicals.Where(c => c.IsAdditive).Select(c => new ChemicalItem(c.Id, c.Name, c.Formula, c.Color)).ToList();
+            _selectedMethods = detail.Methods.Select(m => new MethodItem(m.Id, m.Name)).ToList();
+        }
+        else
+        {
+            _selectedReactionId = detail.ReactionId;
+            _selectedDistractors = detail.AvailableReactionIds.Where(id => id != detail.ReactionId).ToList();
+        }
+    }
+
+    private void SetType(QuestionType type) => _questionType = type;
+
+    private void OnEductSelected(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out var id))
+        {
+            var chem = _eductsAvailable.FirstOrDefault(c => c.Id == id);
+            if (chem is not null) _selectedEducts.Add(chem);
+        }
+    }
+
+    private void OnAdditiveSelected(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out var id))
+        {
+            var chem = _additivesAvailable.FirstOrDefault(c => c.Id == id);
+            if (chem is not null) _selectedAdditives.Add(chem);
+        }
+    }
+
+    private void OnMethodSelected(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out var id))
+        {
+            var method = _allMethods.FirstOrDefault(m => m.Id == id);
+            if (method is not null) _selectedMethods.Add(method);
+        }
+    }
+
+    private void OnDistractorSelected(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out var id) && id > 0)
+            _selectedDistractors.Add(id);
+    }
+
+    private void RemoveEduct(int id) => _selectedEducts.RemoveAll(c => c.Id == id);
+    private void RemoveAdditive(int id) => _selectedAdditives.RemoveAll(c => c.Id == id);
+    private void RemoveMethod(int id) => _selectedMethods.RemoveAll(m => m.Id == id);
+    private void RemoveDistractor(int id) => _selectedDistractors.Remove(id);
+    private void Cancel() => Navigation.NavigateTo("/teacher/questions");
+
+    private async Task Save()
+    {
+        _errorMessage = null;
+
+        if (string.IsNullOrWhiteSpace(_title))
+        {
+            _errorMessage = "Bitte einen Titel eingeben.";
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(_description))
+        {
+            _errorMessage = "Bitte eine Beschreibung eingeben.";
+            return;
+        }
+
+        _saving = true;
+        try
+        {
+            if (_questionType == QuestionType.SpotTest)
+            {
+                var allChemicalIds = _selectedEducts.Select(c => c.Id).Concat(_selectedAdditives.Select(c => c.Id)).ToList();
+                var dto = new ConfigSTQuestionDto
+                {
+                    Id = _isEdit ? QuestionId : null,
+                    Description = _description,
+                    AvailableChemicals = allChemicalIds,
+                    AvailableMethods = _selectedMethods.Select(m => m.Id).ToList(),
+                    Title = _title
+                };
+
+                if (_isEdit)
+                    await QuizService.UpdateSTQuestion(_teacherId, dto);
+                else
+                    await QuizService.CreateSTQuestion(_teacherId, dto);
+            }
+            else
+            {
+                if (_selectedReactionId == 0)
+                {
+                    _errorMessage = "Bitte eine korrekte Reaktion auswählen.";
+                    _saving = false;
+                    return;
+                }
+
+                var selectedReaction = _allReactions.FirstOrDefault(r => r.ReactionID == _selectedReactionId);
+                var allReactionIds = new List<int> { _selectedReactionId };
+                allReactionIds.AddRange(_selectedDistractors);
+
+                var dto = new ConfigSTLQuestionDto
+                {
+                    Id = _isEdit ? QuestionId : null,
+                    Description = _description,
+                    ReactionId = _selectedReactionId,
+                    ShowEductId = selectedReaction?.Chemical1ID ?? 0,
+                    AvailableReactions = allReactionIds,
+                    Title = _title
+                };
+
+                if (_isEdit)
+                    await QuizService.UpdateSTLQuestion(_teacherId, dto);
+                else
+                    await QuizService.CreateSTLQuestion(_teacherId, dto);
+            }
+
+            Navigation.NavigateTo("/teacher/questions");
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = ex.Message;
+        }
+        finally
+        {
+            _saving = false;
+        }
+    }
+}

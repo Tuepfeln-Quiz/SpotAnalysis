@@ -1,0 +1,111 @@
+@page "/register"
+@rendermode InteractiveServer
+@attribute [AllowAnonymous]
+@inject NavigationManager NavigationManager
+@inject AuthenticationStateProvider AuthStateProvider
+
+<PageTitle>Register – SpotAnalysis</PageTitle>
+
+<div class="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50 flex items-center justify-center px-4 py-10">
+    <div class="w-full max-w-md">
+        <div class="text-center mb-8">
+            <div class="mb-4 flex justify-center">
+                <AppLogo Href="/" ShowText="true" />
+            </div>
+            <button type="button" @onclick='() => NavigationManager.NavigateTo("/")' class="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-blue-600 transition-colors">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+                </svg>
+                Zur Startseite
+            </button>
+            <h1 class="mt-4 text-3xl font-bold text-gray-800">Konto erstellen</h1>
+            <p class="mt-2 text-sm text-gray-500">Erstelle ein Konto und starte danach direkt mit deinen Quizzes.</p>
+        </div>
+
+        <div class="bg-white/90 backdrop-blur rounded-3xl shadow-xl border border-gray-100 p-8">
+            <form action="/api/auth/register" method="post" class="space-y-5">
+                <AntiforgeryToken />
+                <input type="hidden" name="returnUrl" value="@EffectiveReturnUrl" />
+
+                @if (!string.IsNullOrWhiteSpace(DisplayErrorMessage))
+                {
+                    <div class="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                        @DisplayErrorMessage
+                    </div>
+                }
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Benutzername</label>
+                    <input type="text"
+                           name="userName"
+                           class="w-full rounded-2xl border border-gray-300 bg-white px-4 py-3 text-gray-800 outline-none transition focus:border-blue-400 focus:ring-4 focus:ring-blue-100"
+                           placeholder="Wähle einen Benutzernamen"
+                           required />
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Passwort</label>
+                    <input type="password"
+                           name="password"
+                           class="w-full rounded-2xl border border-gray-300 bg-white px-4 py-3 text-gray-800 outline-none transition focus:border-blue-400 focus:ring-4 focus:ring-blue-100"
+                           placeholder="Sicheres Passwort"
+                           required />
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Passwort wiederholen</label>
+                    <input type="password"
+                           name="confirmPassword"
+                           class="w-full rounded-2xl border border-gray-300 bg-white px-4 py-3 text-gray-800 outline-none transition focus:border-blue-400 focus:ring-4 focus:ring-blue-100"
+                           placeholder="Passwort wiederholen"
+                           required />
+                </div>
+
+                <button type="submit"
+                        class="w-full rounded-2xl bg-blue-600 px-4 py-3 font-semibold text-white shadow-lg shadow-blue-200 transition hover:bg-blue-700">
+                    Registrieren
+                </button>
+            </form>
+
+            <div class="mt-6 text-center text-sm text-gray-500 space-y-2">
+                <div>
+                    Bereits registriert?
+                    <a href="/login@(string.IsNullOrWhiteSpace(ReturnUrl) ? string.Empty : $"?returnUrl={Uri.EscapeDataString(ReturnUrl)}")" class="font-semibold text-blue-600 hover:text-blue-700">
+                        Zum Login
+                    </a>
+                </div>
+                <div>
+                    Benutzername, Passwort und Emoji-Profilbild kannst du später im Profil ändern.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [SupplyParameterFromQuery(Name = "error")]
+    public string? ErrorMessage { get; set; }
+
+    [SupplyParameterFromQuery(Name = "returnUrl")]
+    public string? ReturnUrl { get; set; }
+
+    private string EffectiveReturnUrl => string.IsNullOrWhiteSpace(ReturnUrl) ? "/" : ReturnUrl!;
+
+    private string? DisplayErrorMessage => ErrorMessage switch
+    {
+        "InvalidUserName" => "Der Benutzername ist ungültig.",
+        "WeakPassword" => "Passwort muss mindestens 8 Zeichen sowie Großbuchstabe, Kleinbuchstabe, Zahl und Sonderzeichen enthalten.",
+        "UserNameTaken" => "Dieser Benutzername ist bereits vergeben.",
+        "PasswordsDoNotMatch" => "Die Passwörter stimmen nicht überein.",
+        "RegistrationFailed" => "Registrierung fehlgeschlagen. Bitte erneut versuchen.",
+        null or "" => null,
+        _ => ErrorMessage
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        if (authState.User.Identity?.IsAuthenticated == true)
+            NavigationManager.NavigateTo("/");
+    }
+}

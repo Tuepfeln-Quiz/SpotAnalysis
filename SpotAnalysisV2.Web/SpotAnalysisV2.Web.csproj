@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <BlazorDisableThrowNavigationException>true</BlazorDisableThrowNavigationException>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="wwwroot\js\build-css.js" />
+    <None Include="wwwroot\js\postcss.config.js" />
+    <None Include="wwwroot\js\tailwind.config.js" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\SpotAnalysis.Services\SpotAnalysis.Services.csproj" />
+  </ItemGroup>
+
+</Project>

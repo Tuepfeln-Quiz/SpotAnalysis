@@ -1,0 +1,174 @@
+@page "/uebungen"
+@page "/my-quizzes"
+@rendermode InteractiveServer
+@attribute [Microsoft.AspNetCore.Authorization.Authorize]
+@inject NavigationManager Navigation
+@inject IQuizService QuizService
+
+<div class="size-full flex flex-col bg-gradient-to-br from-gray-50 via-white to-teal-50/30">
+    <header class="bg-white shadow-sm px-6 h-24 flex items-center justify-between">
+        <NavLink href="/" class="uebungen-icon-nav-link p-2 hover:bg-gray-100 rounded-lg transition-colors" aria-label="Home">
+            <svg class="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                <polyline points="9 22 9 12 15 12 15 22"></polyline>
+            </svg>
+        </NavLink>
+
+        <h1 class="absolute left-1/2 -translate-x-1/2 text-lg font-semibold text-gray-800">Meine Quizzes</h1>
+
+        <ProfileMenu ContainerClass="ml-auto" />
+    </header>
+
+    <main class="flex-1 overflow-y-auto p-8">
+        <div class="max-w-3xl mx-auto">
+            <div class="mb-8 rounded-2xl border border-teal-100 bg-white/80 p-5 shadow-sm">
+                <p class="text-gray-700 font-medium">Quizzes, die dir über deine Gruppen zugewiesen sind.</p>
+                <p class="mt-1 text-sm text-gray-500">Starte ein Quiz und setze dort fort, wo du zuletzt warst.</p>
+            </div>
+
+            @if (quizzes is null)
+            {
+                <div class="bg-white rounded-2xl border border-gray-200 p-10 text-center shadow-sm">
+                    <p class="text-sm text-gray-500">Quiz wird geladen…</p>
+                </div>
+            }
+            else if (quizzes.Count == 0)
+            {
+                <div class="bg-white rounded-2xl border-2 border-dashed border-gray-200 p-10 text-center shadow-sm">
+                    <h2 class="text-lg font-semibold text-gray-800 mb-2">Noch keine Quizzes zugewiesen</h2>
+                    <p class="text-sm text-gray-500">Frag deine:n Lehrer:in.</p>
+                </div>
+            }
+            else
+            {
+                <div class="space-y-4">
+                    @foreach (var quiz in quizzes)
+                    {
+                        <button type="button"
+                                @onclick="() => Open(quiz.Id)"
+                                class="relative w-full block bg-white/95 shadow-md rounded-2xl p-6 transition-all duration-200 hover:shadow-xl hover:-translate-y-0.5 group text-left border border-gray-200 hover:border-teal-300 overflow-hidden">
+                            <div class="absolute left-0 top-0 h-full w-1.5 @GetQuizAccentClass(quiz)"></div>
+
+                            <div class="flex items-start justify-between gap-4 pl-1">
+                                <div class="flex-1 min-w-0">
+                                    <div class="mb-3 flex items-start gap-3">
+                                        <div class="mt-0.5 flex h-10 w-10 items-center justify-center rounded-xl @GetQuizAccentSoftClass(quiz) text-lg">
+                                            @GetQuizIcon(quiz)
+                                        </div>
+                                        <div class="min-w-0 flex-1">
+                                            <h2 class="text-xl font-semibold text-gray-800 group-hover:text-teal-600 transition-colors leading-tight truncate">@quiz.Name</h2>
+                                            <p class="mt-1 text-gray-500 text-sm">
+                                                @switch (quiz.LastAttemptStatus)
+                                                {
+                                                    case LastAttemptStatus.NotStarted:
+                                                        <span>Noch nicht gestartet</span>
+                                                        break;
+                                                    case LastAttemptStatus.InProgress:
+                                                        <span>Läuft</span>
+                                                        break;
+                                                    case LastAttemptStatus.Completed:
+                                                        <span>Abgeschlossen am @quiz.LastCompletedAt?.ToString("dd.MM.yyyy")</span>
+                                                        break;
+                                                }
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <div class="flex flex-wrap items-center gap-2">
+                                         @if (quiz.STCount > 0)
+                                         {
+                                             <span class="px-3 py-1 rounded-full bg-purple-100 border border-purple-200 text-purple-700 text-sm font-medium">
+                                                 🧪 @quiz.STCount Tüpfeln
+                                             </span>
+                                         }
+                                         @if (quiz.STLCount > 0)
+                                         {
+                                             <span class="px-3 py-1 rounded-full bg-blue-50 border border-blue-200 text-blue-700 text-sm font-medium">
+                                                 🔦 @quiz.STLCount Light
+                                             </span>
+                                         }
+                                         <span class="px-3 py-1 rounded-full bg-gray-50 border border-gray-200 text-gray-700 text-sm font-medium">
+                                             @quiz.QuestionCount Aufgaben
+                                         </span>
+                                         <span class="ml-auto px-3 py-1 rounded-full text-xs font-semibold @GetStatusBadgeClass(quiz.LastAttemptStatus)">
+                                             @GetStatusText(quiz.LastAttemptStatus)
+                                         </span>
+                                     </div>
+                                 </div>
+                                <span class="mt-1 inline-flex h-9 w-9 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-400 group-hover:text-teal-600 group-hover:border-teal-200 group-hover:bg-teal-50 transition-colors flex-shrink-0">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M9 5l7 7-7 7" />
+                                    </svg>
+                                </span>
+                             </div>
+                         </button>
+                     }
+                 </div>
+             }
+        </div>
+    </main>
+</div>
+
+@code {
+    [CascadingParameter] private Task<AuthenticationState> AuthState { get; set; } = default!;
+
+    private List<QuizOverviewDto>? quizzes;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (!RendererInfo.IsInteractive)
+            return;
+
+        var auth = await AuthState;
+        var userIdClaim = auth.User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                        ?? auth.User.FindFirst("sub")?.Value;
+        if (!Guid.TryParse(userIdClaim, out var userId))
+        {
+            quizzes = new();
+            return;
+        }
+
+        quizzes = (await QuizService.GetQuizzes(userId))
+            .Where(q => q.QuestionCount > 0)
+            .ToList();
+    }
+
+    private void Open(int quizId) => Navigation.NavigateTo($"/quiz/{quizId}");
+
+    private static string GetStatusText(LastAttemptStatus status) => status switch
+    {
+        LastAttemptStatus.NotStarted => "Neu",
+        LastAttemptStatus.InProgress => "Läuft",
+        LastAttemptStatus.Completed => "Erledigt",
+        _ => "Status"
+    };
+
+    private static string GetStatusBadgeClass(LastAttemptStatus status) => status switch
+    {
+        LastAttemptStatus.NotStarted => "bg-gray-100 text-gray-600 border border-gray-200",
+        LastAttemptStatus.InProgress => "bg-amber-100 text-amber-700 border border-amber-200",
+        LastAttemptStatus.Completed => "bg-emerald-100 text-emerald-700 border border-emerald-200",
+        _ => "bg-gray-100 text-gray-600 border border-gray-200"
+    };
+
+    private static string GetQuizAccentClass(QuizOverviewDto quiz)
+        => quiz.STCount > 0 && quiz.STLCount > 0
+            ? "bg-gradient-to-b from-purple-500 to-blue-500"
+            : quiz.STCount > 0
+                ? "bg-gradient-to-b from-purple-500 to-fuchsia-500"
+                : "bg-gradient-to-b from-blue-500 to-cyan-500";
+
+    private static string GetQuizAccentSoftClass(QuizOverviewDto quiz)
+        => quiz.STCount > 0 && quiz.STLCount > 0
+            ? "bg-gradient-to-br from-purple-100 to-blue-100"
+            : quiz.STCount > 0
+                ? "bg-gradient-to-br from-purple-100 to-fuchsia-100"
+                : "bg-gradient-to-br from-blue-100 to-cyan-100";
+
+    private static string GetQuizIcon(QuizOverviewDto quiz)
+        => quiz.STCount > 0 && quiz.STLCount > 0
+            ? "🧬"
+            : quiz.STCount > 0
+                ? "🧪"
+                : "🔦";
+}

@@ -1,0 +1,41 @@
+@if (!string.IsNullOrWhiteSpace(Href))
+{
+    <a href="@Href" class="@ContainerClass" aria-label="SpotAnalysis Startseite">
+        <img src="@ImagePath"
+             alt="@Alt"
+             class="@ImageClass"
+             onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-flex';" />
+        <span class="app-logo-fallback @FallbackClass">@FallbackText</span>
+        @if (ShowText)
+        {
+            <span class="@TextClass">@Text</span>
+        }
+    </a>
+}
+else
+{
+    <div class="@ContainerClass">
+        <img src="@ImagePath"
+             alt="@Alt"
+             class="@ImageClass"
+             onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-flex';" />
+        <span class="app-logo-fallback @FallbackClass">@FallbackText</span>
+        @if (ShowText)
+        {
+            <span class="@TextClass">@Text</span>
+        }
+    </div>
+}
+
+@code {
+    [Parameter] public string ImagePath { get; set; } = "/favicon.png";
+    [Parameter] public string Alt { get; set; } = "SpotAnalysis Logo";
+    [Parameter] public string? Href { get; set; } = "/";
+    [Parameter] public bool ShowText { get; set; } = true;
+    [Parameter] public string Text { get; set; } = "SpotAnalysis";
+    [Parameter] public string ContainerClass { get; set; } = "app-logo-container";
+    [Parameter] public string ImageClass { get; set; } = "app-logo-image";
+    [Parameter] public string TextClass { get; set; } = "app-logo-text";
+    [Parameter] public string FallbackClass { get; set; } = string.Empty;
+    [Parameter] public string FallbackText { get; set; } = "🧪";
+}

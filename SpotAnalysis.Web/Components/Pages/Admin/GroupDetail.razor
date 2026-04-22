@@ -1,13 +1,13 @@
-@page "/teacher/groups/{Id:int}"
+@page "/admin/groups/{Id:int}"
 @rendermode InteractiveServer
 
-@attribute [Authorize(Roles = "Teacher, Admin")]
+@attribute [Authorize(Roles = "Admin")]
 
 <PageTitle>Gruppendetails – Tüpfeln Digital</PageTitle>
 
 @if (_userId != Guid.Empty)
 {
-    <GroupDetailPanel UserId="_userId" GroupId="Id" BaseRoute="/teacher/groups" />
+    <GroupDetailPanel UserId="_userId" GroupId="Id" BaseRoute="/admin/groups" />
 }
 
 @code {

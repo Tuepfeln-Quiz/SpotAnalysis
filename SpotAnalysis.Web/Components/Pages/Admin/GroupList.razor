@@ -1,17 +1,16 @@
-@page "/teacher/groups/{Id:int}"
+@page "/admin/groups"
 @rendermode InteractiveServer
 
-@attribute [Authorize(Roles = "Teacher, Admin")]
+@attribute [Authorize(Roles = "Admin")]
 
-<PageTitle>Gruppendetails – Tüpfeln Digital</PageTitle>
+<PageTitle>Gruppenverwaltung – Tüpfeln Digital</PageTitle>
 
 @if (_userId != Guid.Empty)
 {
-    <GroupDetailPanel UserId="_userId" GroupId="Id" BaseRoute="/teacher/groups" />
+    <GroupListPanel UserId="_userId" BaseRoute="/admin/groups" />
 }
 
 @code {
-    [Parameter] public int Id { get; set; }
     [CascadingParameter] private Task<AuthenticationState> AuthState { get; set; } = default!;
     private Guid _userId;
 

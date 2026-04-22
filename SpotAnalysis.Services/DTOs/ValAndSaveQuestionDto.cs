@@ -7,7 +7,7 @@ public class ValidateQuestionDto
 {
     public required Guid UserId { get; set; }
     public required int QuizId { get; set; }
-    public required int QuestionId { get; set; } 
+    public required int QuestionId { get; set; }
 }
 
 /// <summary>

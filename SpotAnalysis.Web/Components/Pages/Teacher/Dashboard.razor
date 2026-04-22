@@ -7,7 +7,7 @@
 
 <div class="container py-4 flex-grow-1">
     <div class="row g-4 justify-content-center">
-        <div class="col-sm-6 col-lg-4">
+        <div class="col-sm-6 col-lg-6">
             <div class="card card-interactive h-100" @onclick='() => Navigation.NavigateTo("/teacher/quizzes")'>
                 <div class="card-body text-center p-4">
                     <div class="card-icon mb-3" style="background-color: #ede9fe;">
@@ -18,7 +18,7 @@
                 </div>
             </div>
         </div>
-        <div class="col-sm-6 col-lg-4">
+        <div class="col-sm-6 col-lg-6">
             <div class="card card-interactive h-100" @onclick='() => Navigation.NavigateTo("/teacher/questions")'>
                 <div class="card-body text-center p-4">
                     <div class="card-icon mb-3" style="background-color: #dbeafe;">
@@ -29,7 +29,7 @@
                 </div>
             </div>
         </div>
-        <div class="col-sm-6 col-lg-4">
+        <div class="col-sm-6 col-lg-6">
             <div class="card card-interactive h-100" @onclick='() => Navigation.NavigateTo("/teacher/groups")'>
                 <div class="card-body text-center p-4">
                     <div class="card-icon mb-3" style="background-color: #fef3c7;">
@@ -37,6 +37,17 @@
                     </div>
                     <h5 class="card-title fw-bold">Gruppen</h5>
                     <p class="card-text text-muted">Gruppen & Schüler verwalten</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-lg-6">
+            <div class="card card-interactive h-100" @onclick='() => Navigation.NavigateTo("/teacher/master-data")'>
+                <div class="card-body text-center p-4">
+                    <div class="card-icon mb-3" style="background-color: #ccfbf1;">
+                        <i class="bi bi-database" style="color: #0f766e; font-size: 2rem;"></i>
+                    </div>
+                    <h5 class="card-title fw-bold">Stammdaten</h5>
+                    <p class="card-text text-muted">Chemikalien, Reaktionen und Beobachtungen pflegen</p>
                 </div>
             </div>
         </div>

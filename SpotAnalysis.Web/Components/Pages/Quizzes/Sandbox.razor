@@ -16,20 +16,20 @@
 
                     <div class="row g-3 mb-4">
                         <div class="col-6">
-                            <div class="drop-zone @(dragOverSlot == 1 ? "drag-over" : "")"
+                            <div class="drop-zone @(_dragOverSlot == 1 ? "drag-over" : "")"
                                  @ondrop="() => Drop(1)"
                                  @ondrop:preventDefault
                                  @ondrop:stopPropagation
-                                 @ondragover="() => dragOverSlot = 1"
+                                 @ondragover="() => _dragOverSlot = 1"
                                  @ondragover:preventDefault
-                                 @ondragleave="() => dragOverSlot = 0">
-                                @if (slot1 != null)
+                                 @ondragleave="() => _dragOverSlot = 0">
+                                @if (_slot1 != null)
                                 {
-                                    <div class="compound-card chemical-@(slot1.ChemicalTypeName.ToLowerInvariant()) h-100"
-                                         style="border-color: @ColorHelper.GetBorderColor(slot1.Color)"
+                                    <div class="compound-card chemical-@(_slot1.ChemicalTypeName.ToLowerInvariant()) h-100"
+                                         style="border-color: @ColorHelper.GetBorderColor(_slot1.Color)"
                                          draggable="true"
-                                         @ondragstart="() => { draggedChemical = slot1; dragSource = 1; }">
-                                        <SubstanceCard Chemical="slot1" />
+                                         @ondragstart="() => { _draggedChemical = _slot1; _dragSource = 1; }">
+                                        <SubstanceCard Chemical="_slot1" />
                                     </div>
                                 }
                                 else
@@ -42,20 +42,20 @@
                             </div>
                         </div>
                         <div class="col-6">
-                            <div class="drop-zone @(dragOverSlot == 2 ? "drag-over" : "")"
+                            <div class="drop-zone @(_dragOverSlot == 2 ? "drag-over" : "")"
                                  @ondrop="() => Drop(2)"
                                  @ondrop:preventDefault
                                  @ondrop:stopPropagation
-                                 @ondragover="() => dragOverSlot = 2"
+                                 @ondragover="() => _dragOverSlot = 2"
                                  @ondragover:preventDefault
-                                 @ondragleave="() => dragOverSlot = 0">
-                                @if (slot2 != null)
+                                 @ondragleave="() => _dragOverSlot = 0">
+                                @if (_slot2 != null)
                                 {
-                                    <div class="compound-card chemical-@(slot2.ChemicalTypeName.ToLowerInvariant()) h-100"
-                                         style="border-color: @ColorHelper.GetBorderColor(slot2.Color)"
+                                    <div class="compound-card chemical-@(_slot2.ChemicalTypeName.ToLowerInvariant()) h-100"
+                                         style="border-color: @ColorHelper.GetBorderColor(_slot2.Color)"
                                          draggable="true"
-                                         @ondragstart="() => { draggedChemical = slot2; dragSource = 2; }">
-                                        <SubstanceCard Chemical="slot2" />
+                                         @ondragstart="() => { _draggedChemical = _slot2; _dragSource = 2; }">
+                                        <SubstanceCard Chemical="_slot2" />
                                     </div>
                                 }
                                 else
@@ -70,7 +70,7 @@
                     </div>
 
                     <div class="d-flex gap-2">
-                        <button class="btn btn-primary" @onclick="Mix" disabled="@(slot1 == null || slot2 == null)">
+                        <button class="btn btn-primary" @onclick="Mix" disabled="@(_slot1 == null || _slot2 == null)">
                             <i class="bi bi-play-fill me-1"></i> Mischen
                         </button>
                         <button class="btn btn-outline-secondary" @onclick="ClearSlots">
@@ -81,37 +81,25 @@
             </div>
 
             <!-- Result -->
-            @if (lastResult != null)
+            @if (_lastResult != null)
             {
                 <div class="card border-0 shadow-sm mb-4">
                     <div class="card-body p-4">
                         <h5 class="fw-bold mb-3"><i class="bi bi-lightning-fill me-2 text-warning"></i>Ergebnis</h5>
-                        @if (lastResult.Reaction != null)
+                        @if (_lastResult.Reaction != null)
                         {
-                            <div class="alert alert-success d-flex align-items-center gap-3 mb-0">
-                                <div class="flex-grow-1">
-                                    <strong><ChemFormula Value="@lastResult.Reaction.Formula" /></strong>
-                                    <br />
-                                    <span>Produkt: @lastResult.Reaction.RelevantProduct</span>
-                                    <br />
-                                    <em>@lastResult.Reaction.ObservationDescription</em>
-                                </div>
-                                <img src="@(lastResult.Reaction.ImagePath ?? "images/placeholder-reaction.svg")"
-                                     class="rounded flex-shrink-0"
-                                     style="width: 80px; height: 80px; object-fit: cover;"
-                                     alt="Reaktionsbild" />
+                            <div class="alert alert-success mb-0">
+                                <strong><ChemFormula Value="@_lastResult.Reaction.Formula" /></strong>
+                                <br />
+                                <span>Produkt: @_lastResult.Reaction.RelevantProduct</span>
+                                <br />
+                                <em>@_lastResult.Reaction.ObservationDescription</em>
                             </div>
                         }
                         else
                         {
-                            <div class="alert alert-secondary d-flex align-items-center gap-3 mb-0">
-                                <div class="flex-grow-1">
-                                    <strong>Keine bekannte Reaktion</strong> zwischen @lastResult.Chemical1Name und @lastResult.Chemical2Name.
-                                </div>
-                                <img src="images/placeholder-reaction.svg"
-                                     class="rounded flex-shrink-0"
-                                     style="width: 80px; height: 80px; object-fit: cover;"
-                                     alt="Kein Ergebnis" />
+                            <div class="alert alert-secondary mb-0">
+                                <strong>Keine bekannte Reaktion</strong> zwischen @_lastResult.Chemical1Name und @_lastResult.Chemical2Name.
                             </div>
                         }
                     </div>
@@ -119,17 +107,17 @@
             }
 
             <!-- Mix Log -->
-            @if (mixLog.Count > 0)
+            @if (_mixLog.Count > 0)
             {
                 <div class="card border-0 shadow-sm">
                     <div class="card-body p-4">
                         <div class="d-flex justify-content-between align-items-center mb-3">
                             <h5 class="fw-bold mb-0"><i class="bi bi-clock-history me-2"></i>Verlauf</h5>
-                            <button class="btn btn-sm btn-outline-secondary" @onclick="() => mixLog.Clear()">
+                            <button class="btn btn-sm btn-outline-secondary" @onclick="() => _mixLog.Clear()">
                                 Leeren
                             </button>
                         </div>
-                        @foreach (var log in mixLog.AsEnumerable().Reverse())
+                        @foreach (var log in _mixLog.AsEnumerable().Reverse())
                         {
                             var cssClass = log.Reaction != null ? "neutral" : "neutral";
                             <div class="mix-log-item @cssClass">
@@ -155,7 +143,7 @@
                 <div class="card-body p-4">
                     <input type="text" class="form-control form-control-lg mb-3"
                            placeholder="Stoffe suchen..."
-                           @bind="searchTerm"
+                           @bind="_searchTerm"
                            @bind:event="oninput" />
                     @foreach (var group in FilteredChemicals.GroupBy(c => c.Type).OrderBy(g => g.Key))
                     {
@@ -166,7 +154,7 @@
                                 <div class="compound-card chemical-@(chem.ChemicalTypeName.ToLowerInvariant())"
                                      style="border-color: @ColorHelper.GetBorderColor(chem.Color)"
                                      draggable="true"
-                                     @ondragstart="() => { draggedChemical = chem; dragSource = 0; }">
+                                     @ondragstart="() => { _draggedChemical = chem; _dragSource = 0; }">
                                     <SubstanceCard Chemical="chem" />
                                 </div>
                             }
@@ -181,88 +169,88 @@
 @inject IChemistryDataService ChemistryData
 
 @code {
-    private List<LabChemicalDto> chemicals = new();
-    private List<LabReactionDto> reactions = new();
+    private List<LabChemicalDto> _chemicals = [];
+    private List<LabReactionDto> _reactions = [];
 
-    private string searchTerm = "";
-    private LabChemicalDto? draggedChemical;
-    private int dragSource; // 0 = sidebar, 1 = slot1, 2 = slot2
-    private LabChemicalDto? slot1;
-    private LabChemicalDto? slot2;
-    private int dragOverSlot;
+    private string _searchTerm = "";
+    private LabChemicalDto? _draggedChemical;
+    private int _dragSource; // 0 = sidebar, 1 = slot1, 2 = slot2
+    private LabChemicalDto? _slot1;
+    private LabChemicalDto? _slot2;
+    private int _dragOverSlot;
 
-    private MixLogViewModel? lastResult;
-    private List<MixLogViewModel> mixLog = new();
-    private int logCounter;
+    private MixLogViewModel? _lastResult;
+    private readonly List<MixLogViewModel> _mixLog = [];
+    private int _logCounter;
 
     private IEnumerable<LabChemicalDto> FilteredChemicals =>
-        string.IsNullOrWhiteSpace(searchTerm)
-            ? chemicals
-            : chemicals.Where(c =>
-                c.Name.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
-                c.Formula.Contains(searchTerm, StringComparison.OrdinalIgnoreCase));
+        string.IsNullOrWhiteSpace(_searchTerm)
+            ? _chemicals
+            : _chemicals.Where(c =>
+                c.Name.Contains(_searchTerm, StringComparison.OrdinalIgnoreCase) ||
+                c.Formula.Contains(_searchTerm, StringComparison.OrdinalIgnoreCase));
 
     protected override async Task OnInitializedAsync()
     {
-        chemicals = await ChemistryData.GetAllChemicalsAsync();
-        reactions = await ChemistryData.GetAllReactionsAsync();
+        _chemicals = await ChemistryData.GetAllChemicalsAsync();
+        _reactions = await ChemistryData.GetAllReactionsAsync();
     }
 
     private void Drop(int slot)
     {
-        dragOverSlot = 0;
-        if (draggedChemical == null) return;
+        _dragOverSlot = 0;
+        if (_draggedChemical == null) return;
 
         // Remove from source slot if dragged from a slot
-        if (dragSource == 1) slot1 = null;
-        if (dragSource == 2) slot2 = null;
+        if (_dragSource == 1) _slot1 = null;
+        if (_dragSource == 2) _slot2 = null;
 
         if (slot == 1)
-            slot1 = draggedChemical;
+            _slot1 = _draggedChemical;
         else
-            slot2 = draggedChemical;
+            _slot2 = _draggedChemical;
 
-        draggedChemical = null;
+        _draggedChemical = null;
     }
 
     private void DropOutside()
     {
         // Dropped outside both slots → remove from source slot
-        if (dragSource == 1) slot1 = null;
-        if (dragSource == 2) slot2 = null;
-        draggedChemical = null;
-        dragOverSlot = 0;
+        if (_dragSource == 1) _slot1 = null;
+        if (_dragSource == 2) _slot2 = null;
+        _draggedChemical = null;
+        _dragOverSlot = 0;
     }
 
     private void Mix()
     {
-        if (slot1 == null || slot2 == null) return;
+        if (_slot1 == null || _slot2 == null) return;
 
-        var reaction = FindReaction(slot1.ChemicalID, slot2.ChemicalID);
+        var reaction = FindReaction(_slot1.ChemicalID, _slot2.ChemicalID);
 
         var log = new MixLogViewModel
         {
-            LogID = ++logCounter,
-            Chemical1Name = slot1.Name,
-            Chemical2Name = slot2.Name,
+            LogID = ++_logCounter,
+            Chemical1Name = _slot1.Name,
+            Chemical2Name = _slot2.Name,
             Reaction = reaction,
-            Timestamp = DateTime.Now
+            Timestamp = DateTime.UtcNow
         };
 
-        lastResult = log;
-        mixLog.Add(log);
+        _lastResult = log;
+        _mixLog.Add(log);
     }
 
     private void ClearSlots()
     {
-        slot1 = null;
-        slot2 = null;
-        dragOverSlot = 0;
+        _slot1 = null;
+        _slot2 = null;
+        _dragOverSlot = 0;
     }
 
     private LabReactionDto? FindReaction(int chem1Id, int chem2Id)
     {
-        return reactions.FirstOrDefault(r =>
+        return _reactions.FirstOrDefault(r =>
             (r.Chemical1ID == chem1Id && r.Chemical2ID == chem2Id) ||
             (r.Chemical1ID == chem2Id && r.Chemical2ID == chem1Id));
     }

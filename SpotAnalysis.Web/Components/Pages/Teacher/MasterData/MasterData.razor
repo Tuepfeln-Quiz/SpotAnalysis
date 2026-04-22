@@ -1,0 +1,108 @@
+@page "/teacher/master-data"
+@rendermode InteractiveServer
+@attribute [Authorize(Roles = "Teacher, Admin")]
+@using ExcelImportExport.Helper
+
+@inject IXlsImportExportService XlsService
+@inject IJSRuntime JS
+
+<PageTitle>Stammdaten – Tüpfeln Digital</PageTitle>
+
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4 class="fw-bold mb-0">Stammdaten</h4>
+        <div class="d-flex gap-2">
+            <button class="btn btn-outline-secondary" @onclick="OpenImport">
+                <i class="bi bi-upload me-1"></i> Import
+            </button>
+            <button class="btn btn-outline-secondary" @onclick="DownloadExport">
+                <i class="bi bi-download me-1"></i> Export (xlsx)
+            </button>
+        </div>
+    </div>
+
+    <ul class="nav nav-tabs mb-3">
+        <li class="nav-item">
+            <button class="nav-link @(_activeTab == "chemicals" ? "active" : "")"
+                    @onclick='() => SetTab("chemicals")'>Chemikalien</button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link @(_activeTab == "reactions" ? "active" : "")"
+                    @onclick='() => SetTab("reactions")'>Reaktionen</button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link @(_activeTab == "observations" ? "active" : "")"
+                    @onclick='() => SetTab("observations")'>Beobachtungen</button>
+        </li>
+    </ul>
+
+    <div>
+        @switch (_activeTab)
+        {
+            case "chemicals":
+                <ChemicalList @key="_reloadToken" />
+                break;
+            case "reactions":
+                <ReactionList @key="_reloadToken" />
+                break;
+            case "observations":
+                <ObservationList @key="_reloadToken" />
+                break;
+        }
+    </div>
+
+    @if (_importOpen)
+    {
+        <ImportDialog OnCancel="() => _importOpen = false" OnImported="OnImported" />
+    }
+</div>
+
+@code {
+    [Inject] private NavigationManager Navigation { get; set; } = default!;
+
+    [SupplyParameterFromQuery(Name = "tab")]
+    public string? TabParam { get; set; }
+
+    private string _activeTab = "chemicals";
+    private bool _importOpen;
+    private int _reloadToken;
+
+    protected override void OnParametersSet()
+    {
+        _activeTab = TabParam switch
+        {
+            "reactions" => "reactions",
+            "observations" => "observations",
+            _ => "chemicals"
+        };
+    }
+
+    private void SetTab(string tab)
+    {
+        _activeTab = tab;
+        Navigation.NavigateTo($"/teacher/master-data?tab={tab}", replace: true);
+    }
+
+    private void OpenImport() => _importOpen = true;
+
+    private Task OnImported()
+    {
+        // Dialog bleibt offen, damit der User das Erfolgs-Resultat (Counts) sieht.
+        // Geschlossen wird er per "Schließen"-Button (OnCancel).
+        _reloadToken++;
+        return Task.CompletedTask;
+    }
+
+    private async Task DownloadExport()
+    {
+        using var ms = new MemoryStream();
+        await XlsService.ExportToStreamAsync(ms, ExcelFormat.Xlsx);
+        var bytes = ms.ToArray();
+        var fileName = $"stammdaten-{DateTime.Now:yyyy-MM-dd-HHmm}.xlsx";
+        await JS.InvokeVoidAsync(
+            "fileDownload.fromBytes",
+            fileName,
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            bytes);
+    }
+}

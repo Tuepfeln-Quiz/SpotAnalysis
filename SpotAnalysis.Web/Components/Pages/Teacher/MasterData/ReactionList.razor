@@ -1,0 +1,134 @@
+@inject IMasterDataService MasterData
+
+<div class="d-flex gap-2 mb-3 align-items-center flex-wrap">
+    <input type="text" class="form-control input-custom flex-grow-1"
+           placeholder="Suchen (ID, Name, Formel, Produkt, Beobachtung)..."
+           @bind="_search" @bind:event="oninput" />
+    <button class="btn btn-primary-purple ms-auto" @onclick="NewReaction">
+        <i class="bi bi-plus-lg me-1"></i> Neue Reaktion
+    </button>
+</div>
+
+@if (_items is null)
+{
+    <p class="text-muted">Laden...</p>
+}
+else if (!FilteredItems.Any())
+{
+    <p class="text-muted text-center py-5">Keine Reaktionen gefunden.</p>
+}
+else
+{
+    <div class="d-flex flex-column gap-2">
+        @foreach (var r in FilteredItems)
+        {
+            <div class="list-row">
+                <div class="flex-grow-1">
+                    <div class="fw-semibold">
+                        <span class="text-muted small me-2">#@r.Id</span>
+                        @r.Chemical1Name + @r.Chemical2Name → <ChemFormula Value="@r.RelevantProduct" />
+                    </div>
+                    <div class="text-muted small">@r.ObservationDescription</div>
+                </div>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-sm btn-edit" @onclick="() => EditReaction(r)">Bearbeiten</button>
+                    <span class="d-inline-block" tabindex="0" title="@DeleteTooltip(r.References)">
+                        <button class="btn btn-sm btn-delete"
+                                disabled="@(r.References.Total > 0)"
+                                style="@(r.References.Total > 0 ? "pointer-events: none;" : null)"
+                                @onclick="() => ConfirmDelete(r)">Löschen</button>
+                    </span>
+                </div>
+            </div>
+        }
+    </div>
+}
+
+<ReferenceWarning IsVisible="@(_toDelete is not null)"
+                  Title="Reaktion löschen?"
+                  ConfirmQuestion="Möchtest du diese Reaktion wirklich löschen?"
+                  Report="_toDelete?.References"
+                  OnConfirm="DeleteConfirmed"
+                  OnCancel="() => _toDelete = null" />
+
+@if (_editing is not null)
+{
+    <ReactionEditor Dto="_editing" OnSaved="OnEditorSaved" OnCancel="() => _editing = null" />
+}
+
+@if (!string.IsNullOrEmpty(_error))
+{
+    <div class="alert alert-danger mt-3">@_error</div>
+}
+
+@code {
+    private List<ReactionDetailDto>? _items;
+    private string _search = "";
+    private ReactionDetailDto? _editing;
+    private ReactionDetailDto? _toDelete;
+    private string? _error;
+
+    protected override async Task OnInitializedAsync() => await ReloadAsync();
+
+    private async Task ReloadAsync()
+    {
+        _items = await MasterData.GetReactionsAsync();
+        StateHasChanged();
+    }
+
+    private IEnumerable<ReactionDetailDto> FilteredItems =>
+        _items?.Where(r =>
+            string.IsNullOrEmpty(_search) ||
+            r.Id.ToString().Contains(_search) ||
+            r.Chemical1Name.Contains(_search, StringComparison.OrdinalIgnoreCase) ||
+            r.Chemical2Name.Contains(_search, StringComparison.OrdinalIgnoreCase) ||
+            r.RelevantProduct.Contains(_search, StringComparison.OrdinalIgnoreCase) ||
+            r.Formula.Contains(_search, StringComparison.OrdinalIgnoreCase) ||
+            r.ObservationDescription.Contains(_search, StringComparison.OrdinalIgnoreCase)
+        ) ?? [];
+
+    private void NewReaction() => _editing = new ReactionDetailDto();
+
+    private void EditReaction(ReactionDetailDto r) => _editing = Clone(r);
+
+    private void ConfirmDelete(ReactionDetailDto r) => _toDelete = r;
+
+    private async Task DeleteConfirmed()
+    {
+        if (_toDelete is null) return;
+        try
+        {
+            await MasterData.DeleteReactionAsync(_toDelete.Id);
+            _toDelete = null;
+            await ReloadAsync();
+        }
+        catch (InvalidOperationException ex)
+        {
+            _error = ex.Message;
+            _toDelete = null;
+        }
+    }
+
+    private async Task OnEditorSaved()
+    {
+        _editing = null;
+        await ReloadAsync();
+    }
+
+    private static ReactionDetailDto Clone(ReactionDetailDto src) => new()
+    {
+        Id = src.Id,
+        Chemical1Id = src.Chemical1Id, Chemical2Id = src.Chemical2Id,
+        Chemical1Name = src.Chemical1Name, Chemical2Name = src.Chemical2Name,
+        RelevantProduct = src.RelevantProduct, Formula = src.Formula,
+        ObservationId = src.ObservationId, ObservationDescription = src.ObservationDescription,
+        ImagePath = src.ImagePath, References = src.References
+    };
+
+    private static string? DeleteTooltip(ReferenceReport r)
+    {
+        if (r.Total == 0) return null;
+        var lines = r.Items.Select(i => $"• {i.Description}");
+        return "Löschen nicht möglich – wird verwendet in:\n" + string.Join("\n", lines);
+    }
+}

@@ -65,7 +65,7 @@ public class DatabaseSeeder(
         await using var context = await factory.CreateDbContextAsync(cancellationToken);
 
         var user = await context.Users.FirstOrDefaultAsync(u => u.UserName == "Admin", cancellationToken);
-        if(user != null)
+        if (user != null)
         {
             return;
         }
@@ -109,9 +109,9 @@ public class DatabaseSeeder(
 
         // Precondition: Stammdaten (Reactions, Chemicals, Methods) müssen existieren.
         // Ohne sie würden die FK-Referenzen im Skript scheitern.
-        var hasReactions  = await context.Reactions.AnyAsync(cancellationToken);
-        var hasChemicals  = await context.Chemicals.AnyAsync(cancellationToken);
-        var hasMethods    = await context.Methods.AnyAsync(cancellationToken);
+        var hasReactions = await context.Reactions.AnyAsync(cancellationToken);
+        var hasChemicals = await context.Chemicals.AnyAsync(cancellationToken);
+        var hasMethods = await context.Methods.AnyAsync(cancellationToken);
         if (!hasReactions || !hasChemicals || !hasMethods)
         {
             logger.LogWarning(

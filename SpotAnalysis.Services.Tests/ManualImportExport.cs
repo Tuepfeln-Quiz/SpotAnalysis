@@ -36,7 +36,7 @@ public class ManualImportExport
         var reactions = await context.Reactions.CountAsync();
         var methods = await context.Methods.CountAsync();
 
-        TestContext.WriteLine($"Import abgeschlossen: {chemicals} Chemicals, {reactions} Reactions, {methods} Methods");
+        await TestContext.Out.WriteLineAsync($"Import abgeschlossen: {chemicals} Chemicals, {reactions} Reactions, {methods} Methods");
     }
 
     [Test]
@@ -67,7 +67,7 @@ public class ManualImportExport
         context.Methods.RemoveRange(context.Methods);
         await context.SaveChangesAsync();
 
-        TestContext.WriteLine($"Gelöscht: {reactions} Reactions, {methodOutputs} MethodOutputs, {observations} Observations, {chemicals} Chemicals, {methods} Methods");
+        await TestContext.Out.WriteLineAsync($"Gelöscht: {reactions} Reactions, {methodOutputs} MethodOutputs, {observations} Observations, {chemicals} Chemicals, {methods} Methods");
     }
 
     [Test]
@@ -82,7 +82,7 @@ public class ManualImportExport
 
         await service.ExportToFileAsync(exportPath);
 
-        TestContext.WriteLine($"Export gespeichert: {exportPath}");
+        await TestContext.Out.WriteLineAsync($"Export gespeichert: {exportPath}");
         Assert.That(File.Exists(exportPath), Is.True);
     }
 }

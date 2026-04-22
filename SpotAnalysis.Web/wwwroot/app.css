@@ -216,6 +216,125 @@ body {
     color: #b45309;
 }
 
+/* ===== Login / Auth Screen ===== */
+
+.login-page {
+    min-height: calc(100vh - 70px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 1rem 1rem;
+    background-color: var(--bg-main);
+}
+
+.login-card {
+    width: 100%;
+    max-width: 440px;
+    background: white;
+    border-radius: var(--card-radius);
+    box-shadow: 0 12px 40px rgba(76, 29, 149, 0.15), 0 2px 8px rgba(0, 0, 0, 0.06);
+    overflow: hidden;
+}
+
+.login-hero {
+    background: white;
+    height: 260px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.login-hero img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    object-position: center 5%;
+}
+
+.login-body {
+    padding: 1.75rem 2rem 2rem;
+}
+
+.login-title {
+    text-align: center;
+    font-weight: 700;
+    font-size: 1.85rem;
+    color: #1f2937;
+    margin: 0 0 1.5rem;
+    letter-spacing: -0.01em;
+}
+
+.login-form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+}
+
+.login-field .input-custom {
+    height: 44px;
+    padding: 0.55rem 0.9rem;
+    font-size: 0.95rem;
+    background: #fafafa;
+}
+
+.login-field .input-custom:focus {
+    border-color: var(--purple-600);
+    background: white;
+    box-shadow: 0 0 0 3px rgba(107, 33, 168, 0.12);
+    outline: none;
+}
+
+.login-error {
+    text-align: center;
+    color: #e50000;
+    font-size: 0.88rem;
+    margin: 0.25rem 0;
+}
+
+.login-actions {
+    display: flex;
+    justify-content: center;
+    margin-top: 0.5rem;
+}
+
+.login-submit {
+    min-width: 160px;
+    padding: 0.65rem 1.75rem;
+    font-weight: 600;
+    font-size: 1rem;
+    letter-spacing: 0.02em;
+    box-shadow: 0 6px 16px rgba(76, 29, 149, 0.25);
+}
+
+.login-footer-link {
+    text-align: center;
+    margin-top: 1.5rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid #f0ecec;
+    font-size: 0.88rem;
+    color: #6b7280;
+}
+
+.login-footer-link a {
+    color: var(--purple-600);
+    font-weight: 600;
+    text-decoration: none;
+    margin-left: 0.35rem;
+}
+
+.login-footer-link a:hover {
+    text-decoration: underline;
+}
+
+.login-copy {
+    margin-top: 1.5rem;
+    font-size: 0.8rem;
+    color: #8a8686;
+    text-align: center;
+}
+
 /* ===== End Custom Styles ===== */
 
 html, body {
@@ -312,6 +431,7 @@ h1:focus {
     align-items: center;
     justify-content: center;
 }
+
 .user-greeting {
     margin-left: auto;  
     font-weight: 500;

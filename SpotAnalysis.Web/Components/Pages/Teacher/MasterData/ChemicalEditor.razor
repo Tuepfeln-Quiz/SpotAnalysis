@@ -1,0 +1,133 @@
+@inject IMasterDataService MasterData
+
+<div class="modal-backdrop show"></div>
+<div class="modal d-block" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content" style="border-radius: var(--card-radius);">
+            <div class="modal-header border-0">
+                <h5 class="modal-title fw-bold">@(Dto.Id == 0 ? "Neue Chemikalie" : "Chemikalie bearbeiten")</h5>
+            </div>
+            <div class="modal-body">
+                <EditForm Model="Dto" OnValidSubmit="SaveAsync">
+                    <DataAnnotationsValidator />
+
+                    <div class="mb-3">
+                        <label class="form-label-custom">Name</label>
+                        <InputText class="form-control input-custom" @bind-Value="Dto.Name" />
+                        <ValidationMessage For="() => Dto.Name" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label-custom">Formel</label>
+                        <InputText class="form-control input-custom" @bind-Value="Dto.Formula" />
+                        <small class="text-muted">Vorschau: <ChemFormula Value="@Dto.Formula" /></small>
+                        <ValidationMessage For="() => Dto.Formula" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label-custom">Typ</label>
+                        <InputSelect class="form-select input-custom" @bind-Value="Dto.Type">
+                            <option value="@ChemicalType.Educt">Edukt</option>
+                            <option value="@ChemicalType.Additive">Zusatzstoff</option>
+                        </InputSelect>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label-custom">Eigenfarbe</label>
+                        <ColorPicker Value="@Dto.Color"
+                                     Placeholder="z. B. farblos, weiß, orange"
+                                     ValueChanged="OnEigenfarbeChanged" />
+                        <ValidationMessage For="() => Dto.Color" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label-custom">Farbreaktionen je Methode</label>
+                        <div class="d-flex gap-2 align-items-start mb-1 text-muted small">
+                            <span style="min-width:150px;">Methode</span>
+                            <span class="flex-grow-1">Beobachtete Farbe</span>
+                        </div>
+                        @foreach (var method in _allMethodNames)
+                        {
+                            var entry = Dto.MethodOutputs.FirstOrDefault(m => m.MethodName == method)
+                                      ?? AddNewEntry(method);
+                            <div class="d-flex gap-2 align-items-start mb-2">
+                                <span style="min-width:150px; padding-top:9px;">@method</span>
+                                <div class="flex-grow-1">
+                                    <ColorPicker Value="@entry.Color"
+                                                 Placeholder="z. B. rot, violett"
+                                                 ValueChanged="v => OnMethodColorChanged(entry, v)" />
+                                </div>
+                            </div>
+                        }
+                        <small class="text-muted">Leer lassen, wenn diese Methode bei dieser Chemikalie keine Reaktion zeigt.</small>
+                    </div>
+
+                    @if (!string.IsNullOrEmpty(_saveError))
+                    {
+                        <div class="alert alert-danger">@_saveError</div>
+                    }
+
+                    <div class="d-flex justify-content-end gap-2 mt-4">
+                        <button type="button" class="btn btn-secondary" @onclick="OnCancel">Abbrechen</button>
+                        <button type="submit" class="btn btn-primary-purple" disabled="@_saving">
+                            @(_saving ? "Speichern..." : "Speichern")
+                        </button>
+                    </div>
+                </EditForm>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public ChemicalDetailDto Dto { get; set; } = default!;
+    [Parameter] public EventCallback OnSaved { get; set; }
+    [Parameter] public EventCallback OnCancel { get; set; }
+
+    // Methods sind laut Spec auf diese zwei beschränkt und werden durch den DatabaseSeeder angelegt.
+    private static readonly string[] _allMethodNames = { "ph-Papier", "Flammenfärbung" };
+
+    private string? _saveError;
+    private bool _saving;
+
+    private MethodOutputEntry AddNewEntry(string methodName)
+    {
+        var entry = new MethodOutputEntry { MethodName = methodName, Color = "" };
+        Dto.MethodOutputs.Add(entry);
+        return entry;
+    }
+
+    private void OnEigenfarbeChanged(string? value)
+    {
+        Dto.Color = value ?? "";
+    }
+
+    private void OnMethodColorChanged(MethodOutputEntry entry, string? value)
+    {
+        entry.Color = value ?? "";
+    }
+
+    private async Task SaveAsync()
+    {
+        _saveError = null;
+        _saving = true;
+
+        try
+        {
+            if (Dto.Id == 0)
+                Dto.Id = await MasterData.CreateChemicalAsync(Dto);
+            else
+                await MasterData.UpdateChemicalAsync(Dto);
+
+            await OnSaved.InvokeAsync();
+        }
+        catch (InvalidOperationException ex)
+        {
+            _saveError = ex.Message;
+        }
+        finally
+        {
+            _saving = false;
+        }
+    }
+}

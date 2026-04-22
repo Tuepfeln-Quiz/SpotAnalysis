@@ -32,7 +32,7 @@ public class Program
 
         app.UseSerilogRequestLogging();
 
-        using (var scope = app.Services.CreateAsyncScope())
+        await using (var scope = app.Services.CreateAsyncScope())
         {
             var seeder = scope.ServiceProvider.GetRequiredService<IDatabaseSeeder>();
             try
@@ -52,7 +52,7 @@ public class Program
             }
         }
 
-        
+
 
         // Configure the HTTP request pipeline.
         if (!app.Environment.IsDevelopment())
@@ -60,8 +60,6 @@ public class Program
             app.UseForwardedHeaders(new ForwardedHeadersOptions
             {
                 ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto,
-                KnownNetworks = { },
-                KnownProxies = { },
             });
             app.UseExceptionHandler("/Error");
         }
@@ -78,6 +76,6 @@ public class Program
         app.MapRazorComponents<App>()
             .AddInteractiveServerRenderMode();
 
-        app.Run();
+        await app.RunAsync();
     }
 }

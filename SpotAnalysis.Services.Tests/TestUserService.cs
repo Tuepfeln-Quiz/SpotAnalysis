@@ -1,4 +1,5 @@
-﻿using System.Security.Authentication;
+using System.Security.Authentication;
+using System.Security.Cryptography;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 using SpotAnalysis.Data.Enums;
@@ -22,22 +23,21 @@ public class TestUserService : BaseDatabaseTest
     private const string StudentName3 = "Student 3";
     private const string StudentName4 = "Student 4";
 
-    private const string StudentPassword3 = "password";
+    private const string StudentPassword3 = "Password1!";
 
     #endregion
-    
+
     #region helpers
-    
-    private static Random random = new Random();
+
     public static string RandomString(int length)
     {
         const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
         return new string(Enumerable.Repeat(chars, length)
-            .Select(s => s[random.Next(s.Length)]).ToArray());
+            .Select(s => s[RandomNumberGenerator.GetInt32(s.Length)]).ToArray());
     }
-    
+
     #endregion
-    
+
     [OneTimeSetUp]
     public void InitStudentService()
     {
@@ -49,7 +49,7 @@ public class TestUserService : BaseDatabaseTest
     public async Task TestAllUserService()
     {
         var registeredUsers = new HashSet<(string, string)>();
-        
+
         #region TestStudentRegister
 
         {
@@ -58,14 +58,14 @@ public class TestUserService : BaseDatabaseTest
             for (var i = 0; i < 100; i++)
             {
                 var uname = RandomString(12);
-                var password = RandomString(12);
+                var password = RandomString(8) + "Aa1!";
                 registeredUsers.Add((uname, password));
                 await _userService.Register(uname, password);
             }
         }
 
         #endregion
-        
+
         #region TestStudentLogin
 
         {
@@ -79,9 +79,9 @@ public class TestUserService : BaseDatabaseTest
                 Assert.That(user, Is.Not.Null);
             }
         }
-        
+
         #endregion
-        
+
         #region TestStudentFailLogin
 
         {

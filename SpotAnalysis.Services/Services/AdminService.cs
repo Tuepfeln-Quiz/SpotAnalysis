@@ -49,7 +49,7 @@ public class AdminService(IDbContextFactory<AnalysisContext> contextFactory, ILo
 
             var user = await dbContext.Users.SingleAsync(x => x.UserID == userId);
 
-            if(user.Roles.Count == 1 && user.Roles.Contains(role))
+            if (user.Roles.Count == 1 && user.Roles.Contains(role))
             {
                 throw new InvalidOperationException($"Cannot remove the only role from user with id {userId}.");
             }

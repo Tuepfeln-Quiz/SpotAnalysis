@@ -4,7 +4,8 @@
 /// Represents the results for the specified SpotTestLight Questions. 
 /// The user attempting the question can be tracked with the Attempt Object.
 /// </summary>
-public class STLResult {
+public class STLResult
+{
     [Key]
     public int ResultID { get; set; }
     public int AttemptID { get; set; }

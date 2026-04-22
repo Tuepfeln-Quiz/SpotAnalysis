@@ -1,7 +1,8 @@
 ﻿namespace SpotAnalysis.Data.Models.Identity;
 
 [Index(nameof(Name), IsUnique = true)]
-public class Group {
+public class Group
+{
     [Key]
     public int GroupID { get; set; }
 

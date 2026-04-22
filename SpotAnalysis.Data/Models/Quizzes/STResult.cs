@@ -4,7 +4,8 @@
 /// Represents the mapping between a quiz attempt and a question. The ResultID is used to distinguish between different questions in the STChemicalResult table.
 /// </summary>
 
-public class STResult {
+public class STResult
+{
     [Key]
     public int ResultID { get; set; }
     public int AttemptID { get; set; }

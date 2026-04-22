@@ -66,3 +66,7 @@ nunit-*.xml
 
 .env
 /logs/
+
+bootstrap-icons.min.css
+bootstrap-icons.woff
+bootstrap-icons.woff2

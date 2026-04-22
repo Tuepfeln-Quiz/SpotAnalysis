@@ -1,6 +1,4 @@
-﻿using Microsoft.AspNetCore.DataProtection;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 using SpotAnalysis.Data.Enums;
@@ -29,11 +27,7 @@ public class TestQuizService : BaseDatabaseTest
     {
         var logger = Substitute.For<ILogger<QuizService>>();
         _quizService = new QuizService(logger, ContextFactory);
-        var dpServices = new ServiceCollection();
-        dpServices.AddDataProtection();
-        var dpProvider = dpServices.BuildServiceProvider()
-            .GetRequiredService<IDataProtectionProvider>();
-        var inviteTokens = new GroupInviteTokenService(dpProvider);
+        var inviteTokens = new GroupInviteTokenService(ContextFactory);
         _teacherService = new GroupService(ContextFactory, inviteTokens);
     }
 

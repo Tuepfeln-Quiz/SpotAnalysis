@@ -10,6 +10,7 @@ public class AnalysisContext : DbContext
     #region Users, Roles, Groups
     public virtual DbSet<User> Users { get; set; }
     public virtual DbSet<Group> Groups { get; set; }
+    public virtual DbSet<GroupInvite> GroupInvites { get; set; }
 
     #endregion Users, Roles, Groups
 

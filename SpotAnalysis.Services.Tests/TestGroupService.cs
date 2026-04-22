@@ -1,6 +1,4 @@
-using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 using SpotAnalysis.Services.DTOs;
 using SpotAnalysis.Services.Services;
 
@@ -34,11 +32,7 @@ public class TestGroupService : BaseDatabaseTest
     [OneTimeSetUp]
     public void InitGroupService()
     {
-        var dpServices = new ServiceCollection();
-        dpServices.AddDataProtection();
-        var dpProvider = dpServices.BuildServiceProvider()
-            .GetRequiredService<IDataProtectionProvider>();
-        _inviteTokens = new GroupInviteTokenService(dpProvider);
+        _inviteTokens = new GroupInviteTokenService(ContextFactory);
         _groupService = new GroupService(ContextFactory, _inviteTokens);
     }
 
@@ -197,7 +191,7 @@ public class TestGroupService : BaseDatabaseTest
 
         #region Success
 
-        var token = _inviteTokens.CreateToken(groupId);
+        var token = await _inviteTokens.CreateToken(groupId);
         var result = await _groupService.JoinGroupByToken(Student2, token);
         Assert.That(result, Is.EqualTo(JoinGroupResult.Success));
 
@@ -208,7 +202,7 @@ public class TestGroupService : BaseDatabaseTest
 
         #region AlreadyMember
 
-        var token2 = _inviteTokens.CreateToken(groupId);
+        var token2 = await _inviteTokens.CreateToken(groupId);
         var result2 = await _groupService.JoinGroupByToken(Student2, token2);
         Assert.That(result2, Is.EqualTo(JoinGroupResult.AlreadyMember));
 
@@ -221,17 +215,9 @@ public class TestGroupService : BaseDatabaseTest
 
         #endregion
 
-        #region GroupNotFound
-
-        var tokenForGhost = _inviteTokens.CreateToken(99999);
-        var resultGhost = await _groupService.JoinGroupByToken(Student1, tokenForGhost);
-        Assert.That(resultGhost, Is.EqualTo(JoinGroupResult.GroupNotFound));
-
-        #endregion
-
         #region UserNotFound
 
-        var tokenForGroup = _inviteTokens.CreateToken(groupId);
+        var tokenForGroup = await _inviteTokens.CreateToken(groupId);
         var resultNoUser = await _groupService.JoinGroupByToken(Guid.NewGuid(), tokenForGroup);
         Assert.That(resultNoUser, Is.EqualTo(JoinGroupResult.UserNotFound));
 

@@ -409,9 +409,9 @@
     private void BackToList() => Navigation.NavigateTo("/teacher/groups");
 
     // Invite link
-    private void GenerateInvite()
+    private async Task GenerateInvite()
     {
-        var token = InviteTokens.CreateToken(Id);
+        var token = await InviteTokens.CreateToken(Id);
         var baseUrl = Navigation.BaseUri.TrimEnd('/');
         _inviteLink = $"{baseUrl}/join/{token}";
         _inviteExpiresAt = DateTime.UtcNow.AddMinutes(15);

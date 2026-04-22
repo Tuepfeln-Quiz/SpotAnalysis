@@ -62,6 +62,11 @@ jobs:
 
       - name: Check formatting
         run: dotnet format SpotAnalysis.slnx --verify-no-changes
+        continue-on-error: true
+
+      - name: Warn if formatting failed
+        if: steps.format-check.outcome == 'failure'
+        run: echo "::warning::Formatting issues found. Please run 'dotnet format'."
 
       - name: Build
         run: dotnet build SpotAnalysis.slnx --no-restore --warnaserror

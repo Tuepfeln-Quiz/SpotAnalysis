@@ -11,7 +11,11 @@
             </p>
 
             <div class="d-flex justify-content-center gap-3 flex-wrap">
-                <a href="/login" class="btn btn-outline-secondary px-3">Zum Login</a>
+                <AuthorizeView>
+                    <NotAuthorized>
+                        <a href="/login" class="btn btn-outline-secondary px-3">Zum Login</a>
+                    </NotAuthorized>
+                </AuthorizeView>
                 <a href="/" class="btn btn-primary px-3">Zu den Quizzes</a>
                 <AuthorizeView Roles="Teacher,Admin">
                     <Authorized>

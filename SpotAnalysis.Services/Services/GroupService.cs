@@ -318,7 +318,7 @@ public class GroupService : IGroupService
 
     public async Task<JoinGroupResult> JoinGroupByToken(Guid userId, string token)
     {
-        var groupId = _inviteTokens.ValidateToken(token);
+        var groupId = await _inviteTokens.ValidateToken(token);
         if (groupId is null)
         {
             return JoinGroupResult.TokenInvalid;

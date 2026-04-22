@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using SpotAnalysis.Data;
@@ -16,7 +17,11 @@ public static class ServiceCollectionExtensions
         this IServiceCollection services, IConfiguration configuration)
     {
         services.AddDbContextFactory<AnalysisContext>(options =>
-            options.UseNpgsql(configuration.GetConnectionString("MyDatabase")));
+            {
+                options.UseNpgsql(configuration.GetConnectionString("MyDatabase"), o => o.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery));
+                options.ConfigureWarnings(w => w.Throw(RelationalEventId.MultipleCollectionIncludeWarning));
+            }
+        );
 
         services.AddScoped<IUserService, UserService>();
         services.AddScoped<IGroupInviteTokenService, GroupInviteTokenService>();

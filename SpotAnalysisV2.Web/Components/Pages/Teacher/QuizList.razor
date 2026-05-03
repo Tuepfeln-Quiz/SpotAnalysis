@@ -152,7 +152,7 @@
             _errorMessage = ex.Message;
             _quizToDelete = null;
         }
-        catch (Exception)
+        catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
         {
             _errorMessage = "Löschen fehlgeschlagen. Bitte erneut versuchen.";
             _quizToDelete = null;

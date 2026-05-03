@@ -398,7 +398,7 @@
 
             Navigation.NavigateTo("/teacher/questions");
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is InvalidOperationException or ArgumentException)
         {
             _errorMessage = ex.Message;
         }

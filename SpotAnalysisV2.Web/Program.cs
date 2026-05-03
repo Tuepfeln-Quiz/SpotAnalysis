@@ -51,7 +51,7 @@ if (!app.Environment.IsDevelopment())
     app.UseForwardedHeaders(new ForwardedHeadersOptions
     {
         ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto,
-        KnownNetworks = { },
+        KnownIPNetworks = { },
         KnownProxies = { },
     });
     app.UseExceptionHandler("/Error", createScopeForErrors: true);

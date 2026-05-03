@@ -240,7 +240,7 @@
     private string? _inviteLink;
     private DateTime _inviteExpiresAt;
     private string _remainingDisplay = string.Empty;
-    private System.Threading.Timer? _countdownTimer;
+    private Timer? _countdownTimer;
     private bool _showAddTeacherModal;
     private bool _showAddStudentModal;
     private bool _showAddQuizModal;
@@ -298,7 +298,7 @@
         _inviteExpiresAt = DateTime.UtcNow.AddMinutes(15);
         UpdateRemaining();
         _countdownTimer?.Dispose();
-        _countdownTimer = new System.Threading.Timer(_ =>
+        _countdownTimer = new Timer(_ =>
         {
             InvokeAsync(() =>
             {
@@ -380,13 +380,13 @@
 
     private async Task AddQuizToGroup(int quizId)
     {
-        await QuizService.AssignGroupToQuiz(quizId, Id);
+        await QuizService.AssignGroupToQuiz(_teacherId, quizId, Id);
         _quizzes = await GroupService.GetQuizzesByGroup(Id);
     }
 
     private async Task RemoveQuizFromGroup(int quizId)
     {
-        await QuizService.RemoveGroupFromQuiz(quizId, Id);
+        await QuizService.RemoveGroupFromQuiz(_teacherId, quizId, Id);
         await ReloadMembers();
     }
 

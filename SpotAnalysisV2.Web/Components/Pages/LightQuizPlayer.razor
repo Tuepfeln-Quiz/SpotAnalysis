@@ -455,7 +455,7 @@
         }
 
         if (_quiz is not null)
-            await QuizService.CompleteAttempt(_quiz.AttemptID);
+            await QuizService.CompleteAttempt(_userId, _quiz.AttemptID);
 
         finished = true;
     }

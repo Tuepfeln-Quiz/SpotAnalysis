@@ -135,10 +135,21 @@
     private string _teacherFilter = string.Empty;
     private QuestionOverviewDto? _questionToDelete;
     private string? _deleteError;
+    private Guid _userId;
+
+    [CascadingParameter] private Task<AuthenticationState> AuthState { get; set; } = null!;
 
     protected override async Task OnInitializedAsync()
     {
         _questions = await QuizService.GetQuestions();
+
+        var auth = await AuthState;
+        var userIdClaim = auth.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+        if (!Guid.TryParse(userIdClaim, out _userId))
+        {
+            _deleteError = "Benutzer konnte nicht ermittelt werden.";
+        }
     }
 
     private record TeacherOption(string Id, string Name);
@@ -170,7 +181,7 @@
         _deleteError = null;
         try
         {
-            await QuizService.DeleteQuestion(_questionToDelete.Id);
+            await QuizService.DeleteQuestion(_userId, _questionToDelete.Id);
             _questionToDelete = null;
             _questions = await QuizService.GetQuestions();
         }

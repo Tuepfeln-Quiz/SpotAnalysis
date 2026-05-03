@@ -193,7 +193,7 @@
             if (quiz is not null)
                 _quizName = quiz.Name;
 
-            _selectedGroups = await QuizService.GetGroupsByQuiz(QuizId!.Value);
+            _selectedGroups = await QuizService.GetGroupsByQuiz(_teacherId, QuizId!.Value);
         }
     }
 
@@ -293,14 +293,14 @@
                 });
             }
 
-            var existingGroups = await QuizService.GetGroupsByQuiz(quizId);
+            var existingGroups = await QuizService.GetGroupsByQuiz(_teacherId, quizId);
             var existingGroupIds = existingGroups.Select(g => g.Id).ToHashSet();
 
             foreach (var groupId in selectedGroupIds.Except(existingGroupIds))
-                await QuizService.AssignGroupToQuiz(quizId, groupId);
+                await QuizService.AssignGroupToQuiz(_teacherId, quizId, groupId);
 
             foreach (var groupId in existingGroupIds.Except(selectedGroupIds))
-                await QuizService.RemoveGroupFromQuiz(quizId, groupId);
+                await QuizService.RemoveGroupFromQuiz(_teacherId, quizId, groupId);
 
             Navigation.NavigateTo("/teacher/quizzes");
         }

@@ -116,34 +116,36 @@
                             </div>
 
                             <div class="grid grid-cols-2 gap-1.5 mb-3">
-                                @foreach (var tool in activeToolDefs)
+                                @foreach (var tool in activeToolDefs.Where(tool => IsToolRevealed(idx, tool.Id)))
                                 {
-                                    if (IsToolRevealed(idx, tool.Id))
-                                    {
-                                        <div class="flex items-center gap-2 px-2.5 py-1.5 rounded-lg border border-gray-200 bg-white shadow-sm min-w-0">
-                                            <span class="text-sm">@tool.Icon</span>
-                                            @if (tool.Id == ToolType.Ph)
-                                            {
-                                                <div class="w-5 h-5 rounded-full border" style="background-color:@sub.PhFarbe"></div>
-                                                <span class="text-xs truncate">pH</span>
-                                            }
-                                            else if (tool.Id == ToolType.Flamme)
-                                            {
-                                                <div class="w-5 h-5 rounded-full border" style="background-color:@sub.FlammenHex"></div>
-                                                <span class="text-xs truncate">@sub.Flammenfarbe</span>
-                                            }
-                                            else if (tool.Id == ToolType.NaOH)
-                                            {
-                                                <div class="w-5 h-5 rounded-full border" style="background-color:@sub.MitNaOHFarbe"></div>
-                                                <span class="text-xs truncate">@sub.MitNaOH</span>
-                                            }
-                                            else if (tool.Id == ToolType.HCl)
-                                            {
-                                                <div class="w-5 h-5 rounded-full border" style="background-color:@sub.MitHClFarbe"></div>
-                                                <span class="text-xs truncate">@sub.MitHCl</span>
-                                            }
-                                        </div>
-                                    }
+                                    <div
+                                        class="flex items-center gap-2 px-2.5 py-1.5 rounded-lg border border-gray-200 bg-white shadow-sm min-w-0">
+                                        <span class="text-sm">@tool.Icon</span>
+                                        @if (tool.Id == ToolType.Ph)
+                                        {
+                                            <div class="w-5 h-5 rounded-full border"
+                                                 style="background-color:@sub.PhFarbe"></div>
+                                            <span class="text-xs truncate">pH</span>
+                                        }
+                                        else if (tool.Id == ToolType.Flamme)
+                                        {
+                                            <div class="w-5 h-5 rounded-full border"
+                                                 style="background-color:@sub.FlammenHex"></div>
+                                            <span class="text-xs truncate">@sub.Flammenfarbe</span>
+                                        }
+                                        else if (tool.Id == ToolType.NaOH)
+                                        {
+                                            <div class="w-5 h-5 rounded-full border"
+                                                 style="background-color:@sub.MitNaOHFarbe"></div>
+                                            <span class="text-xs truncate">@sub.MitNaOH</span>
+                                        }
+                                        else if (tool.Id == ToolType.HCl)
+                                        {
+                                            <div class="w-5 h-5 rounded-full border"
+                                                 style="background-color:@sub.MitHClFarbe"></div>
+                                            <span class="text-xs truncate">@sub.MitHCl</span>
+                                        }
+                                    </div>
                                 }
                                 @if (!HasAnyToolRevealed(idx))
                                 {
@@ -190,7 +192,7 @@
                     {
                         var id = slot == 0 ? mixA : mixB;
                         <div class="flex-1 border-2 rounded-lg p-4 min-h-[70px] flex items-center justify-center @(id == null ? "border-dashed border-gray-300" : "border-teal-400 bg-teal-50")">
-                            @if (id is int s)
+                            @if (id is { } s)
                             {
                                 <span class="text-sm font-medium text-teal-800">Unbekannt @(s + 1)</span>
                             }
@@ -357,7 +359,7 @@
             toolboxOffsetX = Math.Clamp(toolboxOffsetX, -800, 800);
             toolboxOffsetY = Math.Clamp(toolboxOffsetY, -120, 800);
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is InvalidOperationException or UnauthorizedAccessException or HttpRequestException)
         {
             _error = ex.Message;
         }

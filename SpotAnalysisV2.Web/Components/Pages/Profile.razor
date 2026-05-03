@@ -140,7 +140,7 @@
             await UserService.UpdateUsername(_userId, UsernameModel.NewUsername.Trim());
             SetMessage("Benutzername erfolgreich aktualisiert.", false);
         }
-        catch (Exception ex)
+        catch (InvalidOperationException ex)
         {
             SetMessage(ex.Message switch
             {
@@ -158,7 +158,7 @@
             PasswordModel = new PasswordFormModel();
             SetMessage("Passwort erfolgreich geändert.", false);
         }
-        catch (Exception ex)
+        catch (InvalidOperationException ex)
         {
             SetMessage(ex.Message switch
             {

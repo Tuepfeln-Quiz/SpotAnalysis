@@ -76,7 +76,7 @@ public static class EndpointExtensions
             {
                 return Results.Redirect(BuildRegisterErrorUrl(ex.Message, returnUrl));
             }
-            catch (Exception)
+            catch (Exception ex) when (ex is InvalidOperationException)
             {
                 return Results.Redirect(BuildRegisterErrorUrl("RegistrationFailed", returnUrl));
             }

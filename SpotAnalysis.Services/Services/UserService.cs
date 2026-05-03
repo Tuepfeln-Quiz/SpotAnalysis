@@ -34,6 +34,8 @@ public class UserService(ILogger<UserService> logger, IDbContextFactory<Analysis
 
         await context.SaveChangesAsync();
 
+        logger.LogInformation("Password changed for user {UserId}", user.UserID);
+
         return user;
     }
 
@@ -86,6 +88,8 @@ public class UserService(ILogger<UserService> logger, IDbContextFactory<Analysis
             throw new AuthenticationException("The given password was wrong");
         }
 
+        logger.LogInformation("Login succeeded for user {UserId}", user.UserID);
+
         return user;
     }
 
@@ -124,5 +128,7 @@ public class UserService(ILogger<UserService> logger, IDbContextFactory<Analysis
         context.Users.Add(newUser);
 
         await context.SaveChangesAsync();
+
+        logger.LogInformation("Registered new user {UserId}", newUser.UserID);
     }
 }

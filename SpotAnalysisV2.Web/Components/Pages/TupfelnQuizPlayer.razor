@@ -436,13 +436,7 @@
 
     private static string GetMethodOutput(Dictionary<string, string> outputs, params string[] names)
     {
-        foreach (var name in names)
-        {
-            if (outputs.TryGetValue(name, out var value))
-                return value;
-        }
-
-        return "Keine";
+        return names.Where(outputs.ContainsKey).Select(name => outputs[name]).FirstOrDefault() ?? "Keine";
     }
 
     private static (string Background, string Border) GetCardColors(string color)

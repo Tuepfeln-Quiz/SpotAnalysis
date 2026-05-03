@@ -17,4 +17,8 @@
     <ProjectReference Include="..\SpotAnalysis.Services\SpotAnalysis.Services.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Serilog.AspNetCore" Version="10.0.0"/>
+  </ItemGroup>
+
 </Project>

@@ -34,7 +34,7 @@ public static class EndpointExtensions
                 var redirect = IsLocalUrl(returnUrl) ? returnUrl : "/";
                 return Results.Redirect(redirect);
             }
-            catch (Exception)
+            catch (ArgumentException)
             {
                 return Results.Redirect("/login?error=InvalidCredentials");
             }

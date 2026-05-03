@@ -304,7 +304,7 @@
 
             Navigation.NavigateTo("/teacher/quizzes");
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is HttpRequestException or InvalidOperationException)
         {
             _errorMessage = ex.Message;
         }

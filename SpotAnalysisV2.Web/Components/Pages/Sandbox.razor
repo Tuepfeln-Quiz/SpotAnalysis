@@ -1,5 +1,4 @@
 @page "/sandbox"
-@using Microsoft.AspNetCore.Components.Routing
 @rendermode InteractiveServer
 @attribute [Authorize]
 @inject IChemistryDataService ChemistryData
@@ -414,7 +413,7 @@
     private Edukt box1Edukt;
     private Edukt box2Edukt;
     private MixLog? currentMixLog;
-    private List<MixLog> mixLogs = new();
+    private readonly List<MixLog> mixLogs = new();
     private string searchQuery = "";
     private List<Edukt> filteredEdukte = [];
     private Edukt selectedEdukt;

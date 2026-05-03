@@ -1,5 +1,4 @@
 @page "/reverse"
-@using Microsoft.AspNetCore.Components.Routing
 @rendermode InteractiveServer
 @attribute [Authorize]
 @inject IChemistryDataService ChemistryData
@@ -443,13 +442,13 @@
     private string inputFormel = "";
     private string inputBeobachtung = "";
     private GuessLog? currentGuessLog;
-    private List<GuessLog> guessLogs = new();
+    private readonly List<GuessLog> guessLogs = new();
     private bool showHint = false;
     private bool submitted = false;
     private bool isGuessHistoryVisible = false;
     private (bool IsCorrect, Edukt CorrectElement)? lastResult = null;
     private int attempts = 0;
-    private Random random = new();
+    private readonly Random random = new();
 
     protected override async Task OnInitializedAsync()
     {

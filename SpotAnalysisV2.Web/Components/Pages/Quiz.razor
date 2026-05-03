@@ -44,7 +44,7 @@
         try
         {
             var auth = await AuthState;
-            var userIdClaim = auth.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
+            var userIdClaim = auth.User.FindFirst(ClaimTypes.NameIdentifier)?.Value
                             ?? auth.User.FindFirst("sub")?.Value;
 
             if (!Guid.TryParse(userIdClaim, out var userId))
@@ -63,13 +63,13 @@
                 return;
             }
 
-            if (firstQuestion.Type == SpotAnalysis.Data.Enums.QuestionType.SpotTest)
+            if (firstQuestion.Type == QuestionType.SpotTest)
             {
                 Navigation.NavigateTo($"/tupfeln/player/{QuizId}?q=0&score=0", forceLoad: false);
                 return;
             }
 
-            if (firstQuestion.Type == SpotAnalysis.Data.Enums.QuestionType.SpotTestLight)
+            if (firstQuestion.Type == QuestionType.SpotTestLight)
             {
                 Navigation.NavigateTo($"/light/player/{QuizId}?q=0&score=0", forceLoad: false);
                 return;
@@ -81,7 +81,7 @@
         {
             _error = "Du hast keinen Zugriff auf dieses Quiz.";
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is InvalidOperationException or KeyNotFoundException)
         {
             _error = ex.Message;
         }

@@ -89,7 +89,7 @@
 
             Navigation.NavigateTo("/teacher/groups");
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is InvalidOperationException or ArgumentException)
         {
             _error = $"Speichern fehlgeschlagen: {ex.Message}";
         }
@@ -99,8 +99,8 @@
 
     private class FormModel
     {
-        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "Name erforderlich")]
-        [System.ComponentModel.DataAnnotations.StringLength(200)]
+        [Required(ErrorMessage = "Name erforderlich")]
+        [StringLength(200)]
         public string Name { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
     }

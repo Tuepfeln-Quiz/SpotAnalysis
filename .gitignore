@@ -66,3 +66,6 @@ nunit-*.xml
 
 .env
 /logs/
+
+SpotAnalysis.Web/wwwroot/lib
+SpotAnalysisV2.Web/wwwroot/lib

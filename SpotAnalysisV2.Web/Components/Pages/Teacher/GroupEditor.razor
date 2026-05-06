@@ -1,6 +1,5 @@
 @page "/teacher/groups/new"
 @page "/teacher/groups/{Id:int}/edit"
-@rendermode InteractiveServer
 @attribute [Authorize(Roles = "Admin,Teacher")]
 @inject IGroupService GroupService
 @inject NavigationManager Navigation

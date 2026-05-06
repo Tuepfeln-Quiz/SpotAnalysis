@@ -1,6 +1,5 @@
 @page "/teacher/quizzes/create"
 @page "/teacher/quizzes/{QuizId:int}/edit"
-@rendermode InteractiveServer
 @attribute [Authorize(Roles = "Admin,Teacher")]
 @inject IQuizService QuizService
 @inject IGroupService GroupService

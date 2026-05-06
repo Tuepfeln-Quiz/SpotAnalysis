@@ -1,5 +1,4 @@
 @page "/teacher/groups/{Id:int}"
-@rendermode InteractiveServer
 @attribute [Authorize(Roles = "Admin,Teacher")]
 @implements IDisposable
 @inject IGroupService GroupService

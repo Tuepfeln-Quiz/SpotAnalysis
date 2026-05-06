@@ -1,5 +1,4 @@
 @page "/tupfeln/player/{QuizId:int}"
-@rendermode InteractiveServer
 @attribute [Authorize]
 @inject NavigationManager Navigation
 @inject IQuizService QuizService
@@ -111,8 +110,9 @@
                                 }
                             </div>
 
-                            <div class="w-full h-12 rounded-lg border-2 flex items-center justify-center mb-2" style="background-color:@sub.FarbeBg; border-color:@sub.FarbeBorder;">
-                                <span class="text-[11px] text-gray-600">@sub.Farbe</span>
+                            <div class="w-full h-12 rounded-lg border-2 flex items-center justify-center mb-2"
+                                 style="background-color:@sub.ColorBg; border-color:@sub.ColorBorder;">
+                                <span class="text-[11px] text-gray-600">@sub.Color</span>
                             </div>
 
                             <div class="grid grid-cols-2 gap-1.5 mb-3">
@@ -124,26 +124,26 @@
                                         @if (tool.Id == ToolType.Ph)
                                         {
                                             <div class="w-5 h-5 rounded-full border"
-                                                 style="background-color:@sub.PhFarbe"></div>
+                                                 style="background-color:@sub.PhColor"></div>
                                             <span class="text-xs truncate">pH</span>
                                         }
                                         else if (tool.Id == ToolType.Flamme)
                                         {
                                             <div class="w-5 h-5 rounded-full border"
-                                                 style="background-color:@sub.FlammenHex"></div>
-                                            <span class="text-xs truncate">@sub.Flammenfarbe</span>
+                                                 style="background-color:@sub.FlameHex"></div>
+                                            <span class="text-xs truncate">@sub.FlameColor</span>
                                         }
                                         else if (tool.Id == ToolType.NaOH)
                                         {
                                             <div class="w-5 h-5 rounded-full border"
-                                                 style="background-color:@sub.MitNaOHFarbe"></div>
-                                            <span class="text-xs truncate">@sub.MitNaOH</span>
+                                                 style="background-color:@sub.WithNaOhColor"></div>
+                                            <span class="text-xs truncate">@sub.WithNaOh</span>
                                         }
                                         else if (tool.Id == ToolType.HCl)
                                         {
                                             <div class="w-5 h-5 rounded-full border"
-                                                 style="background-color:@sub.MitHClFarbe"></div>
-                                            <span class="text-xs truncate">@sub.MitHCl</span>
+                                                 style="background-color:@sub.WithClColor"></div>
+                                            <span class="text-xs truncate">@sub.WithHcl</span>
                                         }
                                     </div>
                                 }
@@ -168,7 +168,7 @@
                                     }
                                     else
                                     {
-                                        <span>→ <b>@sub.Formel</b></span>
+                                        <span>→ <b>@sub.Formula</b></span>
                                     }
                                 </div>
                             }
@@ -203,12 +203,15 @@
                         </div>
                     }
                     <span class="text-xl text-gray-400">→</span>
-                    <div class="flex-1 border-2 rounded-lg p-4 min-h-[70px] flex items-center justify-center @(mixDone ? "border-teal-400" : "border-dashed border-gray-300")" style="@(mixDone && mixResult != null ? $"background-color:{mixResult.FarbeHex}25" : null)">
+                    <div
+                        class="flex-1 border-2 rounded-lg p-4 min-h-[70px] flex items-center justify-center @(mixDone ? "border-teal-400" : "border-dashed border-gray-300")"
+                        style="@(mixDone && mixResult != null ? $"background-color:{mixResult.ColorHex}25" : null)">
                         @if (mixDone && mixResult != null)
                         {
                             <div class="text-center">
-                                <div class="w-10 h-10 rounded-full mx-auto mb-1 border-2" style="background-color:@mixResult.FarbeHex; border-color:@mixResult.FarbeHex"></div>
-                                <p class="text-xs font-medium text-gray-700">@mixResult.Farbe</p>
+                                <div class="w-10 h-10 rounded-full mx-auto mb-1 border-2"
+                                     style="background-color:@mixResult.ColorHex; border-color:@mixResult.ColorHex"></div>
+                                <p class="text-xs font-medium text-gray-700">@mixResult.Color</p>
                             </div>
                         }
                         else if (mixDone)
@@ -419,18 +422,18 @@
         {
             Id = chemical.ChemicalID,
             Name = chemical.Name,
-            Formel = chemical.Formula,
-            Farbe = chemical.Color,
-            FarbeBg = cardColors.Background,
-            FarbeBorder = cardColors.Border,
+            Formula = chemical.Formula,
+            Color = chemical.Color,
+            ColorBg = cardColors.Background,
+            ColorBorder = cardColors.Border,
             PhOutput = phOutput,
-            PhFarbe = GetDisplayColorHex(phOutput),
-            Flammenfarbe = flameOutput,
-            FlammenHex = GetDisplayColorHex(flameOutput),
-            MitNaOH = naohReaction?.ObservationDescription ?? "Keine Reaktion",
-            MitNaOHFarbe = GetObservationColorHex(naohReaction),
-            MitHCl = hclReaction?.ObservationDescription ?? "Keine Reaktion",
-            MitHClFarbe = GetObservationColorHex(hclReaction)
+            PhColor = GetDisplayColorHex(phOutput),
+            FlameColor = flameOutput,
+            FlameHex = GetDisplayColorHex(flameOutput),
+            WithNaOh = naohReaction?.ObservationDescription ?? "Keine Reaktion",
+            WithNaOhColor = GetObservationColorHex(naohReaction),
+            WithHcl = hclReaction?.ObservationDescription ?? "Keine Reaktion",
+            WithClColor = GetObservationColorHex(hclReaction)
         };
     }
 
@@ -600,8 +603,8 @@
             ? null
             : new MixResultVm
             {
-                Farbe = reaction.ObservationDescription,
-                FarbeHex = GetObservationColorHex(reaction),
+                Color = reaction.ObservationDescription,
+                ColorHex = GetObservationColorHex(reaction),
                 Text = $"{reaction.ObservationDescription} — {reaction.RelevantProduct}"
             };
         mixDone = true;
@@ -651,7 +654,7 @@
         if (quiz == null || idx < 0 || idx >= quiz.Unbekannte.Count || idx >= guesses.Length) return false;
         var g = Normalize(guesses[idx]);
         var sub = quiz.Unbekannte[idx];
-        return g == Normalize(sub.Formel) || g == Normalize(sub.Name);
+        return g == Normalize(sub.Formula) || g == Normalize(sub.Name);
     }
 
     private static string Normalize(string s) => (s ?? string.Empty).ToLowerInvariant().Replace(" ", string.Empty).Replace("₂", "2").Replace("₃", "3").Replace("₄", "4");
@@ -705,24 +708,24 @@
     {
         public int Id { get; set; }
         public string Name { get; set; } = string.Empty;
-        public string Formel { get; set; } = string.Empty;
-        public string Farbe { get; set; } = string.Empty;
-        public string FarbeBg { get; set; } = string.Empty;
-        public string FarbeBorder { get; set; } = string.Empty;
+        public string Formula { get; set; } = string.Empty;
+        public string Color { get; set; } = string.Empty;
+        public string ColorBg { get; set; } = string.Empty;
+        public string ColorBorder { get; set; } = string.Empty;
         public string PhOutput { get; set; } = "Keine";
-        public string PhFarbe { get; set; } = "#d1d5db";
-        public string Flammenfarbe { get; set; } = "Keine";
-        public string FlammenHex { get; set; } = "#d1d5db";
-        public string MitNaOH { get; set; } = "Keine Reaktion";
-        public string MitNaOHFarbe { get; set; } = "#d1d5db";
-        public string MitHCl { get; set; } = "Keine Reaktion";
-        public string MitHClFarbe { get; set; } = "#d1d5db";
+        public string PhColor { get; set; } = "#d1d5db";
+        public string FlameColor { get; set; } = "Keine";
+        public string FlameHex { get; set; } = "#d1d5db";
+        public string WithNaOh { get; set; } = "Keine Reaktion";
+        public string WithNaOhColor { get; set; } = "#d1d5db";
+        public string WithHcl { get; set; } = "Keine Reaktion";
+        public string WithClColor { get; set; } = "#d1d5db";
     }
 
     private sealed class MixResultVm
     {
-        public string Farbe { get; set; } = string.Empty;
-        public string FarbeHex { get; set; } = "#d1d5db";
+        public string Color { get; set; } = string.Empty;
+        public string ColorHex { get; set; } = "#d1d5db";
         public string Text { get; set; } = string.Empty;
     }
 }

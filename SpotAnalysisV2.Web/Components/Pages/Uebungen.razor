@@ -1,7 +1,6 @@
 @page "/uebungen"
 @page "/my-quizzes"
-@rendermode InteractiveServer
-@attribute [Microsoft.AspNetCore.Authorization.Authorize]
+@attribute [Authorize]
 @inject NavigationManager Navigation
 @inject IQuizService QuizService
 

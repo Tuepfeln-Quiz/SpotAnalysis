@@ -1,5 +1,4 @@
 @page "/reverse"
-@rendermode InteractiveServer
 @attribute [Authorize]
 @inject IChemistryDataService ChemistryData
 
@@ -44,44 +43,54 @@
                     <div class="grid grid-cols-2 gap-3 mb-4">
                         <div class="flex flex-col">
                             <h3 class="text-xs font-medium text-gray-600 mb-1">Edukt 1</h3>
-                            <div class="@currentChallenge.Edukt1.Color border-2 rounded-lg p-3 min-h-[120px] flex flex-col justify-center flex-1">
-                                <p class="font-bold text-base">@currentChallenge.Edukt1.Name</p>
-                                <p class="text-xs text-gray-700 mb-2">@currentChallenge.Edukt1.Type</p>
+                            <div
+                                class="@currentChallenge.Educt1.Color border-2 rounded-lg p-3 min-h-[120px] flex flex-col justify-center flex-1">
+                                <p class="font-bold text-base">@currentChallenge.Educt1.Name</p>
+                                <p class="text-xs text-gray-700 mb-2">@currentChallenge.Educt1.Type</p>
                                 <div class="grid grid-cols-3 gap-1.5">
                                     <div class="flex-1 flex flex-col gap-0.5 bg-white/75 px-2.5 py-1.5 rounded-md border border-gray-300">
                                         <div class="flex items-center gap-1">
-                                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" style="color: @GetPhColorHex(currentChallenge.Edukt1.PhLevel)">
+                                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"
+                                                 style="color: @GetPhColorHex(currentChallenge.Educt1.PhLevel)">
                                                 <circle cx="12" cy="12" r="8" />
                                             </svg>
-                                            <span class="text-[11px] font-medium text-gray-700 leading-tight">pH: @GetPhDisplayText(currentChallenge.Edukt1.PhLevel)</span>
+                                            <span
+                                                class="text-[11px] font-medium text-gray-700 leading-tight">pH: @GetPhDisplayText(currentChallenge.Educt1.PhLevel)</span>
                                         </div>
-                                        @if (ShouldShowPhStrip(currentChallenge.Edukt1.PhLevel))
+                                        @if (ShouldShowPhStrip(currentChallenge.Educt1.PhLevel))
                                         {
-                                            <div class="@GetPhColor(currentChallenge.Edukt1.PhLevel) h-2.5 rounded border border-gray-400"></div>
+                                            <div
+                                                class="@GetPhColor(currentChallenge.Educt1.PhLevel) h-2.5 rounded border border-gray-400"></div>
                                         }
                                     </div>
                                     <div class="flex-1 flex flex-col gap-0.5 bg-white/75 px-2.5 py-1.5 rounded-md border border-gray-300">
                                         <div class="flex items-center gap-1">
-                                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" style="color: @GetFlameColorHex(currentChallenge.Edukt1.FlameColor)">
+                                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"
+                                                 style="color: @GetFlameColorHex(currentChallenge.Educt1.FlameColor)">
                                                 <path d="M12 2C12 2 6 8 6 13c0 3.3 2.7 6 6 6s6-2.7 6-6c0-5-6-11-6-11zm0 16c-1.6 0-3-1.4-3-3 0-1.8 1.5-3.5 3-5.1 1.5 1.6 3 3.3 3 5.1 0 1.6-1.4 3-3 3z"/>
                                             </svg>
-                                            <span class="text-[11px] font-medium text-gray-700 leading-tight">Flamme: @GetFlameDisplayText(currentChallenge.Edukt1.FlameColor)</span>
+                                            <span
+                                                class="text-[11px] font-medium text-gray-700 leading-tight">Flamme: @GetFlameDisplayText(currentChallenge.Educt1.FlameColor)</span>
                                         </div>
-                                        @if (ShouldShowFlameStrip(currentChallenge.Edukt1.FlameColor))
+                                        @if (ShouldShowFlameStrip(currentChallenge.Educt1.FlameColor))
                                         {
-                                            <div class="@GetFlameColor(currentChallenge.Edukt1.FlameColor) h-2.5 rounded border border-gray-400"></div>
+                                            <div
+                                                class="@GetFlameColor(currentChallenge.Educt1.FlameColor) h-2.5 rounded border border-gray-400"></div>
                                         }
                                     </div>
                                     <div class="flex-1 flex flex-col gap-0.5 bg-white/75 px-2.5 py-1.5 rounded-md border border-gray-300">
                                         <div class="flex items-center gap-1">
-                                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" style="color: @GetElementColorHex(currentChallenge.Edukt1.ElementColor)">
+                                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"
+                                                 style="color: @GetElementColorHex(currentChallenge.Educt1.ElementColor)">
                                                 <circle cx="12" cy="12" r="8" />
                                             </svg>
-                                            <span class="text-[11px] font-medium text-gray-700 leading-tight">Farbe: @GetElementColorDisplayText(currentChallenge.Edukt1.ElementColor)</span>
+                                            <span
+                                                class="text-[11px] font-medium text-gray-700 leading-tight">Farbe: @GetElementColorDisplayText(currentChallenge.Educt1.ElementColor)</span>
                                         </div>
-                                        @if (ShouldShowElementColorStrip(currentChallenge.Edukt1.ElementColor))
+                                        @if (ShouldShowElementColorStrip(currentChallenge.Educt1.ElementColor))
                                         {
-                                            <div class="@GetElementColor(currentChallenge.Edukt1.ElementColor) h-2.5 rounded border border-gray-400"></div>
+                                            <div
+                                                class="@GetElementColor(currentChallenge.Educt1.ElementColor) h-2.5 rounded border border-gray-400"></div>
                                         }
                                     </div>
                                 </div>
@@ -89,44 +98,54 @@
                         </div>
                         <div class="flex flex-col">
                             <h3 class="text-xs font-medium text-gray-600 mb-1">Edukt 2</h3>
-                            <div class="@currentChallenge.Edukt2.Color border-2 rounded-lg p-3 min-h-[120px] flex flex-col justify-center flex-1">
-                                <p class="font-bold text-base mb-1">@currentChallenge.Edukt2.Name</p>
-                                <p class="text-xs text-gray-700 mb-2">@currentChallenge.Edukt2.Type</p>
+                            <div
+                                class="@currentChallenge.Educt2.Color border-2 rounded-lg p-3 min-h-[120px] flex flex-col justify-center flex-1">
+                                <p class="font-bold text-base mb-1">@currentChallenge.Educt2.Name</p>
+                                <p class="text-xs text-gray-700 mb-2">@currentChallenge.Educt2.Type</p>
                                 <div class="grid grid-cols-3 gap-1.5">
                                     <div class="flex-1 flex flex-col gap-0.5 bg-white/75 px-2.5 py-1.5 rounded-md border border-gray-300">
                                         <div class="flex items-center gap-1">
-                                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" style="color: @GetPhColorHex(currentChallenge.Edukt2.PhLevel)">
+                                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"
+                                                 style="color: @GetPhColorHex(currentChallenge.Educt2.PhLevel)">
                                                 <circle cx="12" cy="12" r="8" />
                                             </svg>
-                                            <span class="text-[11px] font-medium text-gray-700 leading-tight">pH: @GetPhDisplayText(currentChallenge.Edukt2.PhLevel)</span>
+                                            <span
+                                                class="text-[11px] font-medium text-gray-700 leading-tight">pH: @GetPhDisplayText(currentChallenge.Educt2.PhLevel)</span>
                                         </div>
-                                        @if (ShouldShowPhStrip(currentChallenge.Edukt2.PhLevel))
+                                        @if (ShouldShowPhStrip(currentChallenge.Educt2.PhLevel))
                                         {
-                                            <div class="@GetPhColor(currentChallenge.Edukt2.PhLevel) h-2.5 rounded border border-gray-400"></div>
+                                            <div
+                                                class="@GetPhColor(currentChallenge.Educt2.PhLevel) h-2.5 rounded border border-gray-400"></div>
                                         }
                                     </div>
                                     <div class="flex-1 flex flex-col gap-0.5 bg-white/75 px-2.5 py-1.5 rounded-md border border-gray-300">
                                         <div class="flex items-center gap-1">
-                                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" style="color: @GetFlameColorHex(currentChallenge.Edukt2.FlameColor)">
+                                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"
+                                                 style="color: @GetFlameColorHex(currentChallenge.Educt2.FlameColor)">
                                                 <path d="M12 2C12 2 6 8 6 13c0 3.3 2.7 6 6 6s6-2.7 6-6c0-5-6-11-6-11zm0 16c-1.6 0-3-1.4-3-3 0-1.8 1.5-3.5 3-5.1 1.5 1.6 3 3.3 3 5.1 0 1.6-1.4 3-3 3z"/>
                                             </svg>
-                                            <span class="text-[11px] font-medium text-gray-700 leading-tight">Flamme: @GetFlameDisplayText(currentChallenge.Edukt2.FlameColor)</span>
+                                            <span
+                                                class="text-[11px] font-medium text-gray-700 leading-tight">Flamme: @GetFlameDisplayText(currentChallenge.Educt2.FlameColor)</span>
                                         </div>
-                                        @if (ShouldShowFlameStrip(currentChallenge.Edukt2.FlameColor))
+                                        @if (ShouldShowFlameStrip(currentChallenge.Educt2.FlameColor))
                                         {
-                                            <div class="@GetFlameColor(currentChallenge.Edukt2.FlameColor) h-2.5 rounded border border-gray-400"></div>
+                                            <div
+                                                class="@GetFlameColor(currentChallenge.Educt2.FlameColor) h-2.5 rounded border border-gray-400"></div>
                                         }
                                     </div>
                                     <div class="flex-1 flex flex-col gap-0.5 bg-white/75 px-2.5 py-1.5 rounded-md border border-gray-300">
                                         <div class="flex items-center gap-1">
-                                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" style="color: @GetElementColorHex(currentChallenge.Edukt2.ElementColor)">
+                                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"
+                                                 style="color: @GetElementColorHex(currentChallenge.Educt2.ElementColor)">
                                                 <circle cx="12" cy="12" r="8" />
                                             </svg>
-                                            <span class="text-[11px] font-medium text-gray-700 leading-tight">Farbe: @GetElementColorDisplayText(currentChallenge.Edukt2.ElementColor)</span>
+                                            <span
+                                                class="text-[11px] font-medium text-gray-700 leading-tight">Farbe: @GetElementColorDisplayText(currentChallenge.Educt2.ElementColor)</span>
                                         </div>
-                                        @if (ShouldShowElementColorStrip(currentChallenge.Edukt2.ElementColor))
+                                        @if (ShouldShowElementColorStrip(currentChallenge.Educt2.ElementColor))
                                         {
-                                            <div class="@GetElementColor(currentChallenge.Edukt2.ElementColor) h-2.5 rounded border border-gray-400"></div>
+                                            <div
+                                                class="@GetElementColor(currentChallenge.Educt2.ElementColor) h-2.5 rounded border border-gray-400"></div>
                                         }
                                     </div>
                                 </div>
@@ -146,14 +165,14 @@
                                    class="w-full px-3 py-2 border-2 border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent disabled:bg-gray-100 disabled:text-gray-500" />
                             @if (submitted)
                             {
-                                <p class="@(NormalizeString(inputProdukt) == NormalizeString(currentChallenge.Produkt.Name) ? "text-green-600" : "text-red-600") text-xs mt-1">
-                                    @if (NormalizeString(inputProdukt) == NormalizeString(currentChallenge.Produkt.Name))
+                                <p class="@(NormalizeString(inputProdukt) == NormalizeString(currentChallenge.Product.Name) ? "text-green-600" : "text-red-600") text-xs mt-1">
+                                    @if (NormalizeString(inputProdukt) == NormalizeString(currentChallenge.Product.Name))
                                     {
                                         <span>✓ Richtig</span>
                                     }
                                     else
                                     {
-                                        <span>✗ @currentChallenge.Produkt.Name</span>
+                                        <span>✗ @currentChallenge.Product.Name</span>
                                     }
                                 </p>
                             }
@@ -168,14 +187,14 @@
                                    class="w-full px-3 py-2 border-2 border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent disabled:bg-gray-100 disabled:text-gray-500" />
                             @if (submitted)
                             {
-                                <p class="@(NormalizeString(inputFormel) == NormalizeString(currentChallenge.Formel) ? "text-green-600" : "text-red-600") text-xs mt-1">
-                                    @if (NormalizeString(inputFormel) == NormalizeString(currentChallenge.Formel))
+                                <p class="@(NormalizeString(inputFormel) == NormalizeString(currentChallenge.Formula) ? "text-green-600" : "text-red-600") text-xs mt-1">
+                                    @if (NormalizeString(inputFormel) == NormalizeString(currentChallenge.Formula))
                                     {
                                         <span>✓ Richtig</span>
                                     }
                                     else
                                     {
-                                        <span>✗ @currentChallenge.Formel</span>
+                                        <span>✗ @currentChallenge.Formula</span>
                                     }
                                 </p>
                             }
@@ -190,7 +209,7 @@
                                    class="w-full px-3 py-2 border-2 border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent disabled:bg-gray-100 disabled:text-gray-500" />
                             @if (submitted)
                             {
-                                <p class="text-xs mt-1 text-gray-500">@currentChallenge.Beobachtung</p>
+                                <p class="text-xs mt-1 text-gray-500">@currentChallenge.Observation</p>
                             }
                         </div>
                     </div>
@@ -199,7 +218,9 @@
                     @if (showHint && !submitted)
                     {
                         <div class="mt-3 p-2 bg-yellow-50 border border-yellow-200 rounded-lg text-xs text-yellow-800">
-                            <span class="font-medium">Hinweis:</span> Das gesuchte Element ist vom Typ „@currentChallenge.Edukt2.Type" und hat die Flammenfarbe „@currentChallenge.Edukt2.FlameColor".
+                            <span class="font-medium">Hinweis:</span> Das gesuchte Element ist vom Typ
+                            „@currentChallenge.Educt2.Type" und hat die Flammenfarbe
+                            „@currentChallenge.Educt2.FlameColor".
                         </div>
                     }
 
@@ -313,16 +334,16 @@
                                     <div class="flex-1">
                                         <div class="flex items-center justify-between gap-2 mb-3">
                                             <div class="flex items-center gap-2">
-                                                <div class="@log.Challenge.Edukt1.Color border-2 rounded px-3 py-1">
-                                                    <p class="text-sm font-bold">@log.Challenge.Edukt1.Name</p>
+                                                <div class="@log.Challenge.Educt1.Color border-2 rounded px-3 py-1">
+                                                    <p class="text-sm font-bold">@log.Challenge.Educt1.Name</p>
                                                 </div>
                                                 <span class="font-bold text-gray-600">+</span>
-                                                <div class="@log.Challenge.Edukt2.Color border-2 rounded px-3 py-1">
-                                                    <p class="text-sm font-bold">@log.Challenge.Edukt2.Name</p>
+                                                <div class="@log.Challenge.Educt2.Color border-2 rounded px-3 py-1">
+                                                    <p class="text-sm font-bold">@log.Challenge.Educt2.Name</p>
                                                 </div>
                                                 <span class="font-bold text-gray-600">→</span>
-                                                <div class="@log.Challenge.Produkt.Color border-2 rounded px-3 py-1">
-                                                    <p class="text-sm font-bold">@log.Challenge.Produkt.Name</p>
+                                                <div class="@log.Challenge.Product.Color border-2 rounded px-3 py-1">
+                                                    <p class="text-sm font-bold">@log.Challenge.Product.Name</p>
                                                 </div>
                                             </div>
 
@@ -339,28 +360,33 @@
                                         <div class="grid grid-cols-3 gap-2 text-xs">
                                             <div class="bg-gray-50 p-2 rounded">
                                                 <p class="text-gray-500 font-medium">Produkt</p>
-                                                <p class="font-medium">@log.UserProdukt</p>
+                                                <p class="font-medium">@log.UserProduct</p>
                                             </div>
                                             <div class="bg-gray-50 p-2 rounded">
                                                 <p class="text-gray-500 font-medium">Formel</p>
-                                                <p class="font-medium">@log.UserFormel</p>
+                                                <p class="font-medium">@log.UserFormula</p>
                                             </div>
                                             <div class="bg-gray-50 p-2 rounded">
                                                 <p class="text-gray-500 font-medium">Beobachtung</p>
-                                                <p class="font-medium">@log.UserBeobachtung</p>
+                                                <p class="font-medium">@log.UserObservation</p>
                                             </div>
                                         </div>
                                         <p class="text-xs text-gray-400 mt-2">@log.Timestamp.ToString("HH:mm:ss")</p>
                                     </div>
 
                                     <div class="flex items-center justify-center">
-                                        <div class="group relative w-32 h-32 bg-white/50 rounded-lg border-2 border-gray-200 flex items-center justify-center flex-shrink-0 cursor-pointer hover:shadow-lg transition-all duration-200 @(!string.IsNullOrEmpty(log.Challenge.Produkt.ImageUrl) ? "reverse-image-tile-has-image" : string.Empty)">
-                                            @if (!string.IsNullOrEmpty(log.Challenge.Produkt.ImageUrl))
+                                        <div
+                                            class="group relative w-32 h-32 bg-white/50 rounded-lg border-2 border-gray-200 flex items-center justify-center flex-shrink-0 cursor-pointer hover:shadow-lg transition-all duration-200 @(!string.IsNullOrEmpty(log.Challenge.Product.ImageUrl) ? "reverse-image-tile-has-image" : string.Empty)">
+                                            @if (!string.IsNullOrEmpty(log.Challenge.Product.ImageUrl))
                                             {
-                                                <img src="@log.Challenge.Produkt.ImageUrl" alt="@log.Challenge.Produkt.Name" class="h-full object-contain p-2" />
+                                                <img src="@log.Challenge.Product.ImageUrl"
+                                                     alt="@log.Challenge.Product.Name"
+                                                     class="h-full object-contain p-2"/>
                                                 <div class="fixed inset-0 z-[9999] hidden items-center justify-center pointer-events-none group-hover:flex">
                                                     <div class="w-[600px] h-[600px] bg-white rounded-lg shadow-2xl border-2 border-gray-300 p-3 flex items-center justify-center">
-                                                        <img src="@log.Challenge.Produkt.ImageUrl" alt="@log.Challenge.Produkt.Name" class="h-full object-contain" />
+                                                        <img src="@log.Challenge.Product.ImageUrl"
+                                                             alt="@log.Challenge.Product.Name"
+                                                             class="h-full object-contain"/>
                                                     </div>
                                                 </div>
                                             }
@@ -397,7 +423,8 @@
 </div>
 
 @code {
-    private class Edukt
+
+    private class EductVm
     {
         public int Id { get; set; }
         public string Name { get; set; }
@@ -409,7 +436,7 @@
         public string ImageUrl { get; set; }
     }
 
-    private class Produkt
+    private class ProductVm
     {
         public string Name { get; set; }
         public string Color { get; set; }
@@ -418,20 +445,20 @@
 
     private class Challenge
     {
-        public Edukt Edukt1 { get; set; }
-        public Edukt Edukt2 { get; set; }
-        public Produkt Produkt { get; set; }
-        public string Formel { get; set; }
-        public string Beobachtung { get; set; }
+        public EductVm Educt1 { get; set; }
+        public EductVm Educt2 { get; set; }
+        public ProductVm Product { get; set; }
+        public string Formula { get; set; }
+        public string Observation { get; set; }
     }
 
     private class GuessLog
     {
         public string Id { get; set; }
         public Challenge Challenge { get; set; }
-        public string UserProdukt { get; set; }
-        public string UserFormel { get; set; }
-        public string UserBeobachtung { get; set; }
+        public string UserProduct { get; set; }
+        public string UserFormula { get; set; }
+        public string UserObservation { get; set; }
         public bool IsCorrect { get; set; }
         public DateTime Timestamp { get; set; }
     }
@@ -446,7 +473,7 @@
     private bool showHint = false;
     private bool submitted = false;
     private bool isGuessHistoryVisible = false;
-    private (bool IsCorrect, Edukt CorrectElement)? lastResult = null;
+    private (bool IsCorrect, EductVm CorrectElement)? lastResult = null;
     private int attempts = 0;
     private readonly Random random = new();
 
@@ -460,16 +487,16 @@
             .Where(r => chemDict.ContainsKey(r.Chemical1ID) && chemDict.ContainsKey(r.Chemical2ID))
             .Select(r => new Challenge
             {
-                Edukt1 = chemDict[r.Chemical1ID],
-                Edukt2 = chemDict[r.Chemical2ID],
-                Produkt = new Produkt
+                Educt1 = chemDict[r.Chemical1ID],
+                Educt2 = chemDict[r.Chemical2ID],
+                Product = new ProductVm
                 {
                     Name = r.RelevantProduct,
                     Color = "bg-gray-100 border-gray-300",
                     ImageUrl = r.ImagePath ?? ""
                 },
-                Formel = r.Formula,
-                Beobachtung = r.ObservationDescription,
+                Formula = r.Formula,
+                Observation = r.ObservationDescription,
             })
             .ToList();
 
@@ -477,11 +504,11 @@
         GenerateNewChallenge();
     }
 
-    private static Edukt MapChemical(LabChemicalDto c)
+    private static EductVm MapChemical(LabChemicalDto c)
     {
         var ph = c.MethodOutputs.TryGetValue("pH-Papier", out var p) ? p : "-";
         var flame = c.MethodOutputs.TryGetValue("Flammenfärbung", out var f) ? f : "Keine";
-        return new Edukt
+        return new EductVm
         {
             Id = c.ChemicalID,
             Name = c.Name,
@@ -533,13 +560,13 @@
     {
         if (!CanCheck() || currentChallenge == null) return;
 
-        bool produktMatch = NormalizeString(inputProdukt) == NormalizeString(currentChallenge.Produkt.Name);
-        bool formelMatch = NormalizeString(inputFormel) == NormalizeString(currentChallenge.Formel);
+        bool produktMatch = NormalizeString(inputProdukt) == NormalizeString(currentChallenge.Product.Name);
+        bool formelMatch = NormalizeString(inputFormel) == NormalizeString(currentChallenge.Formula);
         bool isCorrect = produktMatch && formelMatch;
 
         attempts++;
         submitted = true;
-        lastResult = (isCorrect, currentChallenge.Edukt2);
+        lastResult = (isCorrect, currentChallenge.Educt2);
 
         if (isCorrect)
         {
@@ -547,9 +574,9 @@
             {
                 Id = DateTime.Now.Ticks.ToString(),
                 Challenge = currentChallenge,
-                UserProdukt = inputProdukt,
-                UserFormel = inputFormel,
-                UserBeobachtung = inputBeobachtung,
+                UserProduct = inputProdukt,
+                UserFormula = inputFormel,
+                UserObservation = inputBeobachtung,
                 IsCorrect = isCorrect,
                 Timestamp = DateTime.Now
             };

@@ -1,5 +1,4 @@
 @page "/sandbox"
-@rendermode InteractiveServer
 @attribute [Authorize]
 @inject IChemistryDataService ChemistryData
 
@@ -35,51 +34,60 @@
                          @ondragover:preventDefault
                          @ondragleave="HandleDragLeave1">
                         <h3 class="text-sm font-medium mb-2">Edukt 1</h3>
-                        <div class="w-full border-2 border-dashed rounded-lg p-3 min-h-[140px] flex items-center justify-center transition-all text-left cursor-pointer @(isDragOver1 ? "bg-blue-100 border-blue-400" : "") @(box1Edukt != null ? "sandbox-dropzone-filled" : "sandbox-dropzone-empty")"
-                             @onclick="() => PlaceEdukt(1)">
-                            @if (box1Edukt != null)
+                        <div
+                            class="w-full border-2 border-dashed rounded-lg p-3 min-h-[140px] flex items-center justify-center transition-all text-left cursor-pointer @(isDragOver1 ? "bg-blue-100 border-blue-400" : "") @(_box1EductVm != null ? "sandbox-dropzone-filled" : "sandbox-dropzone-empty")"
+                            @onclick="() => PlaceEduct(1)">
+                            @if (_box1EductVm != null)
                             {
                                 <div draggable="true"
-                                     @ondragstart="@(() => HandleDragStart(box1Edukt))"
+                                     @ondragstart="@(() => HandleDragStart(_box1EductVm))"
                                      @ondragend="HandleDragEnd"
-                                     class="@box1Edukt.Color border-2 rounded-lg p-3 w-full cursor-grab">
-                                    <p class="font-bold text-base mb-1">@box1Edukt.Name</p>
-                                    <p class="text-xs text-gray-700 mb-2">@box1Edukt.Type</p>
+                                     class="@_box1EductVm.Color border-2 rounded-lg p-3 w-full cursor-grab">
+                                    <p class="font-bold text-base mb-1">@_box1EductVm.Name</p>
+                                    <p class="text-xs text-gray-700 mb-2">@_box1EductVm.Type</p>
                                     <div class="grid grid-cols-3 gap-1.5">
                                         <div class="flex-1 flex flex-col gap-0.5 bg-white/75 px-2.5 py-1.5 rounded-md border border-gray-300">
                                             <div class="flex items-center gap-1">
-                                                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" style="color: @GetPhColorHex(box1Edukt.PhLevel)">
+                                                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"
+                                                     style="color: @GetPhColorHex(_box1EductVm.PhLevel)">
                                                     <circle cx="12" cy="12" r="8" />
                                                 </svg>
-                                                <span class="text-[11px] font-medium text-gray-700 leading-tight">pH: @GetPhDisplayText(box1Edukt.PhLevel)</span>
+                                                <span
+                                                    class="text-[11px] font-medium text-gray-700 leading-tight">pH: @GetPhDisplayText(_box1EductVm.PhLevel)</span>
                                             </div>
-                                            @if (ShouldShowPhStrip(box1Edukt.PhLevel))
+                                            @if (ShouldShowPhStrip(_box1EductVm.PhLevel))
                                             {
-                                                <div class="@GetPhColor(box1Edukt.PhLevel) h-2.5 rounded border border-gray-400"></div>
+                                                <div
+                                                    class="@GetPhColor(_box1EductVm.PhLevel) h-2.5 rounded border border-gray-400"></div>
                                             }
                                         </div>
                                         <div class="flex-1 flex flex-col gap-0.5 bg-white/75 px-2.5 py-1.5 rounded-md border border-gray-300">
                                             <div class="flex items-center gap-1">
-                                                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" style="color: @GetFlameColorHex(box1Edukt.FlameColor)">
+                                                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"
+                                                     style="color: @GetFlameColorHex(_box1EductVm.FlameColor)">
                                                     <path d="M12 2C12 2 6 8 6 13c0 3.3 2.7 6 6 6s6-2.7 6-6c0-5-6-11-6-11zm0 16c-1.6 0-3-1.4-3-3 0-1.8 1.5-3.5 3-5.1 1.5 1.6 3 3.3 3 5.1 0 1.6-1.4 3-3 3z"/>
                                                 </svg>
-                                                <span class="text-[11px] font-medium text-gray-700 leading-tight">Flamme: @GetFlameDisplayText(box1Edukt.FlameColor)</span>
+                                                <span class="text-[11px] font-medium text-gray-700 leading-tight">Flamme: @GetFlameDisplayText(_box1EductVm.FlameColor)</span>
                                             </div>
-                                            @if (ShouldShowFlameStrip(box1Edukt.FlameColor))
+                                            @if (ShouldShowFlameStrip(_box1EductVm.FlameColor))
                                             {
-                                                <div class="@GetFlameColor(box1Edukt.FlameColor) h-2.5 rounded border border-gray-400"></div>
+                                                <div
+                                                    class="@GetFlameColor(_box1EductVm.FlameColor) h-2.5 rounded border border-gray-400"></div>
                                             }
                                         </div>
                                         <div class="flex-1 flex flex-col gap-0.5 bg-white/75 px-2.5 py-1.5 rounded-md border border-gray-300">
                                             <div class="flex items-center gap-1">
-                                                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" style="color: @GetElementColorHex(box1Edukt.ElementColor)">
+                                                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"
+                                                     style="color: @GetElementColorHex(_box1EductVm.ElementColor)">
                                                     <circle cx="12" cy="12" r="8" />
                                                 </svg>
-                                                <span class="text-[11px] font-medium text-gray-700 leading-tight">Farbe: @GetElementColorDisplayText(box1Edukt.ElementColor)</span>
+                                                <span
+                                                    class="text-[11px] font-medium text-gray-700 leading-tight">Farbe: @GetElementColorDisplayText(_box1EductVm.ElementColor)</span>
                                             </div>
-                                            @if (ShouldShowElementColorStrip(box1Edukt.ElementColor))
+                                            @if (ShouldShowElementColorStrip(_box1EductVm.ElementColor))
                                             {
-                                                <div class="@GetElementColor(box1Edukt.ElementColor) h-2.5 rounded border border-gray-400"></div>
+                                                <div
+                                                    class="@GetElementColor(_box1EductVm.ElementColor) h-2.5 rounded border border-gray-400"></div>
                                             }
                                         </div>
                                     </div>
@@ -88,7 +96,7 @@
                             else
                             {
                                 <div>
-                                    <p class="text-gray-400 text-sm">@(selectedEdukt != null || draggedEdukt != null ? "Klick zum Platzieren oder Ziehen" : "Wählen Sie Element rechts")</p>
+                                    <p class="text-gray-400 text-sm">@(_selectedEductVm != null || _draggedEductVm != null ? "Klick zum Platzieren oder Ziehen" : "Wählen Sie Element rechts")</p>
                                 </div>
                             }
                         </div>
@@ -101,51 +109,60 @@
                          @ondragover:preventDefault
                          @ondragleave="HandleDragLeave2">
                         <h3 class="text-sm font-medium mb-2">Edukt 2</h3>
-                        <div class="w-full border-2 border-dashed rounded-lg p-3 min-h-[140px] flex items-center justify-center transition-all text-left cursor-pointer @(isDragOver2 ? "bg-blue-100 border-blue-400" : "") @(box2Edukt != null ? "sandbox-dropzone-filled" : "sandbox-dropzone-empty")"
-                             @onclick="() => PlaceEdukt(2)">
-                            @if (box2Edukt != null)
+                        <div
+                            class="w-full border-2 border-dashed rounded-lg p-3 min-h-[140px] flex items-center justify-center transition-all text-left cursor-pointer @(isDragOver2 ? "bg-blue-100 border-blue-400" : "") @(_box2EductVm != null ? "sandbox-dropzone-filled" : "sandbox-dropzone-empty")"
+                            @onclick="() => PlaceEduct(2)">
+                            @if (_box2EductVm != null)
                             {
                                 <div draggable="true"
-                                     @ondragstart="@(() => HandleDragStart(box2Edukt))"
+                                     @ondragstart="@(() => HandleDragStart(_box2EductVm))"
                                      @ondragend="HandleDragEnd"
-                                     class="@box2Edukt.Color border-2 rounded-lg p-3 w-full cursor-grab">
-                                    <p class="font-bold text-base mb-1">@box2Edukt.Name</p>
-                                    <p class="text-xs text-gray-700 mb-2">@box2Edukt.Type</p>
+                                     class="@_box2EductVm.Color border-2 rounded-lg p-3 w-full cursor-grab">
+                                    <p class="font-bold text-base mb-1">@_box2EductVm.Name</p>
+                                    <p class="text-xs text-gray-700 mb-2">@_box2EductVm.Type</p>
                                     <div class="grid grid-cols-3 gap-1.5">
                                         <div class="flex-1 flex flex-col gap-0.5 bg-white/75 px-2.5 py-1.5 rounded-md border border-gray-300">
                                             <div class="flex items-center gap-1">
-                                                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" style="color: @GetPhColorHex(box2Edukt.PhLevel)">
+                                                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"
+                                                     style="color: @GetPhColorHex(_box2EductVm.PhLevel)">
                                                     <circle cx="12" cy="12" r="8" />
                                                 </svg>
-                                                <span class="text-[11px] font-medium text-gray-700 leading-tight">pH: @GetPhDisplayText(box2Edukt.PhLevel)</span>
+                                                <span
+                                                    class="text-[11px] font-medium text-gray-700 leading-tight">pH: @GetPhDisplayText(_box2EductVm.PhLevel)</span>
                                             </div>
-                                            @if (ShouldShowPhStrip(box2Edukt.PhLevel))
+                                            @if (ShouldShowPhStrip(_box2EductVm.PhLevel))
                                             {
-                                                <div class="@GetPhColor(box2Edukt.PhLevel) h-2.5 rounded border border-gray-400"></div>
+                                                <div
+                                                    class="@GetPhColor(_box2EductVm.PhLevel) h-2.5 rounded border border-gray-400"></div>
                                             }
                                         </div>
                                         <div class="flex-1 flex flex-col gap-0.5 bg-white/75 px-2.5 py-1.5 rounded-md border border-gray-300">
                                             <div class="flex items-center gap-1">
-                                                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" style="color: @GetFlameColorHex(box2Edukt.FlameColor)">
+                                                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"
+                                                     style="color: @GetFlameColorHex(_box2EductVm.FlameColor)">
                                                     <path d="M12 2C12 2 6 8 6 13c0 3.3 2.7 6 6 6s6-2.7 6-6c0-5-6-11-6-11zm0 16c-1.6 0-3-1.4-3-3 0-1.8 1.5-3.5 3-5.1 1.5 1.6 3 3.3 3 5.1 0 1.6-1.4 3-3 3z"/>
                                                 </svg>
-                                                <span class="text-[11px] font-medium text-gray-700 leading-tight">Flamme: @GetFlameDisplayText(box2Edukt.FlameColor)</span>
+                                                <span class="text-[11px] font-medium text-gray-700 leading-tight">Flamme: @GetFlameDisplayText(_box2EductVm.FlameColor)</span>
                                             </div>
-                                            @if (ShouldShowFlameStrip(box2Edukt.FlameColor))
+                                            @if (ShouldShowFlameStrip(_box2EductVm.FlameColor))
                                             {
-                                                <div class="@GetFlameColor(box2Edukt.FlameColor) h-2.5 rounded border border-gray-400"></div>
+                                                <div
+                                                    class="@GetFlameColor(_box2EductVm.FlameColor) h-2.5 rounded border border-gray-400"></div>
                                             }
                                         </div>
                                         <div class="flex-1 flex flex-col gap-0.5 bg-white/75 px-2.5 py-1.5 rounded-md border border-gray-300">
                                             <div class="flex items-center gap-1">
-                                                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" style="color: @GetElementColorHex(box2Edukt.ElementColor)">
+                                                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"
+                                                     style="color: @GetElementColorHex(_box2EductVm.ElementColor)">
                                                     <circle cx="12" cy="12" r="8" />
                                                 </svg>
-                                                <span class="text-[11px] font-medium text-gray-700 leading-tight">Farbe: @GetElementColorDisplayText(box2Edukt.ElementColor)</span>
+                                                <span
+                                                    class="text-[11px] font-medium text-gray-700 leading-tight">Farbe: @GetElementColorDisplayText(_box2EductVm.ElementColor)</span>
                                             </div>
-                                            @if (ShouldShowElementColorStrip(box2Edukt.ElementColor))
+                                            @if (ShouldShowElementColorStrip(_box2EductVm.ElementColor))
                                             {
-                                                <div class="@GetElementColor(box2Edukt.ElementColor) h-2.5 rounded border border-gray-400"></div>
+                                                <div
+                                                    class="@GetElementColor(_box2EductVm.ElementColor) h-2.5 rounded border border-gray-400"></div>
                                             }
                                         </div>
                                     </div>
@@ -154,7 +171,7 @@
                             else
                             {
                                 <div>
-                                    <p class="text-gray-400 text-sm">@(selectedEdukt != null || draggedEdukt != null ? "Klick zum Platzieren oder Ziehen" : "Wählen Sie Element rechts")</p>
+                                    <p class="text-gray-400 text-sm">@(_selectedEductVm != null || _draggedEductVm != null ? "Klick zum Platzieren oder Ziehen" : "Wählen Sie Element rechts")</p>
                                 </div>
                             }
                         </div>
@@ -164,16 +181,16 @@
                 <!-- Mix and Clear Buttons -->
                 <div class="flex gap-3">
                     <button @onclick="HandleMix"
-                            disabled="@(box1Edukt == null || box2Edukt == null)"
-                            class="@(box1Edukt != null && box2Edukt != null ? "flex-1 py-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 bg-blue-500 text-white hover:bg-blue-600" : "flex-1 py-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 bg-gray-200 text-gray-400 cursor-not-allowed")">
+                            disabled="@(_box1EductVm == null || _box2EductVm == null)"
+                            class="@(_box1EductVm != null && _box2EductVm != null ? "flex-1 py-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 bg-blue-500 text-white hover:bg-blue-600" : "flex-1 py-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 bg-gray-200 text-gray-400 cursor-not-allowed")">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 2v8l3 6v6h2v-6l3-6V2H8z" />
                         </svg>
                         Edukte Mischen
                     </button>
                     <button @onclick="HandleClear"
-                            disabled="@(box1Edukt == null && box2Edukt == null)"
-                            class="@(box1Edukt != null || box2Edukt != null ? "px-6 py-3 rounded-lg font-medium transition-colors bg-red-500 text-white hover:bg-red-600" : "px-6 py-3 rounded-lg font-medium transition-colors bg-gray-200 text-gray-400 cursor-not-allowed")">
+                            disabled="@(_box1EductVm == null && _box2EductVm == null)"
+                            class="@(_box1EductVm != null || _box2EductVm != null ? "px-6 py-3 rounded-lg font-medium transition-colors bg-red-500 text-white hover:bg-red-600" : "px-6 py-3 rounded-lg font-medium transition-colors bg-gray-200 text-gray-400 cursor-not-allowed")">
                         Löschen
                     </button>
                 </div>
@@ -231,12 +248,12 @@
                                     <div class="flex-1 min-w-0">
                                         <div class="flex items-center justify-between gap-2 mb-2">
                                             <div class="flex items-center gap-2">
-                                                <div class="@log.Edukt1.Color border-2 rounded-lg px-2.5 py-1">
-                                                    <p class="text-sm font-bold">@log.Edukt1.Name</p>
+                                                <div class="@log.Educt1.Color border-2 rounded-lg px-2.5 py-1">
+                                                    <p class="text-sm font-bold">@log.Educt1.Name</p>
                                                 </div>
                                                 <span class="font-bold text-gray-600">+</span>
-                                                <div class="@log.Edukt2.Color border-2 rounded-lg px-2.5 py-1">
-                                                    <p class="text-sm font-bold">@log.Edukt2.Name</p>
+                                                <div class="@log.Educt2.Color border-2 rounded-lg px-2.5 py-1">
+                                                    <p class="text-sm font-bold">@log.Educt2.Name</p>
                                                 </div>
                                             </div>
 
@@ -305,7 +322,7 @@
              @ondragover:preventDefault>
             <div class="flex items-center justify-between mb-3">
                 <h2 class="font-semibold">Verfügbare Verbindungen</h2>
-                <span class="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">@edukte.Count Elemente</span>
+                <span class="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">@educts.Count Elemente</span>
             </div>
 
             <!-- Search -->
@@ -326,13 +343,13 @@
 
             <!-- Product List -->
             <div class="flex-1 overflow-y-auto hide-scrollbar space-y-2">
-                @foreach (var edukt in filteredEdukte)
+                @foreach (var edukt in filteredEducts)
                 {
                     <div draggable="true"
                          @ondragstart="@(() => HandleDragStart(edukt))"
                          @ondragend="HandleDragEnd"
-                         @onclick="() => SelectEdukt(edukt)"
-                         class="w-full @edukt.Color border-2 rounded-lg p-3 cursor-grab hover:shadow-md transition-all text-left @(selectedEdukt?.Id == edukt.Id ? "ring-2 ring-blue-500" : "") @(draggedEdukt?.Id == edukt.Id ? "opacity-50" : "")">
+                         @onclick="() => SelectEduct(edukt)"
+                         class="w-full @edukt.Color border-2 rounded-lg p-3 cursor-grab hover:shadow-md transition-all text-left @(_selectedEductVm?.Id == edukt.Id ? "ring-2 ring-blue-500" : "") @(_draggedEductVm?.Id == edukt.Id ? "opacity-50" : "")">
                         <p class="font-bold text-base mb-1">@edukt.Name</p>
                         <p class="text-xs text-gray-600 mb-2 font-medium">@edukt.Type</p>
 
@@ -377,7 +394,7 @@
                             </div>
                         </div>
 
-                        <p class="text-xs text-gray-500 mt-2 font-medium">@(selectedEdukt?.Id == edukt.Id ? "✓ Ausgewählt" : "Ziehen oder Klick")</p>
+                        <p class="text-xs text-gray-500 mt-2 font-medium">@(_selectedEductVm?.Id == edukt.Id ? "✓ Ausgewählt" : "Ziehen oder Klick")</p>
                     </div>
                 }
             </div>
@@ -386,7 +403,8 @@
 </div>
 
 @code {
-    private class Edukt
+
+    private class EductVm
     {
         public int Id { get; set; }
         public string Name { get; set; }
@@ -400,24 +418,24 @@
     private class MixLog
     {
         public string Id { get; set; }
-        public Edukt Edukt1 { get; set; }
-        public Edukt Edukt2 { get; set; }
+        public EductVm Educt1 { get; set; }
+        public EductVm Educt2 { get; set; }
         public string Result { get; set; }
         public string Formula { get; set; }
         public DateTime Timestamp { get; set; }
     }
 
-    private List<Edukt> edukte = [];
+    private List<EductVm> educts = [];
     private List<LabReactionDto> _allReactions = [];
 
-    private Edukt box1Edukt;
-    private Edukt box2Edukt;
+    private EductVm _box1EductVm;
+    private EductVm _box2EductVm;
     private MixLog? currentMixLog;
     private readonly List<MixLog> mixLogs = new();
     private string searchQuery = "";
-    private List<Edukt> filteredEdukte = [];
-    private Edukt selectedEdukt;
-    private Edukt draggedEdukt;
+    private List<EductVm> filteredEducts = [];
+    private EductVm _selectedEductVm;
+    private EductVm _draggedEductVm;
     private bool isDragOver1;
     private bool isDragOver2;
     private bool isHistoryVisible;
@@ -426,16 +444,16 @@
     {
         var chemicals = await ChemistryData.GetAllChemicalsAsync();
         _allReactions = await ChemistryData.GetAllReactionsAsync();
-        edukte = chemicals.Select(MapChemical).ToList();
-        filteredEdukte = edukte;
+        educts = chemicals.Select(MapChemical).ToList();
+        filteredEducts = educts;
         isHistoryVisible = false;
     }
 
-    private static Edukt MapChemical(LabChemicalDto c)
+    private static EductVm MapChemical(LabChemicalDto c)
     {
         var ph = c.MethodOutputs.TryGetValue("pH-Papier", out var p) ? p : "-";
         var flame = c.MethodOutputs.TryGetValue("Flammenfärbung", out var f) ? f : "Keine";
-        return new Edukt
+        return new EductVm
         {
             Id = c.ChemicalID,
             Name = c.Name,
@@ -464,48 +482,48 @@
     private void HandleSearch(string query)
     {
         searchQuery = query;
-        filteredEdukte = edukte.Where(e =>
+        filteredEducts = educts.Where(e =>
             e.Name.Contains(query, StringComparison.OrdinalIgnoreCase) ||
             e.Type.Contains(query, StringComparison.OrdinalIgnoreCase)
         ).ToList();
         StateHasChanged();
     }
 
-    private void SelectEdukt(Edukt edukt)
+    private void SelectEduct(EductVm eductVm)
     {
-        selectedEdukt = selectedEdukt?.Id == edukt.Id ? null : edukt;
+        _selectedEductVm = _selectedEductVm?.Id == eductVm.Id ? null : eductVm;
         StateHasChanged();
     }
 
-    private void PlaceEdukt(int boxNumber)
+    private void PlaceEduct(int boxNumber)
     {
-        if (selectedEdukt != null)
+        if (_selectedEductVm != null)
         {
             if (boxNumber == 1)
-                box1Edukt = selectedEdukt;
+                _box1EductVm = _selectedEductVm;
             else
-                box2Edukt = selectedEdukt;
-            selectedEdukt = null;
+                _box2EductVm = _selectedEductVm;
+            _selectedEductVm = null;
             StateHasChanged();
         }
     }
 
     private void HandleMix()
     {
-        if (box1Edukt == null || box2Edukt == null) return;
+        if (_box1EductVm == null || _box2EductVm == null) return;
 
         var reaction = _allReactions.FirstOrDefault(r =>
-            (r.Chemical1ID == box1Edukt.Id && r.Chemical2ID == box2Edukt.Id) ||
-            (r.Chemical1ID == box2Edukt.Id && r.Chemical2ID == box1Edukt.Id));
+            (r.Chemical1ID == _box1EductVm.Id && r.Chemical2ID == _box2EductVm.Id) ||
+            (r.Chemical1ID == _box2EductVm.Id && r.Chemical2ID == _box1EductVm.Id));
 
         var result = reaction?.RelevantProduct ?? "Keine Reaktion bekannt";
-        var formula = reaction?.Formula ?? $"{box1Edukt.Name} + {box2Edukt.Name} → ?";
+        var formula = reaction?.Formula ?? $"{_box1EductVm.Name} + {_box2EductVm.Name} → ?";
 
         var log = new MixLog
         {
             Id = DateTime.Now.Ticks.ToString(),
-            Edukt1 = box1Edukt,
-            Edukt2 = box2Edukt,
+            Educt1 = _box1EductVm,
+            Educt2 = _box2EductVm,
             Result = result,
             Formula = formula,
             Timestamp = DateTime.Now
@@ -529,9 +547,9 @@
 
     private void HandleClear()
     {
-        box1Edukt = null;
-        box2Edukt = null;
-        selectedEdukt = null;
+        _box1EductVm = null;
+        _box2EductVm = null;
+        _selectedEductVm = null;
     }
 
     private void HandleDeleteLog(string logId)
@@ -539,15 +557,15 @@
         mixLogs.RemoveAll(l => l.Id == logId);
     }
 
-    private void HandleDragStart(Edukt edukt)
+    private void HandleDragStart(EductVm eductVm)
     {
-        draggedEdukt = edukt;
+        _draggedEductVm = eductVm;
         StateHasChanged();
     }
 
     private void HandleDragEnd()
     {
-        draggedEdukt = null;
+        _draggedEductVm = null;
         isDragOver1 = false;
         isDragOver2 = false;
         StateHasChanged();
@@ -561,11 +579,11 @@
 
     private void HandleDrop(DragEventArgs e, int boxNumber)
     {
-        if (draggedEdukt != null)
+        if (_draggedEductVm != null)
         {
-            if (boxNumber == 1) box1Edukt = draggedEdukt;
-            else if (boxNumber == 2) box2Edukt = draggedEdukt;
-            draggedEdukt = null;
+            if (boxNumber == 1) _box1EductVm = _draggedEductVm;
+            else if (boxNumber == 2) _box2EductVm = _draggedEductVm;
+            _draggedEductVm = null;
             isDragOver1 = false;
             isDragOver2 = false;
             StateHasChanged();
@@ -574,22 +592,22 @@
 
     private void HandleDropOnSearch(DragEventArgs e)
     {
-        if (draggedEdukt != null)
+        if (_draggedEductVm != null)
         {
-            searchQuery = draggedEdukt.Name;
+            searchQuery = _draggedEductVm.Name;
             HandleSearch(searchQuery);
-            draggedEdukt = null;
+            _draggedEductVm = null;
             StateHasChanged();
         }
     }
 
     private void HandleReturnToListDrop(DragEventArgs e)
     {
-        if (draggedEdukt == null) return;
-        if (box1Edukt?.Id == draggedEdukt.Id) box1Edukt = null;
-        if (box2Edukt?.Id == draggedEdukt.Id) box2Edukt = null;
-        selectedEdukt = null;
-        draggedEdukt = null;
+        if (_draggedEductVm == null) return;
+        if (_box1EductVm?.Id == _draggedEductVm.Id) _box1EductVm = null;
+        if (_box2EductVm?.Id == _draggedEductVm.Id) _box2EductVm = null;
+        _selectedEductVm = null;
+        _draggedEductVm = null;
         isDragOver1 = false;
         isDragOver2 = false;
         StateHasChanged();

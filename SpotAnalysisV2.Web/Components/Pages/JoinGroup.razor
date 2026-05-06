@@ -1,5 +1,4 @@
 @page "/join/{Token}"
-@rendermode InteractiveServer
 @attribute [Authorize]
 @inject IGroupService GroupService
 
@@ -54,7 +53,6 @@
 
     protected override async Task OnInitializedAsync()
     {
-        if (!RendererInfo.IsInteractive) return;
         if (_state != State.Loading) return;
 
         var auth = await AuthState;

@@ -1,6 +1,5 @@
 @page "/teacher/questions/create"
 @page "/teacher/questions/{QuestionId:int}/edit"
-@rendermode InteractiveServer
 @attribute [Authorize(Roles = "Admin,Teacher")]
 @inject IQuizService QuizService
 @inject IChemistryDataService ChemistryData

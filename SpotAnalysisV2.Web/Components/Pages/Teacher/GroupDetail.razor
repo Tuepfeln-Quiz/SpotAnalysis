@@ -289,14 +289,14 @@
     private void Edit() => Navigation.NavigateTo($"/teacher/groups/{Id}/edit");
     private void BackToList() => Navigation.NavigateTo("/teacher/groups");
 
-    private void GenerateInvite()
+    private async Task GenerateInvite()
     {
-        var token = InviteTokens.CreateToken(Id);
+        var token = await InviteTokens.CreateToken(Id);
         var baseUrl = Navigation.BaseUri.TrimEnd('/');
         _inviteLink = $"{baseUrl}/join/{token}";
         _inviteExpiresAt = DateTime.UtcNow.AddMinutes(15);
         UpdateRemaining();
-        _countdownTimer?.Dispose();
+        if (_countdownTimer != null) await _countdownTimer.DisposeAsync();
         _countdownTimer = new Timer(_ =>
         {
             InvokeAsync(() =>

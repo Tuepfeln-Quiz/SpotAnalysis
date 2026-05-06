@@ -3,17 +3,16 @@
 /// <summary>
 /// Represents the mapping between a quiz attempt and a question. The ResultID is used to distinguish between different questions in the STChemicalResult table.
 /// </summary>
-
 public class STResult
 {
-    [Key]
-    public int ResultID { get; set; }
+    [Key] public int ResultID { get; set; }
+
     public int AttemptID { get; set; }
     public int QuestionID { get; set; }
 
 
     [ForeignKey(nameof(AttemptID))]
-    [DeleteBehavior(DeleteBehavior.Restrict)]
+    [DeleteBehavior(DeleteBehavior.Cascade)]
     public QuizAttempt Attempt { get; set; } = null!;
 
     [ForeignKey(nameof(QuestionID))]

@@ -62,6 +62,9 @@ nunit-*.xml
 /bash.exe.stackdump
 
 *.sln.DotSettings.user
+*.csproj.user
+*.slnLaunch.user
+node_modules/
 /SpotAnalysis.Data/**/Migrations
 
 .env

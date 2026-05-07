@@ -115,8 +115,6 @@
 
     protected override async Task OnInitializedAsync()
     {
-        if (!RendererInfo.IsInteractive)
-            return;
 
         var auth = await AuthState;
         var userIdClaim = auth.User.FindFirst(ClaimTypes.NameIdentifier)?.Value

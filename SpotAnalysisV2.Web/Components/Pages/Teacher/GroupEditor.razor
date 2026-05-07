@@ -58,7 +58,7 @@
         if (IsEdit)
         {
             var groups = await GroupService.GetGroups(_teacherId);
-            var current = groups.FirstOrDefault(g => g.Id == Id!.Value);
+            var current = groups.SingleOrDefault(g => g.Id == Id!.Value);
             if (current is null)
             {
                 Navigation.NavigateTo("/teacher/groups");

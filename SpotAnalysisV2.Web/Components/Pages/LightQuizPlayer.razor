@@ -270,7 +270,7 @@
     private string _quizName = "Light Quiz";
     private List<QuizQuestionPayloadDto> _orderedQuestions = [];
     private List<LabChemicalDto> _allChemicals = [];
-    private LightFrage? question;
+    private LightQuestion? question;
     private string? selectedOption;
     private bool answered;
     private int score;
@@ -326,7 +326,7 @@
         }
     }
 
-    private LightFrage BuildLightQuestion(QuizQuestionPayloadDto payload)
+    private LightQuestion BuildLightQuestion(QuizQuestionPayloadDto payload)
     {
         var light = payload.Light!;
         var shownChemical = _allChemicals.FirstOrDefault(c => c.ChemicalID == light.ShownEduct.Id);
@@ -347,7 +347,7 @@
             };
         }).ToList();
 
-        return new LightFrage
+        return new LightQuestion
         {
             Frage = payload.Description,
             Produkt = light.Observation,
@@ -356,10 +356,10 @@
         };
     }
 
-    private Edukt MapShownChemical(ChemicalDto chemical, LabChemicalDto? detail)
+    private Educt MapShownChemical(ChemicalDto chemical, LabChemicalDto? detail)
     {
         var methodMap = chemical.MethodInfo.ToDictionary(m => m.Name, m => m.Color, StringComparer.OrdinalIgnoreCase);
-        return new Edukt
+        return new Educt
         {
             Id = chemical.Id,
             Name = chemical.Name,
@@ -371,9 +371,9 @@
         };
     }
 
-    private Edukt MapChemical(LabChemicalDto chemical)
+    private Educt MapChemical(LabChemicalDto chemical)
     {
-        return new Edukt
+        return new Educt
         {
             Id = chemical.ChemicalID,
             Name = chemical.Name,
@@ -489,7 +489,7 @@
         return $"{(score * 100.0 / totalQuestions):0.##}%";
     }
 
-    private Edukt? GetSelectedEdukt() => question?.Options.FirstOrDefault(o => o.Id == selectedOption)?.Edukt2;
+    private Educt? GetSelectedEdukt() => question?.Options.FirstOrDefault(o => o.Id == selectedOption)?.Edukt2;
 
     private string GetPhColor(string phLevel)
     {
@@ -618,10 +618,10 @@
         return elementColor;
     }
 
-    private sealed class LightFrage
+    private sealed class LightQuestion
     {
         public string Frage { get; set; } = string.Empty;
-        public Edukt Edukt1 { get; set; } = new();
+        public Educt Edukt1 { get; set; } = new();
         public string Produkt { get; set; } = string.Empty;
         public List<LightOption> Options { get; set; } = [];
     }
@@ -630,13 +630,13 @@
     {
         public string Id { get; set; } = string.Empty;
         public int ReactionId { get; set; }
-        public Edukt Edukt2 { get; set; } = new();
+        public Educt Edukt2 { get; set; } = new();
         public string Produkt { get; set; } = string.Empty;
         public string Formel { get; set; } = string.Empty;
         public bool IsCorrect { get; set; }
     }
 
-    private sealed class Edukt
+    private sealed class Educt
     {
         public int Id { get; set; }
         public string Name { get; set; } = string.Empty;

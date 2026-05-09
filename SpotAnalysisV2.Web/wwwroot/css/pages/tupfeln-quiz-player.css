@@ -1,8 +1,0 @@
-.spottest-toolbox {
-    right: 24px;
-    top: 98px;
-}
-
-.spottest-cards-grid {
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-}

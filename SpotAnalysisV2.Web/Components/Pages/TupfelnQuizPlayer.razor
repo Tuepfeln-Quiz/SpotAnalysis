@@ -6,7 +6,8 @@
 
 <div class="size-full flex flex-col bg-gray-50" @onpointermove="HandleGlobalPointerMove" @onpointerup="HandleGlobalPointerUp" @onpointercancel="HandleGlobalPointerUp">
     <header class="bg-white shadow-sm px-6 h-24 flex items-center justify-between">
-        <NavLink href="/uebungen" class="flex items-center p-2 hover:bg-gray-100 rounded-lg transition-colors" aria-label="Zurück">
+        <NavLink href="/exercises" class="flex items-center p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                 aria-label="Zurück">
             <svg class="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M15 19l-7-7 7-7" />
             </svg>
@@ -45,7 +46,10 @@
                 </div>
                 <div class="flex gap-3 justify-center">
                     <button @onclick="ResetAll" class="bg-gray-200 text-gray-700 px-6 py-3 rounded-lg font-medium hover:bg-gray-300">Nochmal versuchen</button>
-                    <NavLink href="/uebungen" class="bg-teal-500 text-white px-6 py-3 rounded-lg font-medium hover:bg-teal-600 text-center">Zurück</NavLink>
+                    <NavLink href="/exercises"
+                             class="bg-teal-500 text-white px-6 py-3 rounded-lg font-medium hover:bg-teal-600 text-center">
+                        Zurück
+                    </NavLink>
                 </div>
             </div>
         </div>
@@ -112,7 +116,7 @@
 
                             <div class="w-full h-12 rounded-lg border-2 flex items-center justify-center mb-2"
                                  style="background-color:@sub.ColorBg; border-color:@sub.ColorBorder;">
-                                <span class="text-[11px] text-gray-600">@sub.Color</span>
+                                <span class="text-[11px] text-gray-600">@sub.ColorName</span>
                             </div>
 
                             <div class="grid grid-cols-2 gap-1.5 mb-3">
@@ -412,7 +416,6 @@
 
     private UnknownVm MapUnknown(LabChemicalDto chemical, int? naohId, int? hclId)
     {
-        var cardColors = GetCardColors(chemical.Color);
         var phOutput = GetMethodOutput(chemical.MethodOutputs, "pH-Papier");
         var flameOutput = GetMethodOutput(chemical.MethodOutputs, "Flammenfärbung", "Flammenprobe");
         var naohReaction = naohId.HasValue ? FindReaction(chemical.ChemicalID, naohId.Value) : null;
@@ -423,13 +426,13 @@
             Id = chemical.ChemicalID,
             Name = chemical.Name,
             Formula = chemical.Formula,
-            Color = chemical.Color,
-            ColorBg = cardColors.Background,
-            ColorBorder = cardColors.Border,
-            PhOutput = phOutput,
-            PhColor = GetDisplayColorHex(phOutput),
-            FlameColor = flameOutput,
-            FlameHex = GetDisplayColorHex(flameOutput),
+            ColorName = chemical.Color.Name,
+            ColorBg = $"{chemical.Color.HexValue}1a",
+            ColorBorder = $"{chemical.Color.HexValue}80",
+            PhOutput = phOutput?.Name ?? "Keine",
+            PhColor = phOutput?.HexValue ?? "#d1d5db",
+            FlameColor = flameOutput?.Name ?? "Keine",
+            FlameHex = flameOutput?.HexValue ?? "#d1d5db",
             WithNaOh = naohReaction?.ObservationDescription ?? "Keine Reaktion",
             WithNaOhColor = GetObservationColorHex(naohReaction),
             WithHcl = hclReaction?.ObservationDescription ?? "Keine Reaktion",
@@ -437,41 +440,9 @@
         };
     }
 
-    private static string GetMethodOutput(Dictionary<string, string> outputs, params string[] names)
+    private static ColorDto? GetMethodOutput(Dictionary<string, ColorDto> outputs, params string[] names)
     {
-        return names.Where(outputs.ContainsKey).Select(name => outputs[name]).FirstOrDefault() ?? "Keine";
-    }
-
-    private static (string Background, string Border) GetCardColors(string color)
-    {
-        var normalized = color.ToLowerInvariant();
-        return normalized switch
-        {
-            var c when c.Contains("gelb") => ("#fef9c3", "#fcd34d"),
-            var c when c.Contains("grün") => ("#dcfce7", "#86efac"),
-            var c when c.Contains("blau") => ("#dbeafe", "#93c5fd"),
-            var c when c.Contains("rot") => ("#fee2e2", "#fca5a5"),
-            var c when c.Contains("orange") => ("#fed7aa", "#fb923c"),
-            var c when c.Contains("braun") => ("#fef3c7", "#f59e0b"),
-            _ => ("#f3f4f6", "#d1d5db")
-        };
-    }
-
-    private static string GetDisplayColorHex(string value)
-    {
-        var normalized = value.ToLowerInvariant();
-        return normalized switch
-        {
-            var v when v.Contains("rot") => "#ef4444",
-            var v when v.Contains("orange") => "#fb923c",
-            var v when v.Contains("gelb") => "#facc15",
-            var v when v.Contains("grün") => "#4ade80",
-            var v when v.Contains("blau") => "#60a5fa",
-            var v when v.Contains("schwarz") => "#111827",
-            var v when v.Contains("braun") => "#b45309",
-            var v when v.Contains("farblos") => "#e5e7eb",
-            _ => "#d1d5db"
-        };
+        return names.Where(outputs.ContainsKey).Select(name => outputs[name]).FirstOrDefault();
     }
 
     private static string GetObservationColorHex(LabReactionDto? reaction)
@@ -709,7 +680,7 @@
         public int Id { get; set; }
         public string Name { get; set; } = string.Empty;
         public string Formula { get; set; } = string.Empty;
-        public string Color { get; set; } = string.Empty;
+        public string ColorName { get; set; } = string.Empty;
         public string ColorBg { get; set; } = string.Empty;
         public string ColorBorder { get; set; } = string.Empty;
         public string PhOutput { get; set; } = "Keine";

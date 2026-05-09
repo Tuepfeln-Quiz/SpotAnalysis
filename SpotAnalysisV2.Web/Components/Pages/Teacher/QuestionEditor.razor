@@ -254,11 +254,11 @@
         var chemicals = await ChemistryData.GetAllChemicalsAsync();
         _eductsAvailable = chemicals
             .Where(c => c.Type == ChemicalType.Educt)
-            .Select(c => new ChemicalItem(c.ChemicalID, c.Name, c.Formula, c.Color))
+            .Select(c => new ChemicalItem(c.ChemicalID, c.Name, c.Formula, c.Color.Name))
             .ToList();
         _additivesAvailable = chemicals
             .Where(c => c.Type == ChemicalType.Additive)
-            .Select(c => new ChemicalItem(c.ChemicalID, c.Name, c.Formula, c.Color))
+            .Select(c => new ChemicalItem(c.ChemicalID, c.Name, c.Formula, c.Color.Name))
             .ToList();
 
         _allReactions = await ChemistryData.GetAllReactionsAsync();
@@ -278,8 +278,8 @@
 
         if (_questionType == QuestionType.SpotTest)
         {
-            _selectedEducts = detail.Chemicals.Where(c => !c.IsAdditive).Select(c => new ChemicalItem(c.Id, c.Name, c.Formula, c.Color)).ToList();
-            _selectedAdditives = detail.Chemicals.Where(c => c.IsAdditive).Select(c => new ChemicalItem(c.Id, c.Name, c.Formula, c.Color)).ToList();
+            _selectedEducts = detail.Chemicals.Where(c => !c.IsAdditive).Select(c => new ChemicalItem(c.Id, c.Name, c.Formula, c.Color.Name)).ToList();
+            _selectedAdditives = detail.Chemicals.Where(c => c.IsAdditive).Select(c => new ChemicalItem(c.Id, c.Name, c.Formula, c.Color.Name)).ToList();
             _selectedMethods = detail.Methods.Select(m => new MethodItem(m.Id, m.Name)).ToList();
         }
         else

@@ -44,54 +44,49 @@
                         <div class="flex flex-col">
                             <h3 class="text-xs font-medium text-gray-600 mb-1">Edukt 1</h3>
                             <div
-                                class="@currentChallenge.Educt1.Color border-2 rounded-lg p-3 min-h-[120px] flex flex-col justify-center flex-1">
+                                style="background-color: @(currentChallenge.Educt1.CardColorHex)1a; border-color: @(currentChallenge.Educt1.CardColorHex)80"
+                                class="border-2 rounded-lg p-3 min-h-[120px] flex flex-col justify-center flex-1">
                                 <p class="font-bold text-base">@currentChallenge.Educt1.Name</p>
                                 <p class="text-xs text-gray-700 mb-2">@currentChallenge.Educt1.Type</p>
                                 <div class="grid grid-cols-3 gap-1.5">
                                     <div class="flex-1 flex flex-col gap-0.5 bg-white/75 px-2.5 py-1.5 rounded-md border border-gray-300">
                                         <div class="flex items-center gap-1">
                                             <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"
-                                                 style="color: @GetPhColorHex(currentChallenge.Educt1.PhLevel)">
+                                                 style="color: @currentChallenge.Educt1.PhLevel.HexValue">
                                                 <circle cx="12" cy="12" r="8" />
                                             </svg>
                                             <span
-                                                class="text-[11px] font-medium text-gray-700 leading-tight">pH: @GetPhDisplayText(currentChallenge.Educt1.PhLevel)</span>
+                                                class="text-[11px] font-medium text-gray-700 leading-tight">pH: @currentChallenge.Educt1.PhLevel.Name</span>
                                         </div>
-                                        @if (ShouldShowPhStrip(currentChallenge.Educt1.PhLevel))
-                                        {
-                                            <div
-                                                class="@GetPhColor(currentChallenge.Educt1.PhLevel) h-2.5 rounded border border-gray-400"></div>
-                                        }
+                                        <div
+                                            style="background-color: @currentChallenge.Educt1.PhLevel.HexValue"
+                                            class="h-2.5 rounded border border-gray-400"></div>
                                     </div>
                                     <div class="flex-1 flex flex-col gap-0.5 bg-white/75 px-2.5 py-1.5 rounded-md border border-gray-300">
                                         <div class="flex items-center gap-1">
                                             <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"
-                                                 style="color: @GetFlameColorHex(currentChallenge.Educt1.FlameColor)">
+                                                 style="color: @currentChallenge.Educt1.FlameColor.HexValue">
                                                 <path d="M12 2C12 2 6 8 6 13c0 3.3 2.7 6 6 6s6-2.7 6-6c0-5-6-11-6-11zm0 16c-1.6 0-3-1.4-3-3 0-1.8 1.5-3.5 3-5.1 1.5 1.6 3 3.3 3 5.1 0 1.6-1.4 3-3 3z"/>
                                             </svg>
                                             <span
-                                                class="text-[11px] font-medium text-gray-700 leading-tight">Flamme: @GetFlameDisplayText(currentChallenge.Educt1.FlameColor)</span>
+                                                class="text-[11px] font-medium text-gray-700 leading-tight">Flamme: @currentChallenge.Educt1.FlameColor.Name</span>
                                         </div>
-                                        @if (ShouldShowFlameStrip(currentChallenge.Educt1.FlameColor))
-                                        {
-                                            <div
-                                                class="@GetFlameColor(currentChallenge.Educt1.FlameColor) h-2.5 rounded border border-gray-400"></div>
-                                        }
+                                        <div
+                                            style="background-color: @currentChallenge.Educt1.FlameColor.HexValue"
+                                            class="h-2.5 rounded border border-gray-400"></div>
                                     </div>
                                     <div class="flex-1 flex flex-col gap-0.5 bg-white/75 px-2.5 py-1.5 rounded-md border border-gray-300">
                                         <div class="flex items-center gap-1">
                                             <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"
-                                                 style="color: @GetElementColorHex(currentChallenge.Educt1.ElementColor)">
+                                                 style="color: @currentChallenge.Educt1.ElementColor.HexValue">
                                                 <circle cx="12" cy="12" r="8" />
                                             </svg>
                                             <span
-                                                class="text-[11px] font-medium text-gray-700 leading-tight">Farbe: @GetElementColorDisplayText(currentChallenge.Educt1.ElementColor)</span>
+                                                class="text-[11px] font-medium text-gray-700 leading-tight">Farbe: @currentChallenge.Educt1.ElementColor.Name</span>
                                         </div>
-                                        @if (ShouldShowElementColorStrip(currentChallenge.Educt1.ElementColor))
-                                        {
-                                            <div
-                                                class="@GetElementColor(currentChallenge.Educt1.ElementColor) h-2.5 rounded border border-gray-400"></div>
-                                        }
+                                        <div
+                                            style="background-color: @currentChallenge.Educt1.ElementColor.HexValue"
+                                            class="h-2.5 rounded border border-gray-400"></div>
                                     </div>
                                 </div>
                             </div>
@@ -99,54 +94,49 @@
                         <div class="flex flex-col">
                             <h3 class="text-xs font-medium text-gray-600 mb-1">Edukt 2</h3>
                             <div
-                                class="@currentChallenge.Educt2.Color border-2 rounded-lg p-3 min-h-[120px] flex flex-col justify-center flex-1">
+                                style="background-color: @(currentChallenge.Educt2.CardColorHex)1a; border-color: @(currentChallenge.Educt2.CardColorHex)80"
+                                class="border-2 rounded-lg p-3 min-h-[120px] flex flex-col justify-center flex-1">
                                 <p class="font-bold text-base mb-1">@currentChallenge.Educt2.Name</p>
                                 <p class="text-xs text-gray-700 mb-2">@currentChallenge.Educt2.Type</p>
                                 <div class="grid grid-cols-3 gap-1.5">
                                     <div class="flex-1 flex flex-col gap-0.5 bg-white/75 px-2.5 py-1.5 rounded-md border border-gray-300">
                                         <div class="flex items-center gap-1">
                                             <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"
-                                                 style="color: @GetPhColorHex(currentChallenge.Educt2.PhLevel)">
+                                                 style="color: @currentChallenge.Educt2.PhLevel.HexValue">
                                                 <circle cx="12" cy="12" r="8" />
                                             </svg>
                                             <span
-                                                class="text-[11px] font-medium text-gray-700 leading-tight">pH: @GetPhDisplayText(currentChallenge.Educt2.PhLevel)</span>
+                                                class="text-[11px] font-medium text-gray-700 leading-tight">pH: @currentChallenge.Educt2.PhLevel.Name</span>
                                         </div>
-                                        @if (ShouldShowPhStrip(currentChallenge.Educt2.PhLevel))
-                                        {
-                                            <div
-                                                class="@GetPhColor(currentChallenge.Educt2.PhLevel) h-2.5 rounded border border-gray-400"></div>
-                                        }
+                                        <div
+                                            style="background-color: @currentChallenge.Educt2.PhLevel.HexValue"
+                                            class="h-2.5 rounded border border-gray-400"></div>
                                     </div>
                                     <div class="flex-1 flex flex-col gap-0.5 bg-white/75 px-2.5 py-1.5 rounded-md border border-gray-300">
                                         <div class="flex items-center gap-1">
                                             <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"
-                                                 style="color: @GetFlameColorHex(currentChallenge.Educt2.FlameColor)">
+                                                 style="color: @currentChallenge.Educt2.FlameColor.HexValue">
                                                 <path d="M12 2C12 2 6 8 6 13c0 3.3 2.7 6 6 6s6-2.7 6-6c0-5-6-11-6-11zm0 16c-1.6 0-3-1.4-3-3 0-1.8 1.5-3.5 3-5.1 1.5 1.6 3 3.3 3 5.1 0 1.6-1.4 3-3 3z"/>
                                             </svg>
                                             <span
-                                                class="text-[11px] font-medium text-gray-700 leading-tight">Flamme: @GetFlameDisplayText(currentChallenge.Educt2.FlameColor)</span>
+                                                class="text-[11px] font-medium text-gray-700 leading-tight">Flamme: @currentChallenge.Educt2.FlameColor.Name</span>
                                         </div>
-                                        @if (ShouldShowFlameStrip(currentChallenge.Educt2.FlameColor))
-                                        {
-                                            <div
-                                                class="@GetFlameColor(currentChallenge.Educt2.FlameColor) h-2.5 rounded border border-gray-400"></div>
-                                        }
+                                        <div
+                                            style="background-color: @currentChallenge.Educt2.FlameColor.HexValue"
+                                            class="h-2.5 rounded border border-gray-400"></div>
                                     </div>
                                     <div class="flex-1 flex flex-col gap-0.5 bg-white/75 px-2.5 py-1.5 rounded-md border border-gray-300">
                                         <div class="flex items-center gap-1">
                                             <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"
-                                                 style="color: @GetElementColorHex(currentChallenge.Educt2.ElementColor)">
+                                                 style="color: @currentChallenge.Educt2.ElementColor.HexValue">
                                                 <circle cx="12" cy="12" r="8" />
                                             </svg>
                                             <span
-                                                class="text-[11px] font-medium text-gray-700 leading-tight">Farbe: @GetElementColorDisplayText(currentChallenge.Educt2.ElementColor)</span>
+                                                class="text-[11px] font-medium text-gray-700 leading-tight">Farbe: @currentChallenge.Educt2.ElementColor.Name</span>
                                         </div>
-                                        @if (ShouldShowElementColorStrip(currentChallenge.Educt2.ElementColor))
-                                        {
-                                            <div
-                                                class="@GetElementColor(currentChallenge.Educt2.ElementColor) h-2.5 rounded border border-gray-400"></div>
-                                        }
+                                        <div
+                                            style="background-color: @currentChallenge.Educt2.ElementColor.HexValue"
+                                            class="h-2.5 rounded border border-gray-400"></div>
                                     </div>
                                 </div>
                             </div>
@@ -220,7 +210,7 @@
                         <div class="mt-3 p-2 bg-yellow-50 border border-yellow-200 rounded-lg text-xs text-yellow-800">
                             <span class="font-medium">Hinweis:</span> Das gesuchte Element ist vom Typ
                             „@currentChallenge.Educt2.Type" und hat die Flammenfarbe
-                            „@currentChallenge.Educt2.FlameColor".
+                            „@currentChallenge.Educt2.FlameColor.Name".
                         </div>
                     }
 
@@ -334,15 +324,21 @@
                                     <div class="flex-1">
                                         <div class="flex items-center justify-between gap-2 mb-3">
                                             <div class="flex items-center gap-2">
-                                                <div class="@log.Challenge.Educt1.Color border-2 rounded px-3 py-1">
+                                                <div
+                                                    style="background-color: @(log.Challenge.Educt1.CardColorHex)1a; border-color: @(log.Challenge.Educt1.CardColorHex)80"
+                                                    class="border-2 rounded px-3 py-1">
                                                     <p class="text-sm font-bold">@log.Challenge.Educt1.Name</p>
                                                 </div>
                                                 <span class="font-bold text-gray-600">+</span>
-                                                <div class="@log.Challenge.Educt2.Color border-2 rounded px-3 py-1">
+                                                <div
+                                                    style="background-color: @(log.Challenge.Educt2.CardColorHex)1a; border-color: @(log.Challenge.Educt2.CardColorHex)80"
+                                                    class="border-2 rounded px-3 py-1">
                                                     <p class="text-sm font-bold">@log.Challenge.Educt2.Name</p>
                                                 </div>
                                                 <span class="font-bold text-gray-600">→</span>
-                                                <div class="@log.Challenge.Product.Color border-2 rounded px-3 py-1">
+                                                <div
+                                                    style="background-color: @(log.Challenge.Product.CardColorHex)1a; border-color: @(log.Challenge.Product.CardColorHex)80"
+                                                    class="border-2 rounded px-3 py-1">
                                                     <p class="text-sm font-bold">@log.Challenge.Product.Name</p>
                                                 </div>
                                             </div>
@@ -429,17 +425,17 @@
         public int Id { get; set; }
         public string Name { get; set; }
         public string Type { get; set; }
-        public string Color { get; set; }
-        public string PhLevel { get; set; }
-        public string FlameColor { get; set; }
-        public string ElementColor { get; set; }
+        public string CardColorHex { get; set; } = "#666666";
+        public ColorInfo PhLevel { get; set; } = new("-", "#9ca3af");
+        public ColorInfo FlameColor { get; set; } = new("Keine", "#9ca3af");
+        public ColorInfo ElementColor { get; set; } = new("", "#9ca3af");
         public string ImageUrl { get; set; }
     }
 
     private class ProductVm
     {
         public string Name { get; set; }
-        public string Color { get; set; }
+        public string CardColorHex { get; set; } = "#666666";
         public string ImageUrl { get; set; }
     }
 
@@ -492,7 +488,7 @@
                 Product = new ProductVm
                 {
                     Name = r.RelevantProduct,
-                    Color = "bg-gray-100 border-gray-300",
+                    CardColorHex = "#666666",
                     ImageUrl = r.ImagePath ?? ""
                 },
                 Formula = r.Formula,
@@ -506,33 +502,28 @@
 
     private static EductVm MapChemical(LabChemicalDto c)
     {
-        var ph = c.MethodOutputs.TryGetValue("pH-Papier", out var p) ? p : "-";
-        var flame = c.MethodOutputs.TryGetValue("Flammenfärbung", out var f) ? f : "Keine";
         return new EductVm
         {
             Id = c.ChemicalID,
             Name = c.Name,
             Type = c.Formula,
-            Color = BuildCardColorClass(c.Color),
-            PhLevel = ph,
-            FlameColor = flame,
-            ElementColor = c.Color,
+            CardColorHex = c.Color.HexValue,
+            PhLevel = ExtractMethodColor(c.MethodOutputs, "pH-Papier"),
+            FlameColor = ExtractMethodColor(c.MethodOutputs, "Flammenfärbung"),
+            ElementColor = new ColorInfo(c.Color.Name, c.Color.HexValue),
             ImageUrl = c.ImagePath ?? ""
         };
     }
 
-    private static string BuildCardColorClass(string color)
+    private static ColorInfo ExtractMethodColor(Dictionary<string, ColorDto> outputs, string key)
     {
-        return color.ToLowerInvariant() switch
+        foreach (var k in outputs.Keys)
         {
-            var c when c.Contains("gelb") => "bg-yellow-100 border-yellow-300",
-            var c when c.Contains("grün") => "bg-green-100 border-green-300",
-            var c when c.Contains("blau") => "bg-blue-100 border-blue-300",
-            var c when c.Contains("rot") => "bg-red-100 border-red-300",
-            var c when c.Contains("orange") => "bg-orange-100 border-orange-300",
-            var c when c.Contains("braun") => "bg-amber-100 border-amber-300",
-            _ => "bg-gray-100 border-gray-300"
-        };
+            if (string.Equals(k, key, StringComparison.OrdinalIgnoreCase) && outputs.TryGetValue(k, out var color))
+                return new ColorInfo(color.Name, color.HexValue);
+        }
+
+        return new ColorInfo("-", "#9ca3af");
     }
 
     private void GenerateNewChallenge()
@@ -626,135 +617,6 @@
             .Replace("₄", "4");
     }
 
-    private string GetPhColor(string phLevel)
-    {
-        return (phLevel ?? "").ToLowerInvariant() switch
-        {
-            "rot" => "bg-red-400",
-            "orange" => "bg-orange-300",
-            "gelb" => "bg-yellow-300",
-            "grün" => "bg-green-400",
-            "blau" => "bg-blue-400",
-            _ => "bg-gray-200",
-        };
-    }
-
-    private string GetFlameColor(string flameColor)
-    {
-        return (flameColor ?? "").ToLowerInvariant() switch
-        {
-            "rot" => "bg-red-400",
-            "orange" => "bg-orange-400",
-            "orangefunken" => "bg-orange-400",
-            "grün" => "bg-green-400",
-            "violett" => "bg-violet-400",
-            "blau" => "bg-blue-400",
-            "blassblau" => "bg-blue-200",
-            "gelb" => "bg-yellow-300",
-            "rot-orange" => "bg-orange-500",
-            _ => "bg-gray-200",
-        };
-    }
-
-    private string GetElementColor(string elementColor)
-    {
-        var v = (elementColor ?? string.Empty).ToLowerInvariant();
-        if (v.Contains("orange")) return "bg-orange-400";
-        if (v.Contains("weiß")) return "bg-gray-100";
-        if (v.Contains("schwarz")) return "bg-gray-900";
-        if (v.Contains("gelbgrün")) return "bg-lime-300";
-        if (v.Contains("gelb")) return "bg-yellow-300";
-        if (v.Contains("grau")) return "bg-gray-400";
-        if (v.Contains("rotbraun")) return "bg-orange-700";
-        if (v.Contains("grün")) return "bg-green-400";
-        if (v.Contains("blau")) return "bg-blue-400";
-        if (v.Contains("rot")) return "bg-red-400";
-        return "bg-gray-200";
-    }
-
-    private string GetPhColorHex(string phLevel)
-    {
-        return (phLevel ?? "").ToLowerInvariant() switch
-        {
-            "rot" => "#ef4444",
-            "orange" => "#fb923c",
-            "gelb" => "#fef08a",
-            "grün" => "#4ade80",
-            "blau" => "#60a5fa",
-            _ => "#9ca3af",
-        };
-    }
-
-    private string GetFlameColorHex(string flameColor)
-    {
-        return (flameColor ?? "").ToLowerInvariant() switch
-        {
-            "rot" => "#ef4444",
-            "orange" => "#fb923c",
-            "orangefunken" => "#fb923c",
-            "grün" => "#4ade80",
-            "violett" => "#a78bfa",
-            "blau" => "#60a5fa",
-            "blassblau" => "#bfdbfe",
-            "gelb" => "#fcd34d",
-            "rot-orange" => "#f97316",
-            _ => "#9ca3af",
-        };
-    }
-
-    private string GetElementColorHex(string elementColor)
-    {
-        var v = (elementColor ?? string.Empty).ToLowerInvariant();
-        if (v.Contains("orange")) return "#fb923c";
-        if (v.Contains("weiß")) return "#f3f4f6";
-        if (v.Contains("schwarz")) return "#111827";
-        if (v.Contains("gelbgrün")) return "#bef264";
-        if (v.Contains("gelb")) return "#fde047";
-        if (v.Contains("grau")) return "#9ca3af";
-        if (v.Contains("rotbraun")) return "#c2410c";
-        if (v.Contains("grün")) return "#4ade80";
-        if (v.Contains("blau")) return "#60a5fa";
-        if (v.Contains("rot")) return "#f87171";
-        return "#9ca3af";
-    }
-
-    private bool ShouldShowPhStrip(string phLevel) => true;
-
-    private bool ShouldShowFlameStrip(string flameColor) => true;
-
-    private bool ShouldShowElementColorStrip(string elementColor) => true;
-
-    private string GetPhDisplayText(string phLevel)
-    {
-        if (string.IsNullOrWhiteSpace(phLevel) || phLevel == "-") return "Keine";
-        return phLevel.ToLowerInvariant() switch
-        {
-            "rot" => "Rot",
-            "orange" => "Orange",
-            "gelb" => "Gelb",
-            "grün" => "Grün",
-            "blau" => "Blau",
-            _ => phLevel
-        };
-    }
-
-    private string GetFlameDisplayText(string flameColor)
-    {
-        if (string.IsNullOrWhiteSpace(flameColor)
-            || string.Equals(flameColor, "keine", StringComparison.OrdinalIgnoreCase))
-            return "Keine";
-        return flameColor;
-    }
-
-    private string GetElementColorDisplayText(string elementColor)
-    {
-        if (string.IsNullOrWhiteSpace(elementColor)
-            || string.Equals(elementColor, "keine", StringComparison.OrdinalIgnoreCase)
-            || string.Equals(elementColor, "farblos", StringComparison.OrdinalIgnoreCase))
-            return "Keine";
-        return elementColor;
-    }
-
     private bool IsCurrentGuess(GuessLog log) => currentGuessLog?.Id == log.Id;
 
     private IEnumerable<GuessLog> GetVisibleGuessLogs()
@@ -764,4 +626,6 @@
         foreach (var log in guessLogs)
             yield return log;
     }
+
+    private sealed record ColorInfo(string Name, string HexValue);
 }

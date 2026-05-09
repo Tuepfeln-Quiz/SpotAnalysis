@@ -1,8 +1,6 @@
 using ExcelImportExport;
-using ExcelImportExport.Helper;
 using ExcelImportExport.Models;
 using Microsoft.EntityFrameworkCore;
-using SpotAnalysis.Data;
 using SpotAnalysis.Data.Enums;
 using SpotAnalysis.Data.Models;
 using SpotAnalysis.Services.Services;
@@ -12,6 +10,13 @@ namespace SpotAnalysis.Services.Tests;
 [TestFixture]
 public class TestXlsImportExportService : BaseDatabaseTest
 {
+    [OneTimeTearDown]
+    public new void GlobalTeardown()
+    {
+        if (File.Exists(ExportFile))
+            File.Delete(ExportFile);
+    }
+
     private static readonly string TestSheetDir = Path.Combine(
         TestContext.CurrentContext.TestDirectory, "TestSheet");
 
@@ -64,20 +69,21 @@ public class TestXlsImportExportService : BaseDatabaseTest
         var context = ContextFactory.CreateDbContext();
 
         var feCl3 = await context.Chemicals
-            .Include(c => c.MethodOutputs)
-            .ThenInclude(mo => mo.Method)
+            .Include(c => c.Color)
+            .Include(c => c.MethodOutputs).ThenInclude(mo => mo.Method)
+            .Include(c => c.MethodOutputs).ThenInclude(mo => mo.Color)
             .FirstAsync(c => c.Name == "Eisen(III)chlorid");
 
-        Assert.That(feCl3.Color, Is.EqualTo("orange"));
+        Assert.That(feCl3.Color.Name, Is.EqualTo("orange"));
 
         Assert.That(feCl3.MethodOutputs.Any(mo => mo.Method.Name == "Eigenfarbe"), Is.False,
             "Eigenfarbe darf nicht mehr als MethodOutput importiert werden");
 
         var phPapier = feCl3.MethodOutputs.First(mo => mo.Method.Name == "ph-Papier");
-        Assert.That(phPapier.Color, Is.EqualTo("rot"));
+        Assert.That(phPapier.Color.Name, Is.EqualTo("rot"));
 
         var flamme = feCl3.MethodOutputs.First(mo => mo.Method.Name == "Flammenfärbung");
-        Assert.That(flamme.Color, Is.EqualTo("keine"));
+        Assert.That(flamme.Color.Name, Is.EqualTo("keine"));
     }
 
     [Test, Order(2)]
@@ -178,12 +184,5 @@ public class TestXlsImportExportService : BaseDatabaseTest
         // Produkt und Formel sind immer gesetzt
         Assert.That(combinations, Has.All.Matches<Combination>(c =>
             !string.IsNullOrWhiteSpace(c.Product) && !string.IsNullOrWhiteSpace(c.Formula)));
-    }
-
-    [OneTimeTearDown]
-    public new void GlobalTeardown()
-    {
-        if (File.Exists(ExportFile))
-            File.Delete(ExportFile);
     }
 }

@@ -4,9 +4,9 @@
 </div>
 
 @{
-    var eigenfarbe = string.IsNullOrWhiteSpace(Chemical.Color) ? null : Chemical.Color;
-    var flame = Chemical.MethodOutputs.GetValueOrDefault("Flammenfärbung");
-    var phPaper = Chemical.MethodOutputs.GetValueOrDefault("pH-Papier");
+    var eigenfarbe = string.IsNullOrWhiteSpace(Chemical.Color?.Name) ? null : Chemical.Color.Name;
+    var flame = Chemical.MethodOutputs.GetValueOrDefault("Flammenfärbung")?.Name;
+    var phPaper = Chemical.MethodOutputs.GetValueOrDefault("pH-Papier")?.Name;
 }
 @if (eigenfarbe != null || flame != null || phPaper != null)
 {

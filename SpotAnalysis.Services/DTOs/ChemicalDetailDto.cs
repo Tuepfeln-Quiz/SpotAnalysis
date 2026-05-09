@@ -16,14 +16,13 @@ public class ChemicalDetailDto
     public string Formula { get; set; } = "";
 
     [Required(ErrorMessage = "Eigenfarbe ist erforderlich.")]
-    [StringLength(128)]
-    public string Color { get; set; } = "";
+    public int ColorId { get; set; }
 
-    [Required]
-    public ChemicalType Type { get; set; }
+    public string ColorName { get; set; } = "";
 
-    [StringLength(256)]
-    public string? ImagePath { get; set; }
+    [Required] public ChemicalType Type { get; set; }
+
+    [StringLength(256)] public string? ImagePath { get; set; }
 
     public List<MethodOutputEntry> MethodOutputs { get; set; } = new();
 

@@ -4,55 +4,6 @@ namespace SpotAnalysis.Data;
 
 public class AnalysisContext : DbContext
 {
-
-    #region DBSets
-
-    #region Users, Roles, Groups
-    public virtual DbSet<User> Users { get; set; }
-    public virtual DbSet<Group> Groups { get; set; }
-    public virtual DbSet<GroupInvite> GroupInvites { get; set; }
-
-    #endregion Users, Roles, Groups
-
-
-    #region Educts, Products, Additives
-    public virtual DbSet<Chemical> Chemicals { get; set; }
-    public virtual DbSet<Method> Methods { get; set; }
-    public virtual DbSet<MethodOutput> MethodOutputs { get; set; }
-    public virtual DbSet<Reaction> Reactions { get; set; }
-    public virtual DbSet<Observation> Observations { get; set; }
-
-    #endregion Educts, Products, Additives
-
-
-    #region Quizzes
-    public virtual DbSet<Quiz> Quizzes { get; set; }
-    public virtual DbSet<QuizAttempt> QuizAttempts { get; set; }
-    public virtual DbSet<Question> Questions { get; set; }
-    public virtual DbSet<QuizQuestion> QuizQuestions { get; set; }
-    public virtual DbSet<STLQuestion> STLQuestions { get; set; }
-    public virtual DbSet<STQuestion> STQuestions { get; set; }
-    public virtual DbSet<STAvailableChemical> STAvailableChemicals { get; set; }
-    public virtual DbSet<STAvailableMethod> STAvailableMethods { get; set; }
-    public virtual DbSet<STLAvailableReaction> STLAvailableReactions { get; set; }
-    public virtual DbSet<STLResult> STLResults { get; set; }
-    public virtual DbSet<STResult> STResults { get; set; }
-    public virtual DbSet<STChemicalResult> STChemicalResults { get; set; }
-    #endregion Quizzes
-
-
-    #region SpotTest
-
-    #endregion SpotTest
-
-
-    #region SpotTestLight
-
-    #endregion SpotTestLight
-
-
-    #endregion DBSets
-
     // Connection String wird NICHT in diesem Projekt definiert.
     // Zur Laufzeit: DI-Konfiguration in SpotAnalysis.Web/Program.cs (AddDbContext + appsettings.json)
     // Für Migrations: --startup-project SpotAnalysis.Web (siehe EF-MIGRATIONS.md)
@@ -64,7 +15,7 @@ public class AnalysisContext : DbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Reaction>()
-        .ToTable(t => t.HasCheckConstraint("CK_Reaction_ChemicalOrder", "\"Chemical1ID\" <= \"Chemical2ID\""));
+            .ToTable(t => t.HasCheckConstraint("CK_Reaction_ChemicalOrder", "\"Chemical1ID\" <= \"Chemical2ID\""));
 
         modelBuilder.Entity<User>()
             .HasMany(u => u.Groups)
@@ -79,13 +30,65 @@ public class AnalysisContext : DbContext
             );
 
         modelBuilder.Entity<Quiz>()
-        .HasMany(q => q.Groups)
-        .WithMany(g => g.Quizzes)
-        .UsingEntity(
-            // deleting a quiz is only possible, when it is not referenced by any group
-            q => q.HasOne(typeof(Group)).WithMany().HasForeignKey("GroupID").OnDelete(DeleteBehavior.Restrict),
-            // deleting a group is only possible, when it is not referenced by any quiz
-            g => g.HasOne(typeof(Quiz)).WithMany().HasForeignKey("QuizID").OnDelete(DeleteBehavior.Restrict)
-         );
+            .HasMany(q => q.Groups)
+            .WithMany(g => g.Quizzes)
+            .UsingEntity(
+                // deleting a quiz is only possible, when it is not referenced by any group
+                q => q.HasOne(typeof(Group)).WithMany().HasForeignKey("GroupID").OnDelete(DeleteBehavior.Restrict),
+                // deleting a group is only possible, when it is not referenced by any quiz
+                g => g.HasOne(typeof(Quiz)).WithMany().HasForeignKey("QuizID").OnDelete(DeleteBehavior.Restrict)
+            );
     }
+
+    #region DBSets
+
+    #region Users, Roles, Groups
+
+    public virtual DbSet<User> Users { get; set; }
+    public virtual DbSet<Group> Groups { get; set; }
+    public virtual DbSet<GroupInvite> GroupInvites { get; set; }
+
+    #endregion Users, Roles, Groups
+
+
+    #region Educts, Products, Additives
+
+    public virtual DbSet<Color> Colors { get; set; }
+    public virtual DbSet<Chemical> Chemicals { get; set; }
+    public virtual DbSet<Method> Methods { get; set; }
+    public virtual DbSet<MethodOutput> MethodOutputs { get; set; }
+    public virtual DbSet<Reaction> Reactions { get; set; }
+    public virtual DbSet<Observation> Observations { get; set; }
+
+    #endregion Educts, Products, Additives
+
+
+    #region Quizzes
+
+    public virtual DbSet<Quiz> Quizzes { get; set; }
+    public virtual DbSet<QuizAttempt> QuizAttempts { get; set; }
+    public virtual DbSet<Question> Questions { get; set; }
+    public virtual DbSet<QuizQuestion> QuizQuestions { get; set; }
+    public virtual DbSet<STLQuestion> STLQuestions { get; set; }
+    public virtual DbSet<STQuestion> STQuestions { get; set; }
+    public virtual DbSet<STAvailableChemical> STAvailableChemicals { get; set; }
+    public virtual DbSet<STAvailableMethod> STAvailableMethods { get; set; }
+    public virtual DbSet<STLAvailableReaction> STLAvailableReactions { get; set; }
+    public virtual DbSet<STLResult> STLResults { get; set; }
+    public virtual DbSet<STResult> STResults { get; set; }
+    public virtual DbSet<STChemicalResult> STChemicalResults { get; set; }
+
+    #endregion Quizzes
+
+
+    #region SpotTest
+
+    #endregion SpotTest
+
+
+    #region SpotTestLight
+
+    #endregion SpotTestLight
+
+    #endregion DBSets
 }

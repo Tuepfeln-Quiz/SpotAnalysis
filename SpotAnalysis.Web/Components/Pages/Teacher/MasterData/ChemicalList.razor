@@ -131,10 +131,11 @@ else
 
     private static ChemicalDetailDto Clone(ChemicalDetailDto src) => new()
     {
-        Id = src.Id, Name = src.Name, Formula = src.Formula, Color = src.Color,
+        Id = src.Id, Name = src.Name, Formula = src.Formula,
+        ColorId = src.ColorId, ColorName = src.ColorName,
         Type = src.Type, ImagePath = src.ImagePath,
         MethodOutputs = src.MethodOutputs
-            .Select(m => new MethodOutputEntry { MethodId = m.MethodId, MethodName = m.MethodName, Color = m.Color })
+            .Select(m => new MethodOutputEntry { MethodId = m.MethodId, MethodName = m.MethodName, ColorId = m.ColorId, ColorName = m.ColorName })
             .ToList(),
         References = src.References
     };

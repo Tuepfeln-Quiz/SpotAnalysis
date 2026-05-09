@@ -320,7 +320,7 @@
             var current = _orderedQuestions[CurrentIndexSafe];
             if (current.Type == QuestionType.SpotTest)
             {
-                Navigation.NavigateTo($"/tupfeln/player/{QuizId}?q={CurrentIndexSafe}&score={score}");
+                Navigation.NavigateTo($"/spottest/player/{QuizId}?q={CurrentIndexSafe}&score={score}");
                 return;
             }
 
@@ -444,7 +444,7 @@
         {
             var next = _orderedQuestions[nextIndex];
             var url = next.Type == QuestionType.SpotTest
-                ? $"/tupfeln/player/{QuizId}?q={nextIndex}&score={score}"
+                ? $"/spottest/player/{QuizId}?q={nextIndex}&score={score}"
                 : $"/light/player/{QuizId}?q={nextIndex}&score={score}";
             Navigation.NavigateTo(url);
             return;

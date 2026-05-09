@@ -5,7 +5,7 @@
 @inject IQuizService QuizService
 @inject IGroupInviteTokenService InviteTokens
 @inject NavigationManager Navigation
-@inject IJSRuntime JS
+@inject IJSRuntime Js
 
 <PageTitle>@(_group?.Name ?? "Gruppe") – SpotAnalysis</PageTitle>
 
@@ -325,7 +325,7 @@
     private async Task CopyLink()
     {
         if (_inviteLink is null) return;
-        await JS.InvokeVoidAsync("navigator.clipboard.writeText", _inviteLink);
+        await Js.InvokeVoidAsync("navigator.clipboard.writeText", _inviteLink);
     }
 
     private void OpenAddTeacherModal()

@@ -11,16 +11,25 @@ INSERT INTO "Methods" ("MethodID", "Name") VALUES
     (2, 'Flammenfärbung')
 ON CONFLICT ("MethodID") DO NOTHING;
 
-INSERT INTO "Chemicals" ("ChemicalID", "Type", "Name", "Formula", "Color") VALUES
-    (1, 0, 'Silber(I)nitrat',   'AgNO3', 'farblos'),
-    (2, 0, 'Kalium',             'K',     'silbrig'),
-    (3, 0, 'Eisen(III)chlorid', 'FeCl3', 'orange'),
-    (4, 1, 'Salzsäure',          'HCl',   'keine')
+INSERT INTO "Colors" ("ColorId", "Name", "HexValue")
+VALUES (1, 'farblos', '#DDDDDD'),
+       (2, 'silbrig', '#C0C0C0'),
+       (3, 'orange', '#FF8C00'),
+       (4, 'keine', '#666666'),
+       (5, 'rot', '#DC143C'),
+       (6, 'gelb', '#FFD700')
+ON CONFLICT ("ColorId") DO NOTHING;
+
+INSERT INTO "Chemicals" ("ChemicalID", "Type", "Name", "Formula", "ColorId")
+VALUES (1, 0, 'Silber(I)nitrat', 'AgNO3', 1),
+       (2, 0, 'Kalium', 'K', 2),
+       (3, 0, 'Eisen(III)chlorid', 'FeCl3', 3),
+       (4, 1, 'Salzsäure', 'HCl', 4)
 ON CONFLICT ("ChemicalID") DO NOTHING;
 
-INSERT INTO "MethodOutputs" ("ChemicalID", "MethodID", "Color") VALUES
-    (3, 1, 'rot'),
-    (3, 2, 'gelb')
+INSERT INTO "MethodOutputs" ("ChemicalID", "MethodID", "ColorId")
+VALUES (3, 1, 5),
+       (3, 2, 6)
 ON CONFLICT ("ChemicalID", "MethodID") DO NOTHING;
 
 INSERT INTO "Observations" ("ObservationID", "Description") VALUES
@@ -40,6 +49,7 @@ DO $$
 BEGIN
     PERFORM setval('"Methods_MethodID_seq"',           (SELECT COALESCE(MAX("MethodID"),      0) FROM "Methods"));
     PERFORM setval('"Chemicals_ChemicalID_seq"',       (SELECT COALESCE(MAX("ChemicalID"),    0) FROM "Chemicals"));
+    PERFORM setval('"Colors_ColorId_seq"', (SELECT COALESCE(MAX("ColorId"), 0) FROM "Colors"));
     PERFORM setval('"Observations_ObservationID_seq"', (SELECT COALESCE(MAX("ObservationID"), 0) FROM "Observations"));
     PERFORM setval('"Reactions_ReactionID_seq"',       (SELECT COALESCE(MAX("ReactionID"),    0) FROM "Reactions"));
 END $$;

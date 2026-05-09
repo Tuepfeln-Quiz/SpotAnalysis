@@ -11,6 +11,6 @@ public class LabChemicalDto
     public ChemicalType Type { get; set; }
     public int ChemicalTypeID { get; set; }
     public string ChemicalTypeName { get; set; } = "";
-    public string Color { get; set; } = "";
-    public Dictionary<string, string> MethodOutputs { get; set; } = new();
+    public ColorDto Color { get; set; } = null!;
+    public Dictionary<string, ColorDto> MethodOutputs { get; set; } = new();
 }

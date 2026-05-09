@@ -2,7 +2,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using SpotAnalysis.Data;
 using SpotAnalysis.Data.Enums;
-using SpotAnalysis.Data.Models;
 using SpotAnalysis.Data.Models.Quizzes;
 using SpotAnalysis.Services.DTOs;
 
@@ -66,7 +65,8 @@ public class QuizService(ILogger<QuizService> logger, IDbContextFactory<Analysis
 
         if (existingQuiz.CreatedBy != teacherId)
         {
-            logger.LogError("A quiz can only be updated by its creator! Creator id: {creatorId}, Updater id: {updatedBy}",
+            logger.LogError(
+                "A quiz can only be updated by its creator! Creator id: {creatorId}, Updater id: {updatedBy}",
                 existingQuiz.CreatedBy, teacherId);
             throw new UnauthorizedAccessException("A quiz can only be updated by its creator");
         }
@@ -120,11 +120,13 @@ public class QuizService(ILogger<QuizService> logger, IDbContextFactory<Analysis
 
         quiz.Groups.Clear();
 
-        dbContext.QuizQuestions.RemoveRange(
-            await dbContext.QuizQuestions.Where(x => x.QuizID == quizId).ToListAsync());
+        await dbContext.QuizAttempts.Where(x => x.QuizID == quiz.QuizID).ExecuteDeleteAsync();
+
+        await dbContext.QuizQuestions.Where(x => x.QuizID == quizId).ExecuteDeleteAsync();
 
         dbContext.Quizzes.Remove(quiz);
         await dbContext.SaveChangesAsync();
+
         await transaction.CommitAsync();
     }
 
@@ -293,20 +295,6 @@ public class QuizService(ILogger<QuizService> logger, IDbContextFactory<Analysis
         return result;
     }
 
-    private static async Task<QuizAttempt> GetOpenAttempt(AnalysisContext context, Guid userId, int quizId)
-    {
-        var attempt = await context.QuizAttempts
-            .Where(a => a.UserID == userId && a.QuizID == quizId && a.Completed == null)
-            .OrderByDescending(a => a.AttemptID)
-            .FirstOrDefaultAsync();
-
-        if (attempt is null)
-            throw new InvalidOperationException(
-                $"No open attempt for user {userId} on quiz {quizId}.");
-
-        return attempt;
-    }
-
     public async Task<List<QuestionOverviewDto>> GetQuestions()
     {
         await using var dbContext = await factory.CreateDbContextAsync();
@@ -347,7 +335,12 @@ public class QuizService(ILogger<QuizService> logger, IDbContextFactory<Analysis
                     {
                         Id = ac.ChemicalID,
                         Name = ac.Chemical.Name,
-                        Color = ac.Chemical.Color,
+                        Color = new ColorDto
+                        {
+                            Id = ac.Chemical.Color.ColorId,
+                            Name = ac.Chemical.Color.Name,
+                            HexValue = ac.Chemical.Color.HexValue
+                        },
                         Formula = ac.Chemical.Formula,
                         IsAdditive = ac.Chemical.Type == ChemicalType.Additive
                     }).ToList()
@@ -627,154 +620,6 @@ public class QuizService(ILogger<QuizService> logger, IDbContextFactory<Analysis
         return await BuildQuizPlayDto(db, quizId, openAttempt.AttemptID);
     }
 
-    private static async Task<QuizPlayDto> BuildQuizPlayDto(AnalysisContext db, int quizId, int attemptId)
-    {
-        var methods = await db.Methods.AsNoTracking()
-            .ToDictionaryAsync(m => m.MethodID, m => m.Name);
-
-        var quiz = await db.Quizzes
-            .AsNoTracking()
-            .Where(q => q.QuizID == quizId)
-            .Select(q => new
-            {
-                q.QuizID,
-                q.Name,
-                Questions = q.QuizQuestions.OrderBy(qq => qq.Order).Select(qq => new
-                {
-                    qq.QuestionID,
-                    qq.Order,
-                    qq.Question.Description,
-                    qq.Question.Type,
-                    SpotTest = qq.Question.STQuestion != null ? new
-                    {
-                        UnknownEducts = qq.Question.STQuestion.AvailableChemicals
-                            .Where(ac => ac.Chemical.Type == ChemicalType.Educt)
-                            .OrderBy(ac => ac.Order)
-                            .Select(ac => new
-                            {
-                                ac.Chemical.ChemicalID,
-                                ac.Chemical.Name,
-                                ac.Chemical.Formula,
-                                ac.Chemical.ImagePath,
-                                ac.Chemical.Type,
-                                ac.Chemical.Color,
-                                MethodOutputs = ac.Chemical.MethodOutputs.Select(mo => new { mo.MethodID, mo.Color }).ToList()
-                            }).ToList(),
-                        AvailableAdditives = qq.Question.STQuestion.AvailableChemicals
-                            .Where(ac => ac.Chemical.Type == ChemicalType.Additive)
-                            .OrderBy(ac => ac.Order)
-                            .Select(ac => new
-                            {
-                                ac.Chemical.ChemicalID,
-                                ac.Chemical.Name,
-                                ac.Chemical.Formula,
-                                ac.Chemical.ImagePath,
-                                ac.Chemical.Type,
-                                ac.Chemical.Color,
-                                MethodOutputs = ac.Chemical.MethodOutputs.Select(mo => new { mo.MethodID, mo.Color }).ToList()
-                            }).ToList(),
-                        AvailableMethods = qq.Question.STQuestion.AvailableMethods
-                            .Select(am => am.MethodID).ToList()
-                    } : null,
-                    Light = qq.Question.STLQuestion != null ? new
-                    {
-                        ShownEductId = qq.Question.STLQuestion.ShownEduct.ChemicalID,
-                        ShownEductName = qq.Question.STLQuestion.ShownEduct.Name,
-                        ShownEductFormula = qq.Question.STLQuestion.ShownEduct.Formula,
-                        ShownEductColor = qq.Question.STLQuestion.ShownEduct.Color,
-                        ShownEductMethodOutputs = qq.Question.STLQuestion.ShownEduct.MethodOutputs
-                            .Select(mo => new { mo.MethodID, mo.Color }).ToList(),
-                        Observation = qq.Question.STLQuestion.Reaction.Observation.Description,
-                        CorrectReactionID = qq.Question.STLQuestion.ReactionID,
-                        AvailableReactions = qq.Question.STLQuestion.AvailableReactions.Select(ar => new
-                        {
-                            ar.Reaction.ReactionID,
-                            ar.Reaction.Chemical1ID,
-                            ar.Reaction.Chemical2ID,
-                            Chemical1Name = ar.Reaction.Chemical1.Name,
-                            Chemical2Name = ar.Reaction.Chemical2.Name,
-                            ar.Reaction.RelevantProduct,
-                            ar.Reaction.Formula,
-                            ObservationDescription = ar.Reaction.Observation.Description,
-                            ar.Reaction.ImagePath
-                        }).ToList()
-                    } : null
-                }).ToList()
-            })
-            .SingleAsync();
-
-        return new QuizPlayDto
-        {
-            QuizID = quiz.QuizID,
-            Name = quiz.Name,
-            AttemptID = attemptId,
-            Questions = quiz.Questions.Select(q => new QuizQuestionPayloadDto
-            {
-                QuestionID = q.QuestionID,
-                Order = q.Order,
-                Description = q.Description,
-                Type = q.Type,
-                SpotTest = q.SpotTest != null ? new SpotTestPayloadDto
-                {
-                    UnknownEducts = q.SpotTest.UnknownEducts.Select(e => new LabChemicalDto
-                    {
-                        ChemicalID = e.ChemicalID,
-                        Name = e.Name,
-                        Formula = e.Formula,
-                        ImagePath = e.ImagePath,
-                        Type = e.Type,
-                        ChemicalTypeID = (int)e.Type,
-                        ChemicalTypeName = "Edukt",
-                        Color = e.Color,
-                        MethodOutputs = e.MethodOutputs.ToDictionary(mo => methods[mo.MethodID], mo => mo.Color)
-                    }).ToList(),
-                    AvailableAdditives = q.SpotTest.AvailableAdditives.Select(e => new LabChemicalDto
-                    {
-                        ChemicalID = e.ChemicalID,
-                        Name = e.Name,
-                        Formula = e.Formula,
-                        ImagePath = e.ImagePath,
-                        Type = e.Type,
-                        ChemicalTypeID = (int)e.Type,
-                        ChemicalTypeName = "Zusatzstoff",
-                        Color = e.Color,
-                        MethodOutputs = e.MethodOutputs.ToDictionary(mo => methods[mo.MethodID], mo => mo.Color)
-                    }).ToList(),
-                    AvailableMethods = q.SpotTest.AvailableMethods.Select(id => methods[id]).ToList()
-                } : null,
-                Light = q.Light != null ? new LightPayloadDto
-                {
-                    ShownEduct = new ChemicalDto
-                    {
-                        Id = q.Light.ShownEductId,
-                        Name = q.Light.ShownEductName,
-                        Formula = q.Light.ShownEductFormula,
-                        Color = q.Light.ShownEductColor,
-                        MethodInfo = q.Light.ShownEductMethodOutputs.Select(mo => new MethodInfoDto
-                        {
-                            Name = methods[mo.MethodID],
-                            Color = mo.Color
-                        }).ToList()
-                    },
-                    Observation = q.Light.Observation,
-                    CorrectReactionID = q.Light.CorrectReactionID,
-                    AvailableReactions = q.Light.AvailableReactions.Select(ar => new LabReactionDto
-                    {
-                        ReactionID = ar.ReactionID,
-                        Chemical1ID = ar.Chemical1ID,
-                        Chemical2ID = ar.Chemical2ID,
-                        Chemical1Name = ar.Chemical1Name,
-                        Chemical2Name = ar.Chemical2Name,
-                        RelevantProduct = ar.RelevantProduct,
-                        Formula = ar.Formula,
-                        ObservationDescription = ar.ObservationDescription,
-                        ImagePath = ar.ImagePath
-                    }).ToList()
-                } : null
-            }).ToList()
-        };
-    }
-
     public async Task<QuizPlayDto> StartNewAttempt(Guid userId, int quizId)
     {
         await using var db = await factory.CreateDbContextAsync();
@@ -819,5 +664,209 @@ public class QuizService(ILogger<QuizService> logger, IDbContextFactory<Analysis
 
         attempt.Completed = DateTime.UtcNow;
         await db.SaveChangesAsync();
+    }
+
+    private static async Task<QuizAttempt> GetOpenAttempt(AnalysisContext context, Guid userId, int quizId)
+    {
+        var attempt = await context.QuizAttempts
+            .Where(a => a.UserID == userId && a.QuizID == quizId && a.Completed == null)
+            .OrderByDescending(a => a.AttemptID)
+            .FirstOrDefaultAsync();
+
+        if (attempt is null)
+            throw new InvalidOperationException(
+                $"No open attempt for user {userId} on quiz {quizId}.");
+
+        return attempt;
+    }
+
+    private static async Task<QuizPlayDto> BuildQuizPlayDto(AnalysisContext db, int quizId, int attemptId)
+    {
+        var methods = await db.Methods.AsNoTracking()
+            .ToDictionaryAsync(m => m.MethodID, m => m.Name);
+
+        var quiz = await db.Quizzes
+            .AsNoTracking()
+            .Where(q => q.QuizID == quizId)
+            .Select(q => new
+            {
+                q.QuizID,
+                q.Name,
+                Questions = q.QuizQuestions.OrderBy(qq => qq.Order).Select(qq => new
+                {
+                    qq.QuestionID,
+                    qq.Order,
+                    qq.Question.Description,
+                    qq.Question.Type,
+                    SpotTest = qq.Question.STQuestion != null
+                        ? new
+                        {
+                            UnknownEducts = qq.Question.STQuestion.AvailableChemicals
+                                .Where(ac => ac.Chemical.Type == ChemicalType.Educt)
+                                .OrderBy(ac => ac.Order)
+                                .Select(ac => new
+                                {
+                                    ac.Chemical.ChemicalID,
+                                    ac.Chemical.Name,
+                                    ac.Chemical.Formula,
+                                    ac.Chemical.ImagePath,
+                                    ac.Chemical.Type,
+                                    Color = new
+                                    {
+                                        ac.Chemical.Color.ColorId, ac.Chemical.Color.Name, ac.Chemical.Color.HexValue
+                                    },
+                                    MethodOutputs = ac.Chemical.MethodOutputs
+                                        .Select(mo => new
+                                        {
+                                            mo.MethodID,
+                                            Color = new { mo.Color.ColorId, mo.Color.Name, mo.Color.HexValue }
+                                        }).ToList()
+                                }).ToList(),
+                            AvailableAdditives = qq.Question.STQuestion.AvailableChemicals
+                                .Where(ac => ac.Chemical.Type == ChemicalType.Additive)
+                                .OrderBy(ac => ac.Order)
+                                .Select(ac => new
+                                {
+                                    ac.Chemical.ChemicalID,
+                                    ac.Chemical.Name,
+                                    ac.Chemical.Formula,
+                                    ac.Chemical.ImagePath,
+                                    ac.Chemical.Type,
+                                    Color = new
+                                    {
+                                        ac.Chemical.Color.ColorId, ac.Chemical.Color.Name, ac.Chemical.Color.HexValue
+                                    },
+                                    MethodOutputs = ac.Chemical.MethodOutputs
+                                        .Select(mo => new
+                                        {
+                                            mo.MethodID,
+                                            Color = new { mo.Color.ColorId, mo.Color.Name, mo.Color.HexValue }
+                                        }).ToList()
+                                }).ToList(),
+                            AvailableMethods = qq.Question.STQuestion.AvailableMethods
+                                .Select(am => am.MethodID).ToList()
+                        }
+                        : null,
+                    Light = qq.Question.STLQuestion != null
+                        ? new
+                        {
+                            ShownEductId = qq.Question.STLQuestion.ShownEduct.ChemicalID,
+                            ShownEductName = qq.Question.STLQuestion.ShownEduct.Name,
+                            ShownEductFormula = qq.Question.STLQuestion.ShownEduct.Formula,
+                            ShownEductColor = new
+                            {
+                                qq.Question.STLQuestion.ShownEduct.Color.ColorId,
+                                qq.Question.STLQuestion.ShownEduct.Color.Name,
+                                qq.Question.STLQuestion.ShownEduct.Color.HexValue
+                            },
+                            ShownEductMethodOutputs = qq.Question.STLQuestion.ShownEduct.MethodOutputs
+                                .Select(mo => new
+                                    { mo.MethodID, Color = new { mo.Color.ColorId, mo.Color.Name, mo.Color.HexValue } })
+                                .ToList(),
+                            Observation = qq.Question.STLQuestion.Reaction.Observation.Description,
+                            CorrectReactionID = qq.Question.STLQuestion.ReactionID,
+                            AvailableReactions = qq.Question.STLQuestion.AvailableReactions.Select(ar => new
+                            {
+                                ar.Reaction.ReactionID,
+                                ar.Reaction.Chemical1ID,
+                                ar.Reaction.Chemical2ID,
+                                Chemical1Name = ar.Reaction.Chemical1.Name,
+                                Chemical2Name = ar.Reaction.Chemical2.Name,
+                                ar.Reaction.RelevantProduct,
+                                ar.Reaction.Formula,
+                                ObservationDescription = ar.Reaction.Observation.Description,
+                                ar.Reaction.ImagePath
+                            }).ToList()
+                        }
+                        : null
+                }).ToList()
+            })
+            .SingleAsync();
+
+        return new QuizPlayDto
+        {
+            QuizID = quiz.QuizID,
+            Name = quiz.Name,
+            AttemptID = attemptId,
+            Questions = quiz.Questions.Select(q => new QuizQuestionPayloadDto
+            {
+                QuestionID = q.QuestionID,
+                Order = q.Order,
+                Description = q.Description,
+                Type = q.Type,
+                SpotTest = q.SpotTest != null
+                    ? new SpotTestPayloadDto
+                    {
+                        UnknownEducts = q.SpotTest.UnknownEducts.Select(e => new LabChemicalDto
+                        {
+                            ChemicalID = e.ChemicalID,
+                            Name = e.Name,
+                            Formula = e.Formula,
+                            ImagePath = e.ImagePath,
+                            Type = e.Type,
+                            ChemicalTypeID = (int)e.Type,
+                            ChemicalTypeName = "Edukt",
+                            Color = new ColorDto
+                                { Id = e.Color.ColorId, Name = e.Color.Name, HexValue = e.Color.HexValue },
+                            MethodOutputs = e.MethodOutputs.ToDictionary(mo => methods[mo.MethodID],
+                                mo => new ColorDto
+                                    { Id = mo.Color.ColorId, Name = mo.Color.Name, HexValue = mo.Color.HexValue })
+                        }).ToList(),
+                        AvailableAdditives = q.SpotTest.AvailableAdditives.Select(e => new LabChemicalDto
+                        {
+                            ChemicalID = e.ChemicalID,
+                            Name = e.Name,
+                            Formula = e.Formula,
+                            ImagePath = e.ImagePath,
+                            Type = e.Type,
+                            ChemicalTypeID = (int)e.Type,
+                            ChemicalTypeName = "Zusatzstoff",
+                            Color = new ColorDto
+                                { Id = e.Color.ColorId, Name = e.Color.Name, HexValue = e.Color.HexValue },
+                            MethodOutputs = e.MethodOutputs.ToDictionary(mo => methods[mo.MethodID],
+                                mo => new ColorDto
+                                    { Id = mo.Color.ColorId, Name = mo.Color.Name, HexValue = mo.Color.HexValue })
+                        }).ToList(),
+                        AvailableMethods = q.SpotTest.AvailableMethods.Select(id => methods[id]).ToList()
+                    }
+                    : null,
+                Light = q.Light != null
+                    ? new LightPayloadDto
+                    {
+                        ShownEduct = new ChemicalDto
+                        {
+                            Id = q.Light.ShownEductId,
+                            Name = q.Light.ShownEductName,
+                            Formula = q.Light.ShownEductFormula,
+                            Color = new ColorDto
+                            {
+                                Id = q.Light.ShownEductColor.ColorId, Name = q.Light.ShownEductColor.Name,
+                                HexValue = q.Light.ShownEductColor.HexValue
+                            },
+                            MethodInfo = q.Light.ShownEductMethodOutputs.Select(mo => new MethodInfoDto
+                            {
+                                Name = methods[mo.MethodID],
+                                Color = new ColorDto
+                                    { Id = mo.Color.ColorId, Name = mo.Color.Name, HexValue = mo.Color.HexValue }
+                            }).ToList()
+                        },
+                        Observation = q.Light.Observation,
+                        CorrectReactionID = q.Light.CorrectReactionID,
+                        AvailableReactions = q.Light.AvailableReactions.Select(ar => new LabReactionDto
+                        {
+                            ReactionID = ar.ReactionID,
+                            Chemical1ID = ar.Chemical1ID,
+                            Chemical2ID = ar.Chemical2ID,
+                            Chemical1Name = ar.Chemical1Name,
+                            Chemical2Name = ar.Chemical2Name,
+                            RelevantProduct = ar.RelevantProduct,
+                            Formula = ar.Formula,
+                            ObservationDescription = ar.ObservationDescription,
+                            ImagePath = ar.ImagePath
+                        }).ToList()
+                    }
+                    : null
+            }).ToList()
+        };
     }
 }

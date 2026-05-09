@@ -34,6 +34,28 @@ public class XlsImportExportService : IXlsImportExportService
         return await ImportCoreAsync(reader);
     }
 
+    // ── Export ──────────────────────────────────────────────────────────
+
+    public async Task ExportToFileAsync(string filePath)
+    {
+        var (educts, additives, combinations) = await BuildExportDtosAsync();
+
+        ExcelExporter.ExportMultiSheet(filePath,
+            SheetData.From(educts),
+            SheetData.From(additives),
+            SheetData.From(combinations));
+    }
+
+    public async Task ExportToStreamAsync(Stream stream, ExcelFormat format)
+    {
+        var (educts, additives, combinations) = await BuildExportDtosAsync();
+
+        ExcelExporter.ExportMultiSheet(stream, format,
+            SheetData.From(educts),
+            SheetData.From(additives),
+            SheetData.From(combinations));
+    }
+
     private async Task<ImportResult> ImportCoreAsync(WorkbookReader reader)
     {
         var result = new ImportResult();
@@ -42,9 +64,10 @@ public class XlsImportExportService : IXlsImportExportService
         var additives = reader.ReadSheet<Additive>();
         var combinations = reader.ReadSheet<Combination>();
 
+        var colors = await _context.Colors.ToDictionaryAsync(c => c.Name, StringComparer.OrdinalIgnoreCase);
         var methods = await UpsertMethodsAsync();
-        var chemicals = await UpsertEductsAsync(educts, methods, result);
-        var additiveChemicals = await UpsertAdditivesAsync(additives, result);
+        var chemicals = await UpsertEductsAsync(educts, methods, colors, result);
+        var additiveChemicals = await UpsertAdditivesAsync(additives, colors, result);
 
         foreach (var kvp in additiveChemicals)
             chemicals[kvp.Key] = kvp.Value;
@@ -52,6 +75,19 @@ public class XlsImportExportService : IXlsImportExportService
         await UpsertCombinationsAsync(combinations, chemicals, result);
 
         return result;
+    }
+
+    private async Task<Color> ResolveColorAsync(
+        string colorName, Dictionary<string, Color> colors)
+    {
+        if (colors.TryGetValue(colorName, out var existing))
+            return existing;
+
+        var color = new Color { Name = colorName, HexValue = "#666666" };
+        _context.Colors.Add(color);
+        await _context.SaveChangesAsync();
+        colors[colorName] = color;
+        return color;
     }
 
     private async Task<Dictionary<string, Method>> UpsertMethodsAsync()
@@ -76,7 +112,8 @@ public class XlsImportExportService : IXlsImportExportService
     }
 
     private async Task<Dictionary<string, Chemical>> UpsertEductsAsync(
-        List<Educt> educts, Dictionary<string, Method> methods, ImportResult result)
+        List<Educt> educts, Dictionary<string, Method> methods,
+        Dictionary<string, Color> colors, ImportResult result)
     {
         var names = educts.Select(e => e.Substance).Where(n => n != null).ToList();
         var existing = await _context.Chemicals
@@ -91,7 +128,8 @@ public class XlsImportExportService : IXlsImportExportService
             var isNew = !existing.TryGetValue(educt.Substance, out var chemical);
             var baseChanged = false;
             var newFormula = educt.Formula ?? "";
-            var newColor = educt.InherentColor ?? "keine";
+            var colorName = educt.InherentColor ?? "keine";
+            var color = await ResolveColorAsync(colorName, colors);
 
             if (isNew)
             {
@@ -99,7 +137,7 @@ public class XlsImportExportService : IXlsImportExportService
                 {
                     Name = educt.Substance,
                     Formula = newFormula,
-                    Color = newColor,
+                    ColorId = color.ColorId,
                     Type = ChemicalType.Educt
                 };
                 _context.Chemicals.Add(chemical);
@@ -107,9 +145,23 @@ public class XlsImportExportService : IXlsImportExportService
             }
             else
             {
-                if (chemical!.Formula != newFormula) { chemical.Formula = newFormula; baseChanged = true; }
-                if (chemical.Color != newColor)     { chemical.Color = newColor; baseChanged = true; }
-                if (chemical.Type != ChemicalType.Educt) { chemical.Type = ChemicalType.Educt; baseChanged = true; }
+                if (chemical!.Formula != newFormula)
+                {
+                    chemical.Formula = newFormula;
+                    baseChanged = true;
+                }
+
+                if (chemical.ColorId != color.ColorId)
+                {
+                    chemical.ColorId = color.ColorId;
+                    baseChanged = true;
+                }
+
+                if (chemical.Type != ChemicalType.Educt)
+                {
+                    chemical.Type = ChemicalType.Educt;
+                    baseChanged = true;
+                }
             }
 
             var methodsChanged = false;
@@ -117,14 +169,14 @@ public class XlsImportExportService : IXlsImportExportService
             {
                 if (methods.TryGetValue(methodName, out var method))
                 {
-                    if (UpsertMethodOutput(chemical!, method, value))
+                    if (await UpsertMethodOutputAsync(chemical!, method, value, colors))
                         methodsChanged = true;
                 }
             }
 
-            if (isNew)                              result.ChemicalsAdded++;
+            if (isNew) result.ChemicalsAdded++;
             else if (baseChanged || methodsChanged) result.ChemicalsUpdated++;
-            else                                    result.ChemicalsSkipped++;
+            else result.ChemicalsSkipped++;
         }
 
         await _context.SaveChangesAsync();
@@ -132,12 +184,14 @@ public class XlsImportExportService : IXlsImportExportService
     }
 
     private async Task<Dictionary<string, Chemical>> UpsertAdditivesAsync(
-        List<Additive> additives, ImportResult result)
+        List<Additive> additives, Dictionary<string, Color> colors, ImportResult result)
     {
         var names = additives.Select(a => a.Name).Where(n => n != null).ToList();
         var existing = await _context.Chemicals
             .Where(c => names.Contains(c.Name))
             .ToDictionaryAsync(c => c.Name);
+
+        var keineColor = await ResolveColorAsync("keine", colors);
 
         foreach (var additive in additives)
         {
@@ -153,7 +207,7 @@ public class XlsImportExportService : IXlsImportExportService
                 {
                     Name = additive.Name,
                     Formula = newFormula,
-                    Color = "keine",
+                    ColorId = keineColor.ColorId,
                     Type = ChemicalType.Additive
                 };
                 _context.Chemicals.Add(chemical);
@@ -162,11 +216,20 @@ public class XlsImportExportService : IXlsImportExportService
             }
             else
             {
-                if (chemical!.Formula != newFormula) { chemical.Formula = newFormula; changed = true; }
-                if (chemical.Type != ChemicalType.Additive) { chemical.Type = ChemicalType.Additive; changed = true; }
+                if (chemical!.Formula != newFormula)
+                {
+                    chemical.Formula = newFormula;
+                    changed = true;
+                }
+
+                if (chemical.Type != ChemicalType.Additive)
+                {
+                    chemical.Type = ChemicalType.Additive;
+                    changed = true;
+                }
 
                 if (changed) result.ChemicalsUpdated++;
-                else         result.ChemicalsSkipped++;
+                else result.ChemicalsSkipped++;
             }
         }
 
@@ -174,18 +237,20 @@ public class XlsImportExportService : IXlsImportExportService
         return existing;
     }
 
-    /// <summary>Gibt true zurück, wenn tatsächlich geschrieben wurde (neu oder geänderte Farbe).</summary>
-    private bool UpsertMethodOutput(Chemical chemical, Method method, string? color)
+    private async Task<bool> UpsertMethodOutputAsync(
+        Chemical chemical, Method method, string? colorName,
+        Dictionary<string, Color> colors)
     {
-        if (string.IsNullOrWhiteSpace(color)) return false;
+        if (string.IsNullOrWhiteSpace(colorName)) return false;
 
+        var color = await ResolveColorAsync(colorName, colors);
         var existing = chemical.MethodOutputs
             .FirstOrDefault(mo => mo.MethodID == method.MethodID);
 
         if (existing != null)
         {
-            if (existing.Color == color) return false;
-            existing.Color = color;
+            if (existing.ColorId == color.ColorId) return false;
+            existing.ColorId = color.ColorId;
             return true;
         }
 
@@ -193,7 +258,7 @@ public class XlsImportExportService : IXlsImportExportService
         {
             ChemicalID = chemical.ChemicalID,
             MethodID = method.MethodID,
-            Color = color,
+            ColorId = color.ColorId,
             Chemical = chemical,
             Method = method
         });
@@ -252,7 +317,7 @@ public class XlsImportExportService : IXlsImportExportService
             if (chem1 == null) continue;
 
             var chem2 = FindChemical(chemicals, combo.SecondEductName)
-                     ?? FindChemical(chemicals, combo.AdditiveName);
+                        ?? FindChemical(chemicals, combo.AdditiveName);
             if (chem2 == null) continue;
 
             Observation? observation = null;
@@ -304,34 +369,14 @@ public class XlsImportExportService : IXlsImportExportService
         await _context.SaveChangesAsync();
     }
 
-    // ── Export ──────────────────────────────────────────────────────────
-
-    public async Task ExportToFileAsync(string filePath)
-    {
-        var (educts, additives, combinations) = await BuildExportDtosAsync();
-
-        ExcelExporter.ExportMultiSheet(filePath,
-            SheetData.From(educts),
-            SheetData.From(additives),
-            SheetData.From(combinations));
-    }
-
-    public async Task ExportToStreamAsync(Stream stream, ExcelFormat format)
-    {
-        var (educts, additives, combinations) = await BuildExportDtosAsync();
-
-        ExcelExporter.ExportMultiSheet(stream, format,
-            SheetData.From(educts),
-            SheetData.From(additives),
-            SheetData.From(combinations));
-    }
-
     private async Task<(List<Educt>, List<Additive>, List<Combination>)> BuildExportDtosAsync()
     {
         var methods = await _context.Methods.ToDictionaryAsync(m => m.Name);
 
         var allChemicals = await _context.Chemicals
+            .Include(c => c.Color)
             .Include(c => c.MethodOutputs)
+            .ThenInclude(mo => mo.Color)
             .OrderBy(c => c.ChemicalID)
             .ToListAsync();
 
@@ -345,7 +390,7 @@ public class XlsImportExportService : IXlsImportExportService
                 {
                     Substance = c.Name,
                     Formula = c.Formula,
-                    InherentColor = c.Color
+                    InherentColor = c.Color.Name
                 };
                 SetMethodProperties(educt, c, methods);
                 return educt;
@@ -395,7 +440,7 @@ public class XlsImportExportService : IXlsImportExportService
             if (!methods.TryGetValue(methodName, out var method)) continue;
 
             var color = chemical.MethodOutputs
-                .FirstOrDefault(mo => mo.MethodID == method.MethodID)?.Color;
+                .FirstOrDefault(mo => mo.MethodID == method.MethodID)?.Color.Name;
             prop.SetValue(educt, color);
         }
     }

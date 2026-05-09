@@ -1,6 +1,3 @@
-@using SpotAnalysis.Services.DTOs
-@using SpotAnalysis.Web.Helpers
-
 <div class="card border-0 shadow-sm mb-4">
     <div class="card-body p-4">
         <h5 class="fw-bold mb-3">
@@ -9,7 +6,7 @@
 
         <div class="task-row">
             <div class="compound-card compound-card-static chemical-edukt task-educt"
-                 style="border-color: @ColorHelper.GetBorderColor(Question.ShownEduct.Color)">
+                 style="border-color: @ColorHelper.GetBorderColor(Question.ShownEduct.Color.Name)">
                 <div class="p-2">
                     <strong>@Question.ShownEduct.Name</strong>
                     <br /><small><ChemFormula Value="@Question.ShownEduct.Formula" /></small>

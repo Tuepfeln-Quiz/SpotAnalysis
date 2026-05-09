@@ -14,17 +14,20 @@ public class MasterDataService(IDbContextFactory<AnalysisContext> factory) : IMa
         await using var context = await factory.CreateDbContextAsync(ct);
 
         var chemicals = await context.Chemicals
+            .Include(c => c.Color)
             .Include(c => c.MethodOutputs)
-                .ThenInclude(mo => mo.Method)
+            .ThenInclude(mo => mo.Method)
+            .Include(c => c.MethodOutputs)
+            .ThenInclude(mo => mo.Color)
             .Include(c => c.Chemical1Reactions)
-                .ThenInclude(r => r.Chemical2)
+            .ThenInclude(r => r.Chemical2)
             .Include(c => c.Chemical2Reactions)
-                .ThenInclude(r => r.Chemical1)
+            .ThenInclude(r => r.Chemical1)
             .Include(c => c.STAvailableChemicals)
-                .ThenInclude(sac => sac.STQuestion)
-                    .ThenInclude(stq => stq.Question)
+            .ThenInclude(sac => sac.STQuestion)
+            .ThenInclude(stq => stq.Question)
             .Include(c => c.STLQuestions)
-                .ThenInclude(stl => stl.Question)
+            .ThenInclude(stl => stl.Question)
             .AsNoTracking()
             .OrderBy(c => c.Type)
             .ThenBy(c => c.Name)
@@ -38,17 +41,20 @@ public class MasterDataService(IDbContextFactory<AnalysisContext> factory) : IMa
         await using var context = await factory.CreateDbContextAsync(ct);
 
         var chemical = await context.Chemicals
+            .Include(c => c.Color)
             .Include(c => c.MethodOutputs)
-                .ThenInclude(mo => mo.Method)
+            .ThenInclude(mo => mo.Method)
+            .Include(c => c.MethodOutputs)
+            .ThenInclude(mo => mo.Color)
             .Include(c => c.Chemical1Reactions)
-                .ThenInclude(r => r.Chemical2)
+            .ThenInclude(r => r.Chemical2)
             .Include(c => c.Chemical2Reactions)
-                .ThenInclude(r => r.Chemical1)
+            .ThenInclude(r => r.Chemical1)
             .Include(c => c.STAvailableChemicals)
-                .ThenInclude(sac => sac.STQuestion)
-                    .ThenInclude(stq => stq.Question)
+            .ThenInclude(sac => sac.STQuestion)
+            .ThenInclude(stq => stq.Question)
             .Include(c => c.STLQuestions)
-                .ThenInclude(stl => stl.Question)
+            .ThenInclude(stl => stl.Question)
             .AsNoTracking()
             .FirstOrDefaultAsync(c => c.ChemicalID == id, ct);
 
@@ -66,11 +72,13 @@ public class MasterDataService(IDbContextFactory<AnalysisContext> factory) : IMa
             throw new InvalidOperationException(
                 $"Eine Chemikalie mit Name \"{dto.Name}\" und Formel \"{dto.Formula}\" existiert bereits.");
 
+        var colorId = await ResolveColorIdAsync(context, dto.ColorId, dto.ColorName, ct);
+
         var chemical = new Chemical
         {
             Name = dto.Name,
             Formula = dto.Formula,
-            Color = dto.Color,
+            ColorId = colorId,
             Type = dto.Type,
             ImagePath = dto.ImagePath
         };
@@ -88,7 +96,7 @@ public class MasterDataService(IDbContextFactory<AnalysisContext> factory) : IMa
         await using var context = await factory.CreateDbContextAsync(ct);
 
         var chemical = await context.Chemicals.FirstOrDefaultAsync(c => c.ChemicalID == dto.Id, ct)
-            ?? throw new InvalidOperationException($"Chemikalie {dto.Id} nicht gefunden.");
+                       ?? throw new InvalidOperationException($"Chemikalie {dto.Id} nicht gefunden.");
 
         var duplicate = await context.Chemicals.AnyAsync(c =>
             c.ChemicalID != dto.Id &&
@@ -100,7 +108,7 @@ public class MasterDataService(IDbContextFactory<AnalysisContext> factory) : IMa
 
         chemical.Name = dto.Name;
         chemical.Formula = dto.Formula;
-        chemical.Color = dto.Color;
+        chemical.ColorId = await ResolveColorIdAsync(context, dto.ColorId, dto.ColorName, ct);
         chemical.Type = dto.Type;
         chemical.ImagePath = dto.ImagePath;
 
@@ -113,19 +121,19 @@ public class MasterDataService(IDbContextFactory<AnalysisContext> factory) : IMa
         await using var context = await factory.CreateDbContextAsync(ct);
 
         var chemical = await context.Chemicals
-            .Include(c => c.Chemical1Reactions)
-                .ThenInclude(r => r.Chemical2)
-            .Include(c => c.Chemical2Reactions)
-                .ThenInclude(r => r.Chemical1)
-            .Include(c => c.MethodOutputs)
-                .ThenInclude(mo => mo.Method)
-            .Include(c => c.STAvailableChemicals)
-                .ThenInclude(sac => sac.STQuestion)
-                    .ThenInclude(stq => stq.Question)
-            .Include(c => c.STLQuestions)
-                .ThenInclude(stl => stl.Question)
-            .FirstOrDefaultAsync(c => c.ChemicalID == id, ct)
-            ?? throw new InvalidOperationException($"Chemikalie {id} nicht gefunden.");
+                           .Include(c => c.Chemical1Reactions)
+                           .ThenInclude(r => r.Chemical2)
+                           .Include(c => c.Chemical2Reactions)
+                           .ThenInclude(r => r.Chemical1)
+                           .Include(c => c.MethodOutputs)
+                           .ThenInclude(mo => mo.Method)
+                           .Include(c => c.STAvailableChemicals)
+                           .ThenInclude(sac => sac.STQuestion)
+                           .ThenInclude(stq => stq.Question)
+                           .Include(c => c.STLQuestions)
+                           .ThenInclude(stl => stl.Question)
+                           .FirstOrDefaultAsync(c => c.ChemicalID == id, ct)
+                       ?? throw new InvalidOperationException($"Chemikalie {id} nicht gefunden.");
 
         var references = BuildChemicalReferences(chemical);
         if (references.Total > 0)
@@ -149,10 +157,10 @@ public class MasterDataService(IDbContextFactory<AnalysisContext> factory) : IMa
             .Include(r => r.Observation)
             .Include(r => r.STLResults)
             .Include(r => r.STLAvailableReactions)
-                .ThenInclude(ar => ar.STLQuestion)
-                    .ThenInclude(stl => stl.Question)
+            .ThenInclude(ar => ar.STLQuestion)
+            .ThenInclude(stl => stl.Question)
             .Include(r => r.STLQuestions)
-                .ThenInclude(stl => stl.Question)
+            .ThenInclude(stl => stl.Question)
             .AsNoTracking()
             .OrderBy(r => r.Chemical1.Name)
             .ThenBy(r => r.Chemical2.Name)
@@ -171,10 +179,10 @@ public class MasterDataService(IDbContextFactory<AnalysisContext> factory) : IMa
             .Include(r => r.Observation)
             .Include(r => r.STLResults)
             .Include(r => r.STLAvailableReactions)
-                .ThenInclude(ar => ar.STLQuestion)
-                    .ThenInclude(stl => stl.Question)
+            .ThenInclude(ar => ar.STLQuestion)
+            .ThenInclude(stl => stl.Question)
             .Include(r => r.STLQuestions)
-                .ThenInclude(stl => stl.Question)
+            .ThenInclude(stl => stl.Question)
             .AsNoTracking()
             .FirstOrDefaultAsync(r => r.ReactionID == id, ct);
 
@@ -189,9 +197,9 @@ public class MasterDataService(IDbContextFactory<AnalysisContext> factory) : IMa
             throw new InvalidOperationException("Chemikalie A und Chemikalie B müssen unterschiedlich sein.");
 
         var chem1 = await context.Chemicals.FirstOrDefaultAsync(c => c.ChemicalID == dto.Chemical1Id, ct)
-            ?? throw new InvalidOperationException($"Chemikalie {dto.Chemical1Id} nicht gefunden.");
+                    ?? throw new InvalidOperationException($"Chemikalie {dto.Chemical1Id} nicht gefunden.");
         var chem2 = await context.Chemicals.FirstOrDefaultAsync(c => c.ChemicalID == dto.Chemical2Id, ct)
-            ?? throw new InvalidOperationException($"Chemikalie {dto.Chemical2Id} nicht gefunden.");
+                    ?? throw new InvalidOperationException($"Chemikalie {dto.Chemical2Id} nicht gefunden.");
 
         var (lowId, highId) = chem1.ChemicalID <= chem2.ChemicalID
             ? (chem1.ChemicalID, chem2.ChemicalID)
@@ -223,15 +231,15 @@ public class MasterDataService(IDbContextFactory<AnalysisContext> factory) : IMa
         await using var context = await factory.CreateDbContextAsync(ct);
 
         var reaction = await context.Reactions.FirstOrDefaultAsync(r => r.ReactionID == dto.Id, ct)
-            ?? throw new InvalidOperationException($"Reaktion {dto.Id} nicht gefunden.");
+                       ?? throw new InvalidOperationException($"Reaktion {dto.Id} nicht gefunden.");
 
         if (dto.Chemical1Id == dto.Chemical2Id)
             throw new InvalidOperationException("Chemikalie A und Chemikalie B müssen unterschiedlich sein.");
 
         var chem1 = await context.Chemicals.FirstOrDefaultAsync(c => c.ChemicalID == dto.Chemical1Id, ct)
-            ?? throw new InvalidOperationException($"Chemikalie {dto.Chemical1Id} nicht gefunden.");
+                    ?? throw new InvalidOperationException($"Chemikalie {dto.Chemical1Id} nicht gefunden.");
         var chem2 = await context.Chemicals.FirstOrDefaultAsync(c => c.ChemicalID == dto.Chemical2Id, ct)
-            ?? throw new InvalidOperationException($"Chemikalie {dto.Chemical2Id} nicht gefunden.");
+                    ?? throw new InvalidOperationException($"Chemikalie {dto.Chemical2Id} nicht gefunden.");
 
         var (lowId, highId) = chem1.ChemicalID <= chem2.ChemicalID
             ? (chem1.ChemicalID, chem2.ChemicalID)
@@ -260,14 +268,14 @@ public class MasterDataService(IDbContextFactory<AnalysisContext> factory) : IMa
         await using var context = await factory.CreateDbContextAsync(ct);
 
         var reaction = await context.Reactions
-            .Include(r => r.STLResults)
-            .Include(r => r.STLAvailableReactions)
-                .ThenInclude(ar => ar.STLQuestion)
-                    .ThenInclude(stl => stl.Question)
-            .Include(r => r.STLQuestions)
-                .ThenInclude(stl => stl.Question)
-            .FirstOrDefaultAsync(r => r.ReactionID == id, ct)
-            ?? throw new InvalidOperationException($"Reaktion {id} nicht gefunden.");
+                           .Include(r => r.STLResults)
+                           .Include(r => r.STLAvailableReactions)
+                           .ThenInclude(ar => ar.STLQuestion)
+                           .ThenInclude(stl => stl.Question)
+                           .Include(r => r.STLQuestions)
+                           .ThenInclude(stl => stl.Question)
+                           .FirstOrDefaultAsync(r => r.ReactionID == id, ct)
+                       ?? throw new InvalidOperationException($"Reaktion {id} nicht gefunden.");
 
         var references = BuildReactionReferences(reaction);
         if (references.Total > 0)
@@ -286,9 +294,9 @@ public class MasterDataService(IDbContextFactory<AnalysisContext> factory) : IMa
 
         var observations = await context.Observations
             .Include(o => o.Reactions)
-                .ThenInclude(r => r.Chemical1)
+            .ThenInclude(r => r.Chemical1)
             .Include(o => o.Reactions)
-                .ThenInclude(r => r.Chemical2)
+            .ThenInclude(r => r.Chemical2)
             .AsNoTracking()
             .OrderBy(o => o.Description)
             .ToListAsync(ct);
@@ -332,7 +340,7 @@ public class MasterDataService(IDbContextFactory<AnalysisContext> factory) : IMa
         var desc = dto.Description.Trim();
 
         var obs = await context.Observations.FirstOrDefaultAsync(o => o.ObservationID == dto.Id, ct)
-            ?? throw new InvalidOperationException($"Beobachtung {dto.Id} nicht gefunden.");
+                  ?? throw new InvalidOperationException($"Beobachtung {dto.Id} nicht gefunden.");
 
         var duplicate = await context.Observations.AnyAsync(o =>
             o.ObservationID != dto.Id && EF.Functions.ILike(o.Description, desc), ct);
@@ -349,9 +357,9 @@ public class MasterDataService(IDbContextFactory<AnalysisContext> factory) : IMa
         await using var context = await factory.CreateDbContextAsync(ct);
 
         var obs = await context.Observations
-            .Include(o => o.Reactions)
-            .FirstOrDefaultAsync(o => o.ObservationID == id, ct)
-            ?? throw new InvalidOperationException($"Beobachtung {id} nicht gefunden.");
+                      .Include(o => o.Reactions)
+                      .FirstOrDefaultAsync(o => o.ObservationID == id, ct)
+                  ?? throw new InvalidOperationException($"Beobachtung {id} nicht gefunden.");
 
         if (obs.Reactions.Count > 0)
             throw new InvalidOperationException(
@@ -368,7 +376,8 @@ public class MasterDataService(IDbContextFactory<AnalysisContext> factory) : IMa
         Id = c.ChemicalID,
         Name = c.Name,
         Formula = c.Formula,
-        Color = c.Color,
+        ColorId = c.ColorId,
+        ColorName = c.Color.Name,
         Type = c.Type,
         ImagePath = c.ImagePath,
         MethodOutputs = c.MethodOutputs
@@ -377,7 +386,8 @@ public class MasterDataService(IDbContextFactory<AnalysisContext> factory) : IMa
             {
                 MethodId = mo.MethodID,
                 MethodName = mo.Method.Name,
-                Color = mo.Color
+                ColorId = mo.ColorId,
+                ColorName = mo.Color.Name
             }).ToList(),
         References = BuildChemicalReferences(c)
     };
@@ -403,6 +413,7 @@ public class MasterDataService(IDbContextFactory<AnalysisContext> factory) : IMa
                 RouteTemplate = "/teacher/questions/{0}/edit?type=SpotTest"
             });
         }
+
         foreach (var stl in c.STLQuestions)
         {
             var title = stl.Question?.Title;
@@ -414,6 +425,7 @@ public class MasterDataService(IDbContextFactory<AnalysisContext> factory) : IMa
                 RouteTemplate = "/teacher/questions/{0}/edit?type=SpotTestLight"
             });
         }
+
         return report;
     }
 
@@ -448,6 +460,7 @@ public class MasterDataService(IDbContextFactory<AnalysisContext> factory) : IMa
                 RouteTemplate = "/teacher/questions/{0}/edit?type=SpotTestLight"
             });
         }
+
         foreach (var ar in r.STLAvailableReactions)
         {
             var title = ar.STLQuestion?.Question?.Title;
@@ -458,16 +471,17 @@ public class MasterDataService(IDbContextFactory<AnalysisContext> factory) : IMa
                 Description = string.IsNullOrWhiteSpace(title) ? $"Frage #{ar.QuestionID}" : title
             });
         }
+
         return report;
     }
 
     private static async Task<Observation> ResolveObservationAsync(
         AnalysisContext context, ReactionDetailDto dto, CancellationToken ct)
     {
-        if (dto.ObservationId is int id)
+        if (dto.ObservationId is { } id)
         {
             return await context.Observations.FirstOrDefaultAsync(o => o.ObservationID == id, ct)
-                ?? throw new InvalidOperationException($"Beobachtung {id} nicht gefunden.");
+                   ?? throw new InvalidOperationException($"Beobachtung {id} nicht gefunden.");
         }
 
         var desc = (dto.NewObservationDescription ?? "").Trim();
@@ -482,6 +496,23 @@ public class MasterDataService(IDbContextFactory<AnalysisContext> factory) : IMa
         context.Observations.Add(created);
         await context.SaveChangesAsync(ct);
         return created;
+    }
+
+    // ── Helpers: Color resolution ─────────────────────────────────────
+
+    private static async Task<int> ResolveColorIdAsync(
+        AnalysisContext context, int colorId, string colorName, CancellationToken ct)
+    {
+        if (colorId > 0) return colorId;
+
+        var color = await context.Colors.FirstOrDefaultAsync(
+            c => EF.Functions.ILike(c.Name, colorName), ct);
+        if (color is not null) return color.ColorId;
+
+        color = new Color { Name = colorName, HexValue = "#666666" };
+        context.Colors.Add(color);
+        await context.SaveChangesAsync(ct);
+        return color.ColorId;
     }
 
     // ── Helpers: MethodOutputs ──────────────────────────────────────
@@ -502,23 +533,27 @@ public class MasterDataService(IDbContextFactory<AnalysisContext> factory) : IMa
 
             var existing = existingOutputs.FirstOrDefault(mo => mo.MethodID == method.MethodID);
 
-            if (string.IsNullOrWhiteSpace(entry.Color))
+            if (entry.ColorId == 0 && string.IsNullOrWhiteSpace(entry.ColorName))
             {
                 if (existing is not null)
                     context.MethodOutputs.Remove(existing);
             }
-            else if (existing is null)
-            {
-                context.MethodOutputs.Add(new MethodOutput
-                {
-                    ChemicalID = chemical.ChemicalID,
-                    MethodID = method.MethodID,
-                    Color = entry.Color
-                });
-            }
             else
             {
-                existing.Color = entry.Color;
+                var colorId = await ResolveColorIdAsync(context, entry.ColorId, entry.ColorName, ct);
+                if (existing is null)
+                {
+                    context.MethodOutputs.Add(new MethodOutput
+                    {
+                        ChemicalID = chemical.ChemicalID,
+                        MethodID = method.MethodID,
+                        ColorId = colorId
+                    });
+                }
+                else
+                {
+                    existing.ColorId = colorId;
+                }
             }
         }
     }

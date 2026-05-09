@@ -14,22 +14,47 @@ public class UserService(ILogger<UserService> logger, IDbContextFactory<Analysis
         @"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z\d]).{8,}$",
         RegexOptions.Compiled);
 
-    public async Task<User?> ChangePassword(string userName, string newPassword)
+    public async Task<User> ChangePassword(Guid userId, string oldPassword, string newPassword)
     {
-        if (string.IsNullOrEmpty(userName) || string.IsNullOrEmpty(newPassword))
-        {
-            return null;
-        }
+        ArgumentNullException.ThrowIfNull(oldPassword);
+        ArgumentNullException.ThrowIfNull(newPassword);
+
         await using var context = await factory.CreateDbContextAsync();
 
-        var user = context.Users.FirstOrDefault(u => u.UserName == userName);
-        if (user == null) return null;
+        var user = await context.Users.SingleAsync(u => u.UserID == userId);
+
+        var correctOldPassword = PasswordProvider.Password.FromParamString(user.PasswordHash)
+            .Compare(new PasswordProvider.Password(oldPassword, user.UserID));
+
+        if (!correctOldPassword)
+            throw new AuthenticationException("WrongOldPassword");
 
         var newHash = new PasswordProvider.Password(newPassword, user.UserID).ParamString();
         user.PasswordHash = newHash;
 
         await context.SaveChangesAsync();
 
+        logger.LogInformation("Password changed for user {UserId}", user.UserID);
+
+        return user;
+    }
+
+    public async Task<User> UpdateUsername(Guid userId, string newUsername)
+    {
+        ArgumentNullException.ThrowIfNull(newUsername);
+        await using var context = await factory.CreateDbContextAsync();
+        var user = await context.Users.SingleAsync(u => u.UserID == userId);
+
+        var isUsernameTaken = await context.Users.AnyAsync(u =>
+            u.UserName.Equals(newUsername, StringComparison.CurrentCultureIgnoreCase));
+
+        if (isUsernameTaken)
+        {
+            throw new AuthenticationException("Username taken");
+        }
+
+        user.UserName = newUsername;
+        await context.SaveChangesAsync();
         return user;
     }
 
@@ -37,7 +62,6 @@ public class UserService(ILogger<UserService> logger, IDbContextFactory<Analysis
     {
         if (string.IsNullOrEmpty(userName) || string.IsNullOrEmpty(password))
         {
-            logger.LogWarning("Username or password was null or empty, Username: {userName}, Password: {password}", userName, password);
             throw new ArgumentException("Username or password was null or empty");
         }
 
@@ -46,13 +70,11 @@ public class UserService(ILogger<UserService> logger, IDbContextFactory<Analysis
 
         if (user == null)
         {
-            logger.LogWarning("No user was found with user name: {userName}", userName);
             throw new ArgumentException("No user was found with given user name");
         }
 
         if (string.IsNullOrEmpty(user.PasswordHash))
         {
-            logger.LogWarning("The password was null or empty");
             throw new ArgumentException("The given password was empty");
         }
 
@@ -63,9 +85,10 @@ public class UserService(ILogger<UserService> logger, IDbContextFactory<Analysis
 
         if (!isPasswordCorrect)
         {
-            logger.LogError("The given password was wrong");
             throw new AuthenticationException("The given password was wrong");
         }
+
+        logger.LogInformation("Login succeeded for user {UserId}", user.UserID);
 
         return user;
     }
@@ -105,5 +128,7 @@ public class UserService(ILogger<UserService> logger, IDbContextFactory<Analysis
         context.Users.Add(newUser);
 
         await context.SaveChangesAsync();
+
+        logger.LogInformation("Registered new user {UserId}", newUser.UserID);
     }
 }

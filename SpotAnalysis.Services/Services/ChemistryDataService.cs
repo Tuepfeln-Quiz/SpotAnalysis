@@ -13,8 +13,11 @@ public class ChemistryDataService(IDbContextFactory<AnalysisContext> factory) : 
         await using var context = await factory.CreateDbContextAsync();
 
         var chemicals = await context.Chemicals
+            .Include(c => c.Color)
             .Include(c => c.MethodOutputs)
-                .ThenInclude(mo => mo.Method)
+            .ThenInclude(mo => mo.Method)
+            .Include(c => c.MethodOutputs)
+            .ThenInclude(mo => mo.Color)
             .AsNoTracking()
             .OrderBy(c => c.Type)
             .ThenBy(c => c.Name)
@@ -59,6 +62,24 @@ public class ChemistryDataService(IDbContextFactory<AnalysisContext> factory) : 
             }).ToListAsync();
     }
 
+    public async Task<List<ColorDto>> GetAllColorsAsync()
+    {
+        await using var context = await factory.CreateDbContextAsync();
+        return await context.Colors
+            .AsNoTracking()
+            .OrderBy(c => c.Name.Length)
+            .ThenBy(c => c.Name)
+            .Select(c => new ColorDto { Id = c.ColorId, Name = c.Name, HexValue = c.HexValue })
+            .ToListAsync();
+    }
+
+    private static ColorDto MapColor(Color c) => new()
+    {
+        Id = c.ColorId,
+        Name = c.Name,
+        HexValue = c.HexValue
+    };
+
     private static LabChemicalDto MapChemical(Chemical c) => new()
     {
         ChemicalID = c.ChemicalID,
@@ -68,7 +89,7 @@ public class ChemistryDataService(IDbContextFactory<AnalysisContext> factory) : 
         Type = c.Type,
         ChemicalTypeID = (int)c.Type,
         ChemicalTypeName = c.Type == ChemicalType.Educt ? "Edukt" : "Zusatzstoff",
-        Color = c.Color,
-        MethodOutputs = c.MethodOutputs.ToDictionary(mo => mo.Method.Name, mo => mo.Color)
+        Color = MapColor(c.Color),
+        MethodOutputs = c.MethodOutputs.ToDictionary(mo => mo.Method.Name, mo => MapColor(mo.Color))
     };
 }

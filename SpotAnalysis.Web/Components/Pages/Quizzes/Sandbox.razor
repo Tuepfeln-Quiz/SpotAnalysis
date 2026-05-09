@@ -26,7 +26,7 @@
                                 @if (_slot1 != null)
                                 {
                                     <div class="compound-card chemical-@(_slot1.ChemicalTypeName.ToLowerInvariant()) h-100"
-                                         style="border-color: @ColorHelper.GetBorderColor(_slot1.Color)"
+                                         style="border-color: @ColorHelper.GetBorderColor(_slot1.Color.Name)"
                                          draggable="true"
                                          @ondragstart="() => { _draggedChemical = _slot1; _dragSource = 1; }">
                                         <SubstanceCard Chemical="_slot1" />
@@ -52,7 +52,7 @@
                                 @if (_slot2 != null)
                                 {
                                     <div class="compound-card chemical-@(_slot2.ChemicalTypeName.ToLowerInvariant()) h-100"
-                                         style="border-color: @ColorHelper.GetBorderColor(_slot2.Color)"
+                                         style="border-color: @ColorHelper.GetBorderColor(_slot2.Color.Name)"
                                          draggable="true"
                                          @ondragstart="() => { _draggedChemical = _slot2; _dragSource = 2; }">
                                         <SubstanceCard Chemical="_slot2" />
@@ -152,7 +152,7 @@
                             @foreach (var chem in group)
                             {
                                 <div class="compound-card chemical-@(chem.ChemicalTypeName.ToLowerInvariant())"
-                                     style="border-color: @ColorHelper.GetBorderColor(chem.Color)"
+                                     style="border-color: @ColorHelper.GetBorderColor(chem.Color.Name)"
                                      draggable="true"
                                      @ondragstart="() => { _draggedChemical = chem; _dragSource = 0; }">
                                     <SubstanceCard Chemical="chem" />

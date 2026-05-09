@@ -6,8 +6,8 @@
 /// </summary>
 public class STLResult
 {
-    [Key]
-    public int ResultID { get; set; }
+    [Key] public int ResultID { get; set; }
+
     public int AttemptID { get; set; }
     public int QuestionID { get; set; }
     public int ChosenReactionID { get; set; }
@@ -15,7 +15,7 @@ public class STLResult
 
 
     [ForeignKey(nameof(AttemptID))]
-    [DeleteBehavior(DeleteBehavior.Restrict)]
+    [DeleteBehavior(DeleteBehavior.Cascade)]
     public QuizAttempt Attempt { get; set; } = null!;
 
     [DeleteBehavior(DeleteBehavior.Restrict)]

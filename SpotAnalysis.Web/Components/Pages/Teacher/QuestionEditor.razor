@@ -1,10 +1,7 @@
 @page "/teacher/questions/create"
 @page "/teacher/questions/{QuestionId:int}/edit"
-@rendermode InteractiveServer
-@using SpotAnalysis.Data.Enums
-@using SpotAnalysis.Services.DTOs
-@using SpotAnalysis.Services.Services
 @using SpotAnalysis.Web.Services
+@rendermode InteractiveServer
 
 @attribute [Authorize(Roles = "Teacher, Admin")]
 
@@ -289,11 +286,11 @@
         {
             _selectedEducts = detail.Chemicals
                 .Where(c => !c.IsAdditive)
-                .Select(c => new ChemicalItem(c.Id, c.Name, c.Formula, c.Color))
+                .Select(c => new ChemicalItem(c.Id, c.Name, c.Formula, c.Color.Name))
                 .ToList();
             _selectedAdditives = detail.Chemicals
                 .Where(c => c.IsAdditive)
-                .Select(c => new ChemicalItem(c.Id, c.Name, c.Formula, c.Color))
+                .Select(c => new ChemicalItem(c.Id, c.Name, c.Formula, c.Color.Name))
                 .ToList();
             _selectedMethods = detail.Methods
                 .Select(m => new MethodItem(m.Id, m.Name))

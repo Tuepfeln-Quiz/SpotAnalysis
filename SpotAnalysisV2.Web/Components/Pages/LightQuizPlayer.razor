@@ -393,10 +393,11 @@
 
     private static ColorInfo ExtractMethodColor(Dictionary<string, ColorDto> outputs, string key)
     {
-        foreach (var k in outputs.Keys)
+        var match = outputs.Keys.FirstOrDefault(o => o == key);
+
+        if (match is not null && outputs.TryGetValue(match, out var color))
         {
-            if (string.Equals(k, key, StringComparison.OrdinalIgnoreCase) && outputs.TryGetValue(k, out var color))
-                return new ColorInfo(color.Name, color.HexValue);
+            return new ColorInfo(color.Name, color.HexValue);
         }
 
         return new ColorInfo("-", "#9ca3af");

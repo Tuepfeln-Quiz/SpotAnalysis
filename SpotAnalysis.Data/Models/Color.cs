@@ -46,9 +46,10 @@ public class Color
         {
             s = l > 0.5 ? delta / (2.0 - max - min) : delta / (max + min);
 
-            if (max == r)
+            var maxChannel = Math.Max(rgb.R, Math.Max(rgb.G, rgb.B));
+            if (maxChannel == rgb.R)
                 h = ((g - b) / delta + (g < b ? 6 : 0)) * 60;
-            else if (max == g)
+            else if (maxChannel == rgb.G)
                 h = ((b - r) / delta + 2) * 60;
             else
                 h = ((r - g) / delta + 4) * 60;

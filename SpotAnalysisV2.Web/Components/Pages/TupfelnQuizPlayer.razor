@@ -1,4 +1,4 @@
-@page "/tupfeln/player/{QuizId:int}"
+@page "/spottest/player/{QuizId:int}"
 @attribute [Authorize]
 @inject NavigationManager Navigation
 @inject IQuizService QuizService
@@ -61,7 +61,8 @@
                 <h1 class="text-xl mb-1">TÜPFELN — @_quizName</h1>
                 <p class="text-teal-100 text-sm">@quiz.Beschreibung · Frage @(CurrentIndexSafe + 1) von @totalQuestions</p>
 
-                <div class="fixed z-30 select-none tupfeln-toolbox" style="transform: translate(@($"{toolboxOffsetX}px"), @($"{toolboxOffsetY}px"));">
+                <div class="fixed z-30 select-none spottest-toolbox"
+                     style="transform: translate(@($"{toolboxOffsetX}px"), @($"{toolboxOffsetY}px"));">
                     <div class="relative w-36 h-36">
                         @for (var i = 0; i < activeToolDefs.Count; i++)
                         {
@@ -93,7 +94,7 @@
                 </div>
             </div>
 
-            <div class="grid gap-4 mb-6 tupfeln-cards-grid">
+            <div class="grid gap-4 mb-6 spottest-cards-grid">
                 @for (var i = 0; i < quiz.Unbekannte.Count; i++)
                 {
                     var sub = quiz.Unbekannte[i];
@@ -293,6 +294,7 @@
     private string _quizName = "Tüpfeln";
     private List<QuizQuestionPayloadDto> _orderedQuestions = [];
     private List<LabReactionDto> _allReactions = [];
+    private List<ColorDto> _allColors = [];
     private SpotQuestionVm? quiz;
     private Guid _userId;
     private int totalQuestions;
@@ -336,6 +338,7 @@
             _quizName = _quiz.Name;
             _orderedQuestions = _quiz.Questions.OrderBy(q => q.Order).ToList();
             _allReactions = await ChemistryData.GetAllReactionsAsync();
+            _allColors = await ChemistryData.GetAllColorsAsync();
             totalQuestions = _orderedQuestions.Count;
             score = Math.Max(0, ScoreQuery ?? 0);
             submitted = false;
@@ -445,23 +448,17 @@
         return names.Where(outputs.ContainsKey).Select(name => outputs[name]).FirstOrDefault();
     }
 
-    private static string GetObservationColorHex(LabReactionDto? reaction)
+    private string GetObservationColorHex(LabReactionDto? reaction)
     {
         if (reaction is null)
             return "#d1d5db";
 
-        var source = $"{reaction.ObservationDescription} {reaction.RelevantProduct}".ToLowerInvariant();
-        return source switch
-        {
-            var v when v.Contains("schwarz") => "#111827",
-            var v when v.Contains("rot") => "#ef4444",
-            var v when v.Contains("braun") => "#b45309",
-            var v when v.Contains("grün") => "#22c55e",
-            var v when v.Contains("blau") => "#3b82f6",
-            var v when v.Contains("gelb") => "#facc15",
-            var v when v.Contains("orange") => "#f97316",
-            _ => "#9ca3af"
-        };
+        var source = $"{reaction.ObservationDescription} {reaction.RelevantProduct}";
+        // Longer names first so "rotbraun" matches before "rot"
+        var match = _allColors
+            .OrderByDescending(c => c.Name.Length)
+            .FirstOrDefault(c => source.Contains(c.Name, StringComparison.OrdinalIgnoreCase));
+        return match?.HexValue ?? "#9ca3af";
     }
 
     private void HandleCardClick(int idx)
@@ -637,7 +634,7 @@
         {
             var next = _orderedQuestions[nextIndex];
             var url = next.Type == QuestionType.SpotTest
-                ? $"/tupfeln/player/{QuizId}?q={nextIndex}&score={score}"
+                ? $"/spottest/player/{QuizId}?q={nextIndex}&score={score}"
                 : $"/light/player/{QuizId}?q={nextIndex}&score={score}";
             Navigation.NavigateTo(url);
             return;

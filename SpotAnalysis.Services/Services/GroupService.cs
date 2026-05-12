@@ -1,8 +1,8 @@
 using Microsoft.EntityFrameworkCore;
-using SpotAnalysis.Services.DTOs;
 using SpotAnalysis.Data;
-using SpotAnalysis.Data.Models.Identity;
 using SpotAnalysis.Data.Enums;
+using SpotAnalysis.Data.Models.Identity;
+using SpotAnalysis.Services.DTOs;
 
 namespace SpotAnalysis.Services.Services;
 
@@ -19,6 +19,44 @@ public class GroupService : IGroupService
         _inviteTokens = inviteTokens;
     }
 
+    #region Token-based join
+
+    public async Task<JoinGroupResult> JoinGroupByToken(Guid userId, string token)
+    {
+        var groupId = await _inviteTokens.ValidateToken(token);
+        if (groupId is null)
+        {
+            return JoinGroupResult.TokenInvalid;
+        }
+
+        await using var ctx = await _factory.CreateDbContextAsync();
+
+        var group = await ctx.Groups
+            .Include(g => g.Users)
+            .SingleOrDefaultAsync(g => g.GroupID == groupId.Value);
+        if (group is null)
+        {
+            return JoinGroupResult.GroupNotFound;
+        }
+
+        var user = await ctx.Users.SingleOrDefaultAsync(u => u.UserID == userId);
+        if (user is null)
+        {
+            return JoinGroupResult.UserNotFound;
+        }
+
+        if (group.Users.Any(u => u.UserID == userId))
+        {
+            return JoinGroupResult.AlreadyMember;
+        }
+
+        group.Users.Add(user);
+        await ctx.SaveChangesAsync();
+        return JoinGroupResult.Success;
+    }
+
+    #endregion
+
     // Admins see/manage all groups; teachers only the ones they are a member of.
     private static async Task<bool> IsAdmin(AnalysisContext ctx, Guid userId)
     {
@@ -28,7 +66,8 @@ public class GroupService : IGroupService
 
     private static IQueryable<Group> AccessibleGroups(AnalysisContext ctx, Guid userId, bool isAdmin)
     {
-        if (isAdmin) return ctx.Groups;
+        if (isAdmin)
+            return ctx.Groups;
         return ctx.Users
             .Where(u => u.UserID == userId && u.Roles.Any(r => r == Role.Teacher))
             .SelectMany(u => u.Groups);
@@ -43,12 +82,7 @@ public class GroupService : IGroupService
         var isAdmin = await IsAdmin(ctx, userId);
 
         return await AccessibleGroups(ctx, userId, isAdmin)
-            .Select(g => new GroupDto
-            {
-                Id = g.GroupID,
-                Name = g.Name,
-                Description = g.Description,
-            }).ToListAsync();
+            .Select(g => new GroupDto { Id = g.GroupID, Name = g.Name, Description = g.Description, }).ToListAsync();
     }
 
     public async Task<List<StudentDto>> GetStudents(Guid userId)
@@ -65,11 +99,7 @@ public class GroupService : IGroupService
             {
                 Id = u.UserID,
                 UserName = u.UserName,
-                AssignedGroups = u.Groups.Select(g => new GroupDto
-                {
-                    Id = g.GroupID,
-                    Name = g.Name,
-                }).ToList()
+                AssignedGroups = u.Groups.Select(g => new GroupDto { Id = g.GroupID, Name = g.Name, }).ToList()
             }).ToListAsync();
     }
 
@@ -83,16 +113,12 @@ public class GroupService : IGroupService
             .Where(g => g.GroupID == groupId)
             .SelectMany(g => g.Users)
             .Where(u => u.Roles.Any(r => r == Role.Student)
-                     && !u.Roles.Any(r => r == Role.Teacher || r == Role.Admin))
+                        && !u.Roles.Any(r => r == Role.Teacher || r == Role.Admin))
             .Select(u => new StudentDto
             {
                 Id = u.UserID,
                 UserName = u.UserName,
-                AssignedGroups = u.Groups.Select(g => new GroupDto
-                {
-                    Id = g.GroupID,
-                    Name = g.Name,
-                }).ToList()
+                AssignedGroups = u.Groups.Select(g => new GroupDto { Id = g.GroupID, Name = g.Name, }).ToList()
             }).ToListAsync();
     }
 
@@ -110,11 +136,7 @@ public class GroupService : IGroupService
             {
                 Id = u.UserID,
                 UserName = u.UserName,
-                AssignedGroups = u.Groups.Select(g => new GroupDto
-                {
-                    Id = g.GroupID,
-                    Name = g.Name,
-                }).ToList()
+                AssignedGroups = u.Groups.Select(g => new GroupDto { Id = g.GroupID, Name = g.Name, }).ToList()
             }).ToListAsync();
     }
 
@@ -133,11 +155,7 @@ public class GroupService : IGroupService
             {
                 Id = u.UserID,
                 UserName = u.UserName,
-                AssignedGroups = u.Groups.Select(g => new GroupDto
-                {
-                    Id = g.GroupID,
-                    Name = g.Name,
-                }).ToList()
+                AssignedGroups = u.Groups.Select(g => new GroupDto { Id = g.GroupID, Name = g.Name, }).ToList()
             }).ToListAsync();
     }
 
@@ -149,7 +167,7 @@ public class GroupService : IGroupService
         // nur "echte" Schueler erscheinen, daher Teacher/Admin ausschliessen.
         var q = ctx.Users
             .Where(u => u.Roles.Any(r => r == Role.Student)
-                     && !u.Roles.Any(r => r == Role.Teacher || r == Role.Admin));
+                        && !u.Roles.Any(r => r == Role.Teacher || r == Role.Admin));
 
         if (!string.IsNullOrWhiteSpace(query))
             q = q.Where(u => u.UserName.Contains(query));
@@ -159,11 +177,7 @@ public class GroupService : IGroupService
             {
                 Id = u.UserID,
                 UserName = u.UserName,
-                AssignedGroups = u.Groups.Select(g => new GroupDto
-                {
-                    Id = g.GroupID,
-                    Name = g.Name,
-                }).ToList()
+                AssignedGroups = u.Groups.Select(g => new GroupDto { Id = g.GroupID, Name = g.Name, }).ToList()
             }).ToListAsync();
     }
 
@@ -198,11 +212,7 @@ public class GroupService : IGroupService
         if (!isTeacher && !isAdmin)
             throw new UnauthorizedAccessException("User is neither teacher nor admin.");
 
-        var qGroup = new Group
-        {
-            Name = group.Name,
-            Description = group.Description,
-        };
+        var qGroup = new Group { Name = group.Name, Description = group.Description, };
 
         // Only auto-add the creator as a member if they are a teacher.
         // Pure admins create groups without becoming a member (they see all groups anyway).
@@ -310,44 +320,6 @@ public class GroupService : IGroupService
         user.Groups.Remove(group);
 
         await ctx.SaveChangesAsync();
-    }
-
-    #endregion
-
-    #region Token-based join
-
-    public async Task<JoinGroupResult> JoinGroupByToken(Guid userId, string token)
-    {
-        var groupId = await _inviteTokens.ValidateToken(token);
-        if (groupId is null)
-        {
-            return JoinGroupResult.TokenInvalid;
-        }
-
-        await using var ctx = await _factory.CreateDbContextAsync();
-
-        var group = await ctx.Groups
-            .Include(g => g.Users)
-            .SingleOrDefaultAsync(g => g.GroupID == groupId.Value);
-        if (group is null)
-        {
-            return JoinGroupResult.GroupNotFound;
-        }
-
-        var user = await ctx.Users.SingleOrDefaultAsync(u => u.UserID == userId);
-        if (user is null)
-        {
-            return JoinGroupResult.UserNotFound;
-        }
-
-        if (group.Users.Any(u => u.UserID == userId))
-        {
-            return JoinGroupResult.AlreadyMember;
-        }
-
-        group.Users.Add(user);
-        await ctx.SaveChangesAsync();
-        return JoinGroupResult.Success;
     }
 
     #endregion

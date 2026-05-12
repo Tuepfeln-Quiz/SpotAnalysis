@@ -2,7 +2,6 @@ using Microsoft.EntityFrameworkCore;
 using SpotAnalysis.Data;
 using SpotAnalysis.Data.Enums;
 using SpotAnalysis.Data.Models.Quizzes;
-using SpotAnalysis.Services;
 using SpotAnalysis.Services.DTOs;
 
 namespace SpotAnalysis.Services.Services;
@@ -15,10 +14,7 @@ public class StatisticsService(IDbContextFactory<AnalysisContext> factory) : ISt
 
         var attempt = new QuizAttempt
         {
-            UserID = userId,
-            QuizID = quizId,
-            Started = DateTime.UtcNow,
-            Completed = DateTime.MinValue
+            UserID = userId, QuizID = quizId, Started = DateTime.UtcNow, Completed = DateTime.MinValue
         };
 
         context.QuizAttempts.Add(attempt);
@@ -26,6 +22,7 @@ public class StatisticsService(IDbContextFactory<AnalysisContext> factory) : ISt
 
         return attempt.AttemptID;
     }
+
     public async Task SaveLightResultAsync(int attemptId, int questionId, int chosenReactionId, bool isCorrect)
     {
         await using var context = await factory.CreateDbContextAsync();
@@ -42,30 +39,26 @@ public class StatisticsService(IDbContextFactory<AnalysisContext> factory) : ISt
         context.STLResults.Add(result);
         await context.SaveChangesAsync();
     }
+
     public async Task SaveTuepfelnResultAsync(int attemptID, int questionID,
         List<(int chemicalID, string formula, bool isCorrect)> answers)
     {
         await using var context = await factory.CreateDbContextAsync();
 
-        var stResult = new STResult
-        {
-            AttemptID = attemptID,
-            QuestionID = questionID
-        };
+        var stResult = new STResult { AttemptID = attemptID, QuestionID = questionID };
 
         foreach (var (chemicalId, formula, isCorrect) in answers)
         {
             stResult.ChemicalResults.Add(new STChemicalResult
             {
-                ChemicalID = chemicalId,
-                ChosenFormula = formula,
-                IsCorrect = isCorrect
+                ChemicalID = chemicalId, ChosenFormula = formula, IsCorrect = isCorrect
             });
         }
 
         context.STResults.Add(stResult);
         await context.SaveChangesAsync();
     }
+
     public async Task CompleteAttemptAsync(int attemptId)
     {
         await using var context = await factory.CreateDbContextAsync();
@@ -77,6 +70,7 @@ public class StatisticsService(IDbContextFactory<AnalysisContext> factory) : ISt
             await context.SaveChangesAsync();
         }
     }
+
     public async Task<UserStatisticsDto> GetUserStatisticsAsync(Guid userId)
     {
         await using var context = await factory.CreateDbContextAsync();
@@ -108,6 +102,7 @@ public class StatisticsService(IDbContextFactory<AnalysisContext> factory) : ISt
             TotalQuestions = totalQuestions
         };
     }
+
     public async Task<List<QuizHistoryDto>> GetUserHistoryAsync(Guid userId)
     {
         await using var context = await factory.CreateDbContextAsync();
@@ -132,9 +127,9 @@ public class StatisticsService(IDbContextFactory<AnalysisContext> factory) : ISt
             TotalQuestions = CalculateTotal(a)
         }).ToList();
     }
+
     private static QuestionType DetermineQuizType(QuizAttempt attempt)
     {
-
         if (attempt.Quiz?.QuizQuestions?.Any() == true)
         {
             var firstQuestion = attempt.Quiz.QuizQuestions.First().Question;
@@ -148,13 +143,15 @@ public class StatisticsService(IDbContextFactory<AnalysisContext> factory) : ISt
 
         return QuestionType.SpotTest;
     }
+
     private static int CalculateCorrect(QuizAttempt attempt)
     {
         var correct = 0;
 
         foreach (var light in attempt.STLResults)
         {
-            if (light.IsCorrect) correct++;
+            if (light.IsCorrect)
+                correct++;
         }
 
         foreach (var st in attempt.STResults)
@@ -164,6 +161,7 @@ public class StatisticsService(IDbContextFactory<AnalysisContext> factory) : ISt
 
         return correct;
     }
+
     private static int CalculateTotal(QuizAttempt attempt)
     {
         var total = 0;

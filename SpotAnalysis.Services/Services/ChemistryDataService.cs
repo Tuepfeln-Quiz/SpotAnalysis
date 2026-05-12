@@ -55,11 +55,7 @@ public class ChemistryDataService(IDbContextFactory<AnalysisContext> factory) : 
         await using var context = await factory.CreateDbContextAsync();
         return await context.Methods
             .AsNoTracking()
-            .Select(m => new MethodQuestionDto
-            {
-                Id = m.MethodID,
-                Name = m.Name
-            }).ToListAsync();
+            .Select(m => new MethodQuestionDto { Id = m.MethodID, Name = m.Name }).ToListAsync();
     }
 
     public async Task<List<ColorDto>> GetAllColorsAsync()
@@ -73,12 +69,7 @@ public class ChemistryDataService(IDbContextFactory<AnalysisContext> factory) : 
             .ToListAsync();
     }
 
-    private static ColorDto MapColor(Color c) => new()
-    {
-        Id = c.ColorId,
-        Name = c.Name,
-        HexValue = c.HexValue
-    };
+    private static ColorDto MapColor(Color c) => new() { Id = c.ColorId, Name = c.Name, HexValue = c.HexValue };
 
     private static LabChemicalDto MapChemical(Chemical c) => new()
     {

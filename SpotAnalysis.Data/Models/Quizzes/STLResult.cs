@@ -1,4 +1,4 @@
-﻿namespace SpotAnalysis.Data.Models.Quizzes;
+namespace SpotAnalysis.Data.Models.Quizzes;
 
 /// <summary>
 /// Represents the results for the specified SpotTestLight Questions. 

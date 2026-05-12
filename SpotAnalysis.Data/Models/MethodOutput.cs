@@ -1,4 +1,4 @@
-﻿namespace SpotAnalysis.Data.Models;
+namespace SpotAnalysis.Data.Models;
 
 /// <summary>
 /// Represents the observation (color) of the specified chemical when a specified method is applied to it.

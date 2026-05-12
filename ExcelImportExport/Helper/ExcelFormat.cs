@@ -1,4 +1,4 @@
-﻿namespace ExcelImportExport.Helper;
+namespace ExcelImportExport.Helper;
 
 public enum ExcelFormat
 {

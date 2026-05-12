@@ -29,19 +29,13 @@ public class QuizService(ILogger<QuizService> logger, IDbContextFactory<Analysis
     {
         await using var dbContext = await factory.CreateDbContextAsync();
 
-        var newQuiz = new Quiz
-        {
-            Name = quiz.Name,
-            CreatedBy = teacherId
-        };
+        var newQuiz = new Quiz { Name = quiz.Name, CreatedBy = teacherId };
 
         dbContext.Quizzes.Add(newQuiz);
 
         var quizQuestions = quiz.Questions.Select(x => new QuizQuestion
         {
-            Quiz = newQuiz,
-            QuestionID = x.Id,
-            Order = x.Order
+            Quiz = newQuiz, QuestionID = x.Id, Order = x.Order
         });
 
         dbContext.QuizQuestions.AddRange(quizQuestions);
@@ -92,9 +86,7 @@ public class QuizService(ILogger<QuizService> logger, IDbContextFactory<Analysis
         var newQuestions = quiz.Questions.Where(q => !existingQuestionIds.Contains(q.Id));
         await dbContext.QuizQuestions.AddRangeAsync(newQuestions.Select(x => new QuizQuestion
         {
-            QuizID = quiz.Id,
-            QuestionID = x.Id,
-            Order = x.Order
+            QuizID = quiz.Id, QuestionID = x.Id, Order = x.Order
         }));
 
         // Remove deleted questions
@@ -116,7 +108,8 @@ public class QuizService(ILogger<QuizService> logger, IDbContextFactory<Analysis
             .Include(q => q.Groups)
             .SingleOrDefaultAsync(q => q.QuizID == quizId && q.CreatedBy == teacherId);
 
-        if (quiz is null) return;
+        if (quiz is null)
+            return;
 
         quiz.Groups.Clear();
 
@@ -161,12 +154,7 @@ public class QuizService(ILogger<QuizService> logger, IDbContextFactory<Analysis
         return await dbContext.Quizzes
             .Where(q => q.QuizID == quizId)
             .SelectMany(q => q.Groups)
-            .Select(g => new GroupDto
-            {
-                Id = g.GroupID,
-                Name = g.Name,
-                Description = g.Description,
-            }).ToListAsync();
+            .Select(g => new GroupDto { Id = g.GroupID, Name = g.Name, Description = g.Description, }).ToListAsync();
     }
 
     public async Task RemoveGroupFromQuiz(Guid teacherId, int quizId, int groupId)
@@ -271,11 +259,7 @@ public class QuizService(ILogger<QuizService> logger, IDbContextFactory<Analysis
             throw new ArgumentException(
                 $"Expected {orderedEducts.Count} formulas but received {answer.ChemicalFormulas.Count}.");
 
-        var result = new STResult
-        {
-            QuestionID = answer.QuestionId,
-            AttemptID = attempt.AttemptID
-        };
+        var result = new STResult { QuestionID = answer.QuestionId, AttemptID = attempt.AttemptID };
         context.STResults.Add(result);
         await context.SaveChangesAsync();
 
@@ -348,8 +332,7 @@ public class QuizService(ILogger<QuizService> logger, IDbContextFactory<Analysis
                 Methods = x.STQuestion != null
                     ? x.STQuestion.AvailableMethods.Select(am => new MethodQuestionDto
                     {
-                        Id = am.MethodID,
-                        Name = am.Method.Name
+                        Id = am.MethodID, Name = am.Method.Name
                     }).ToList()
                     : new List<MethodQuestionDto>(),
                 AvailableReactionIds = x.STLQuestion != null
@@ -415,16 +398,13 @@ public class QuizService(ILogger<QuizService> logger, IDbContextFactory<Analysis
 
         var chemicals = question.AvailableChemicals.Select((chemId, index) => new STAvailableChemical
         {
-            STQuestion = stQuestion,
-            ChemicalID = chemId,
-            Order = index
+            STQuestion = stQuestion, ChemicalID = chemId, Order = index
         });
         dbContext.STAvailableChemicals.AddRange(chemicals);
 
         var methods = question.AvailableMethods.Select(methodId => new STAvailableMethod
         {
-            STQuestion = stQuestion,
-            MethodID = methodId
+            STQuestion = stQuestion, MethodID = methodId
         });
         dbContext.STAvailableMethods.AddRange(methods);
 
@@ -447,17 +427,14 @@ public class QuizService(ILogger<QuizService> logger, IDbContextFactory<Analysis
 
         var stlQuestion = new STLQuestion
         {
-            Question = newQuestion,
-            ReactionID = question.ReactionId,
-            ShownEductID = question.ShowEductId,
+            Question = newQuestion, ReactionID = question.ReactionId, ShownEductID = question.ShowEductId,
         };
 
         dbContext.STLQuestions.Add(stlQuestion);
 
         var reactions = question.AvailableReactions.Select(reactionId => new STLAvailableReaction
         {
-            STLQuestion = stlQuestion,
-            ReactionID = reactionId
+            STLQuestion = stlQuestion, ReactionID = reactionId
         });
 
         dbContext.STLAvailableReactions.AddRange(reactions);
@@ -492,9 +469,7 @@ public class QuizService(ILogger<QuizService> logger, IDbContextFactory<Analysis
 
         var chemicals = question.AvailableChemicals.Select((chemId, index) => new STAvailableChemical
         {
-            QuestionID = question.Id.Value,
-            ChemicalID = chemId,
-            Order = index
+            QuestionID = question.Id.Value, ChemicalID = chemId, Order = index
         });
         await dbContext.STAvailableChemicals.AddRangeAsync(chemicals);
 
@@ -504,8 +479,7 @@ public class QuizService(ILogger<QuizService> logger, IDbContextFactory<Analysis
 
         var methods = question.AvailableMethods.Select(methodId => new STAvailableMethod
         {
-            QuestionID = question.Id.Value,
-            MethodID = methodId
+            QuestionID = question.Id.Value, MethodID = methodId
         });
         await dbContext.STAvailableMethods.AddRangeAsync(methods);
 
@@ -542,8 +516,7 @@ public class QuizService(ILogger<QuizService> logger, IDbContextFactory<Analysis
 
         var reactions = question.AvailableReactions.Select(reactionId => new STLAvailableReaction
         {
-            QuestionID = question.Id.Value,
-            ReactionID = reactionId
+            QuestionID = question.Id.Value, ReactionID = reactionId
         });
         await dbContext.STLAvailableReactions.AddRangeAsync(reactions);
 
@@ -607,12 +580,7 @@ public class QuizService(ILogger<QuizService> logger, IDbContextFactory<Analysis
 
         if (openAttempt is null)
         {
-            openAttempt = new QuizAttempt
-            {
-                UserID = userId,
-                QuizID = quizId,
-                Started = DateTime.UtcNow
-            };
+            openAttempt = new QuizAttempt { UserID = userId, QuizID = quizId, Started = DateTime.UtcNow };
             db.QuizAttempts.Add(openAttempt);
             await db.SaveChangesAsync();
         }
@@ -635,17 +603,9 @@ public class QuizService(ILogger<QuizService> logger, IDbContextFactory<Analysis
             .Where(a => a.UserID == userId && a.QuizID == quizId && a.Completed == null)
             .OrderByDescending(a => a.AttemptID)
             .FirstOrDefaultAsync();
-        if (openAttempt is not null)
-        {
-            openAttempt.Completed = DateTime.UtcNow;
-        }
+        openAttempt?.Completed = DateTime.UtcNow;
 
-        var fresh = new QuizAttempt
-        {
-            UserID = userId,
-            QuizID = quizId,
-            Started = DateTime.UtcNow
-        };
+        var fresh = new QuizAttempt { UserID = userId, QuizID = quizId, Started = DateTime.UtcNow };
         db.QuizAttempts.Add(fresh);
         await db.SaveChangesAsync();
         await transaction.CommitAsync();
@@ -657,10 +617,8 @@ public class QuizService(ILogger<QuizService> logger, IDbContextFactory<Analysis
     {
         await using var db = await factory.CreateDbContextAsync();
         var attempt = await db.QuizAttempts
-            .SingleOrDefaultAsync(a => a.AttemptID == attemptId && a.UserID == userId);
-
-        if (attempt is null)
-            throw new UnauthorizedAccessException("Attempt does not belong to the requesting user.");
+                          .SingleOrDefaultAsync(a => a.AttemptID == attemptId && a.UserID == userId) ??
+                      throw new UnauthorizedAccessException("Attempt does not belong to the requesting user.");
 
         attempt.Completed = DateTime.UtcNow;
         await db.SaveChangesAsync();
@@ -671,11 +629,8 @@ public class QuizService(ILogger<QuizService> logger, IDbContextFactory<Analysis
         var attempt = await context.QuizAttempts
             .Where(a => a.UserID == userId && a.QuizID == quizId && a.Completed == null)
             .OrderByDescending(a => a.AttemptID)
-            .FirstOrDefaultAsync();
-
-        if (attempt is null)
-            throw new InvalidOperationException(
-                $"No open attempt for user {userId} on quiz {quizId}.");
+            .FirstOrDefaultAsync() ?? throw new InvalidOperationException(
+            $"No open attempt for user {userId} on quiz {quizId}.");
 
         return attempt;
     }
@@ -761,7 +716,9 @@ public class QuizService(ILogger<QuizService> logger, IDbContextFactory<Analysis
                             },
                             ShownEductMethodOutputs = qq.Question.STLQuestion.ShownEduct.MethodOutputs
                                 .Select(mo => new
-                                    { mo.MethodID, Color = new { mo.Color.ColorId, mo.Color.Name, mo.Color.HexValue } })
+                                {
+                                    mo.MethodID, Color = new { mo.Color.ColorId, mo.Color.Name, mo.Color.HexValue }
+                                })
                                 .ToList(),
                             Observation = qq.Question.STLQuestion.Reaction.Observation.Description,
                             CorrectReactionID = qq.Question.STLQuestion.ReactionID,
@@ -807,10 +764,14 @@ public class QuizService(ILogger<QuizService> logger, IDbContextFactory<Analysis
                             ChemicalTypeID = (int)e.Type,
                             ChemicalTypeName = "Edukt",
                             Color = new ColorDto
-                                { Id = e.Color.ColorId, Name = e.Color.Name, HexValue = e.Color.HexValue },
+                            {
+                                Id = e.Color.ColorId, Name = e.Color.Name, HexValue = e.Color.HexValue
+                            },
                             MethodOutputs = e.MethodOutputs.ToDictionary(mo => methods[mo.MethodID],
                                 mo => new ColorDto
-                                    { Id = mo.Color.ColorId, Name = mo.Color.Name, HexValue = mo.Color.HexValue })
+                                {
+                                    Id = mo.Color.ColorId, Name = mo.Color.Name, HexValue = mo.Color.HexValue
+                                })
                         }).ToList(),
                         AvailableAdditives = q.SpotTest.AvailableAdditives.Select(e => new LabChemicalDto
                         {
@@ -822,10 +783,14 @@ public class QuizService(ILogger<QuizService> logger, IDbContextFactory<Analysis
                             ChemicalTypeID = (int)e.Type,
                             ChemicalTypeName = "Zusatzstoff",
                             Color = new ColorDto
-                                { Id = e.Color.ColorId, Name = e.Color.Name, HexValue = e.Color.HexValue },
+                            {
+                                Id = e.Color.ColorId, Name = e.Color.Name, HexValue = e.Color.HexValue
+                            },
                             MethodOutputs = e.MethodOutputs.ToDictionary(mo => methods[mo.MethodID],
                                 mo => new ColorDto
-                                    { Id = mo.Color.ColorId, Name = mo.Color.Name, HexValue = mo.Color.HexValue })
+                                {
+                                    Id = mo.Color.ColorId, Name = mo.Color.Name, HexValue = mo.Color.HexValue
+                                })
                         }).ToList(),
                         AvailableMethods = q.SpotTest.AvailableMethods.Select(id => methods[id]).ToList()
                     }
@@ -833,23 +798,33 @@ public class QuizService(ILogger<QuizService> logger, IDbContextFactory<Analysis
                 Light = q.Light != null
                     ? new LightPayloadDto
                     {
-                        ShownEduct = new ChemicalDto
-                        {
-                            Id = q.Light.ShownEductId,
-                            Name = q.Light.ShownEductName,
-                            Formula = q.Light.ShownEductFormula,
-                            Color = new ColorDto
+                        ShownEduct =
+                            new ChemicalDto
                             {
-                                Id = q.Light.ShownEductColor.ColorId, Name = q.Light.ShownEductColor.Name,
-                                HexValue = q.Light.ShownEductColor.HexValue
+                                Id = q.Light.ShownEductId,
+                                Name = q.Light.ShownEductName,
+                                Formula = q.Light.ShownEductFormula,
+                                Color =
+                                    new ColorDto
+                                    {
+                                        Id = q.Light.ShownEductColor.ColorId,
+                                        Name = q.Light.ShownEductColor.Name,
+                                        HexValue = q.Light.ShownEductColor.HexValue
+                                    },
+                                MethodInfo =
+                                    q.Light.ShownEductMethodOutputs.Select(mo =>
+                                        new MethodInfoDto
+                                        {
+                                            Name = methods[mo.MethodID],
+                                            Color =
+                                                new ColorDto
+                                                {
+                                                    Id = mo.Color.ColorId,
+                                                    Name = mo.Color.Name,
+                                                    HexValue = mo.Color.HexValue
+                                                }
+                                        }).ToList()
                             },
-                            MethodInfo = q.Light.ShownEductMethodOutputs.Select(mo => new MethodInfoDto
-                            {
-                                Name = methods[mo.MethodID],
-                                Color = new ColorDto
-                                    { Id = mo.Color.ColorId, Name = mo.Color.Name, HexValue = mo.Color.HexValue }
-                            }).ToList()
-                        },
                         Observation = q.Light.Observation,
                         CorrectReactionID = q.Light.CorrectReactionID,
                         AvailableReactions = q.Light.AvailableReactions.Select(ar => new LabReactionDto

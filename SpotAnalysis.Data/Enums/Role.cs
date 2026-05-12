@@ -1,10 +1,8 @@
-﻿namespace SpotAnalysis.Data.Enums
-{
+namespace SpotAnalysis.Data.Enums;
 
-    public enum Role
-    {
-        Admin,
-        Teacher,
-        Student
-    }
+public enum Role
+{
+    Admin,
+    Teacher,
+    Student
 }

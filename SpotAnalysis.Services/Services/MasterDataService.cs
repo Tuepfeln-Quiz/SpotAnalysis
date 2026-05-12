@@ -384,10 +384,7 @@ public class MasterDataService(IDbContextFactory<AnalysisContext> factory) : IMa
             .OrderBy(mo => mo.Method.Name)
             .Select(mo => new MethodOutputEntry
             {
-                MethodId = mo.MethodID,
-                MethodName = mo.Method.Name,
-                ColorId = mo.ColorId,
-                ColorName = mo.Color.Name
+                MethodId = mo.MethodID, MethodName = mo.Method.Name, ColorId = mo.ColorId, ColorName = mo.Color.Name
             }).ToList(),
         References = BuildChemicalReferences(c)
     };
@@ -490,7 +487,8 @@ public class MasterDataService(IDbContextFactory<AnalysisContext> factory) : IMa
 
         var existing = await context.Observations
             .FirstOrDefaultAsync(o => EF.Functions.ILike(o.Description, desc), ct);
-        if (existing is not null) return existing;
+        if (existing is not null)
+            return existing;
 
         var created = new Observation { Description = desc };
         context.Observations.Add(created);
@@ -503,11 +501,13 @@ public class MasterDataService(IDbContextFactory<AnalysisContext> factory) : IMa
     private static async Task<int> ResolveColorIdAsync(
         AnalysisContext context, int colorId, string colorName, CancellationToken ct)
     {
-        if (colorId > 0) return colorId;
+        if (colorId > 0)
+            return colorId;
 
         var color = await context.Colors.FirstOrDefaultAsync(
             c => EF.Functions.ILike(c.Name, colorName), ct);
-        if (color is not null) return color.ColorId;
+        if (color is not null)
+            return color.ColorId;
 
         color = new Color { Name = colorName, HexValue = "#666666" };
         context.Colors.Add(color);
@@ -545,9 +545,7 @@ public class MasterDataService(IDbContextFactory<AnalysisContext> factory) : IMa
                 {
                     context.MethodOutputs.Add(new MethodOutput
                     {
-                        ChemicalID = chemical.ChemicalID,
-                        MethodID = method.MethodID,
-                        ColorId = colorId
+                        ChemicalID = chemical.ChemicalID, MethodID = method.MethodID, ColorId = colorId
                     });
                 }
                 else

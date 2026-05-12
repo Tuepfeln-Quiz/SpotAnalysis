@@ -1,8 +1,7 @@
-﻿using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging;
 using NSubstitute;
 using SpotAnalysis.Data.Enums;
 using SpotAnalysis.Services.Services;
-using System.Linq;
 
 namespace SpotAnalysis.Services.Tests;
 

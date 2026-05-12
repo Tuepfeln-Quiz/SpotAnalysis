@@ -63,10 +63,7 @@ public class TestMasterDataServiceChemicals : BaseDatabaseTest
             Formula = "TS",
             ColorName = "grün",
             Type = ChemicalType.Educt,
-            MethodOutputs = new()
-            {
-                new MethodOutputEntry { MethodName = "ph-Papier", ColorName = "gelb" }
-            }
+            MethodOutputs = new() { new MethodOutputEntry { MethodName = "ph-Papier", ColorName = "gelb" } }
         };
 
         var id = await service.CreateChemicalAsync(dto);
@@ -83,10 +80,7 @@ public class TestMasterDataServiceChemicals : BaseDatabaseTest
         var service = new MasterDataService(ContextFactory);
         var dto = new ChemicalDetailDto
         {
-            Name = "Eisen(III)chlorid",
-            Formula = "FeCl3",
-            ColorName = "orange",
-            Type = ChemicalType.Educt
+            Name = "Eisen(III)chlorid", Formula = "FeCl3", ColorName = "orange", Type = ChemicalType.Educt
         };
 
         Assert.ThrowsAsync<InvalidOperationException>(async () =>
@@ -159,10 +153,7 @@ public class TestMasterDataServiceChemicals : BaseDatabaseTest
         var service = new MasterDataService(ContextFactory);
         var id = await service.CreateChemicalAsync(new ChemicalDetailDto
         {
-            Name = "Löschkandidat",
-            Formula = "LK",
-            ColorName = "rosa",
-            Type = ChemicalType.Additive
+            Name = "Löschkandidat", Formula = "LK", ColorName = "rosa", Type = ChemicalType.Additive
         });
 
         await service.DeleteChemicalAsync(id);

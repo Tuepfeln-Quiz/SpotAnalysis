@@ -1,8 +1,9 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 using SpotAnalysis.Data.Enums;
 using SpotAnalysis.Data.Models.Identity;
+using SpotAnalysis.Data.Models.Quizzes;
 using SpotAnalysis.Services.DTOs;
 using SpotAnalysis.Services.Services;
 
@@ -11,17 +12,6 @@ namespace SpotAnalysis.Services.Tests;
 [TestFixture]
 public class TestQuizService : BaseDatabaseTest
 {
-    private QuizService _quizService;
-    private GroupService _teacherService;
-
-    private readonly Guid _createdBy = Guid.NewGuid();
-
-    #region Users
-
-    private static readonly Guid Teacher1 = Guid.Parse("9c9c2138-f945-41fa-823e-f3bd286c0fa1");
-
-    #endregion
-
     [OneTimeSetUp]
     public void InitGroupService()
     {
@@ -30,6 +20,13 @@ public class TestQuizService : BaseDatabaseTest
         var inviteTokens = new GroupInviteTokenService(ContextFactory);
         _teacherService = new GroupService(ContextFactory, inviteTokens);
     }
+
+    private QuizService _quizService;
+    private GroupService _teacherService;
+
+    private readonly Guid _createdBy = Guid.NewGuid();
+
+    private static readonly Guid Teacher1 = Guid.Parse("9c9c2138-f945-41fa-823e-f3bd286c0fa1");
 
     [Test]
     public async Task GetAllQuizzes_ReturnAllQuizzes()
@@ -52,12 +49,7 @@ public class TestQuizService : BaseDatabaseTest
 
         var newQuizName = "My cool new name";
 
-        var quizToUpdate = new UpdateQuizDto
-        {
-            Id = 10,
-            Name = newQuizName,
-            Questions = []
-        };
+        var quizToUpdate = new UpdateQuizDto { Id = 10, Name = newQuizName, Questions = [] };
 
         await _quizService.UpdateQuiz(_createdBy, quizToUpdate);
 
@@ -98,10 +90,7 @@ public class TestQuizService : BaseDatabaseTest
 
         await using var dbContext = await ContextFactory.CreateDbContextAsync();
 
-        var result = await dbContext.Groups.AddAsync(new Group
-        {
-            Name = "Fetzige Group"
-        });
+        var result = await dbContext.Groups.AddAsync(new Group { Name = "Fetzige Group" });
 
         await dbContext.SaveChangesAsync();
 
@@ -130,11 +119,7 @@ public class TestQuizService : BaseDatabaseTest
         {
             var quiz = await dbContext.Quizzes.FirstAsync();
 
-            var result = await dbContext.Groups.AddAsync(new Group
-            {
-                Name = "Fetzige Group",
-                Quizzes = [quiz]
-            });
+            var result = await dbContext.Groups.AddAsync(new Group { Name = "Fetzige Group", Quizzes = [quiz] });
 
             createdQuiz = result.Entity;
 
@@ -169,11 +154,7 @@ public class TestQuizService : BaseDatabaseTest
         {
             var quiz = await dbContext.Quizzes.FirstAsync();
 
-            var result = await dbContext.Groups.AddAsync(new Group
-            {
-                Name = "Fetzige Group",
-                Quizzes = [quiz]
-            });
+            var result = await dbContext.Groups.AddAsync(new Group { Name = "Fetzige Group", Quizzes = [quiz] });
 
             createdQuiz = result.Entity;
 
@@ -201,10 +182,7 @@ public class TestQuizService : BaseDatabaseTest
         {
             await dbContext.Users.AddAsync(new User
             {
-                UserID = _createdBy,
-                UserName = "Test",
-                PasswordHash = "HohohoNoHash",
-                Roles = [Role.Teacher]
+                UserID = _createdBy, UserName = "Test", PasswordHash = "HohohoNoHash", Roles = [Role.Teacher]
             });
 
             await dbContext.SaveChangesAsync();
@@ -214,11 +192,7 @@ public class TestQuizService : BaseDatabaseTest
 
         for (int i = 0; i < 100; i++)
         {
-            tasks.Add(_quizService.CreateQuiz(_createdBy, new CreateQuizDto
-            {
-                Name = i.ToString(),
-                Questions = []
-            }));
+            tasks.Add(_quizService.CreateQuiz(_createdBy, new CreateQuizDto { Name = i.ToString(), Questions = [] }));
         }
 
         Task.WaitAll(tasks);
@@ -268,20 +242,13 @@ public class TestQuizService : BaseDatabaseTest
     [Test]
     public async Task GetQuizzes_ReturnsCreatedQuiz()
     {
-        await _teacherService.CreateGroup(Teacher1, new ConfigGroupDto
-        {
-            Name = "Test Quiz Group",
-        });
+        await _teacherService.CreateGroup(Teacher1, new ConfigGroupDto { Name = "Test Quiz Group", });
 
         var groups = await _teacherService.GetGroups(Teacher1);
 
         Assert.That(groups, Has.Count.EqualTo(1));
 
-        await _quizService.CreateQuiz(Teacher1, new CreateQuizDto
-        {
-            Name = "Test Quiz",
-            Questions = [],
-        });
+        await _quizService.CreateQuiz(Teacher1, new CreateQuizDto { Name = "Test Quiz", Questions = [], });
 
         var quizzes = await _quizService.GetQuizzes(Teacher1);
 
@@ -298,7 +265,8 @@ public class TestQuizService : BaseDatabaseTest
         await _quizService.CreateSTLQuestion(Teacher1, new ConfigSTLQuestionDto
         {
             Description = "A Test STL Question",
-            AvailableReactions = [
+            AvailableReactions =
+            [
                 1
             ],
             ShowEductId = 1,
@@ -310,12 +278,9 @@ public class TestQuizService : BaseDatabaseTest
         {
             Name = "Test Quiz",
             Id = quiz.Id,
-            Questions = [
-                new QuestionDto
-                {
-                    Id = 1,
-                    Order = 1
-                },
+            Questions =
+            [
+                new QuestionDto { Id = 1, Order = 1 },
             ],
         });
     }
@@ -374,13 +339,13 @@ public class TestQuizService : BaseDatabaseTest
         if (userId != creatorId && !await db.Users.AnyAsync(u => u.UserID == userId))
             db.Users.Add(new User { UserID = userId, UserName = "Member", PasswordHash = "x" });
 
-        var quiz = new SpotAnalysis.Data.Models.Quizzes.Quiz { Name = "Seed", CreatedBy = creatorId };
+        var quiz = new Quiz { Name = "Seed", CreatedBy = creatorId };
         db.Quizzes.Add(quiz);
         await db.SaveChangesAsync();
 
         if (assignViaGroup)
         {
-            var group = new SpotAnalysis.Data.Models.Identity.Group { Name = "SeedGroup" };
+            var group = new Group { Name = "SeedGroup" };
             group.Users.Add(await db.Users.SingleAsync(u => u.UserID == userId));
             group.Quizzes.Add(quiz);
             db.Groups.Add(group);
@@ -485,16 +450,11 @@ public class TestQuizService : BaseDatabaseTest
         await using (var db = await ContextFactory.CreateDbContextAsync())
         {
             await db.Users.AddAsync(new User { UserID = _createdBy, UserName = "U", PasswordHash = "x" });
-            var quiz = new SpotAnalysis.Data.Models.Quizzes.Quiz { Name = "Q", CreatedBy = _createdBy };
+            var quiz = new Quiz { Name = "Q", CreatedBy = _createdBy };
             db.Quizzes.Add(quiz);
             await db.SaveChangesAsync();
 
-            var attempt = new SpotAnalysis.Data.Models.Quizzes.QuizAttempt
-            {
-                UserID = _createdBy,
-                QuizID = quiz.QuizID,
-                Started = DateTime.UtcNow
-            };
+            var attempt = new QuizAttempt { UserID = _createdBy, QuizID = quiz.QuizID, Started = DateTime.UtcNow };
             db.QuizAttempts.Add(attempt);
             await db.SaveChangesAsync();
             attemptId = attempt.AttemptID;

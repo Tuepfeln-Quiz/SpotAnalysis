@@ -1,4 +1,4 @@
-﻿using SpotAnalysis.Services.Services;
+using SpotAnalysis.Services.Services;
 
 namespace SpotAnalysis.Services.Tests;
 

@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using ExcelImportExport.Helper;
 using NPOI.HSSF.UserModel;
 using NPOI.SS.UserModel;
@@ -120,6 +120,7 @@ public static class ExcelExporter
         {
             ".xlsx" => ExcelFormat.Xlsx,
             ".xls" => ExcelFormat.Xls,
-            _ => throw new ArgumentException($"Unsupported file extension: {Path.GetExtension(filePath)}. Use .xlsx or .xls.")
+            _ => throw new ArgumentException(
+                $"Unsupported file extension: {Path.GetExtension(filePath)}. Use .xlsx or .xls.")
         };
 }

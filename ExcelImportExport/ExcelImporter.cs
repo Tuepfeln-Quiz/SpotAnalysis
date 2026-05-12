@@ -1,4 +1,4 @@
-﻿using ExcelImportExport.Helper;
+using ExcelImportExport.Helper;
 using NPOI.HSSF.UserModel;
 using NPOI.SS.UserModel;
 using NPOI.XSSF.UserModel;
@@ -46,7 +46,8 @@ public static class ExcelImporter
         for (var i = 0; i < workbook.NumberOfSheets; i++)
         {
             var sheet = workbook.GetSheetAt(i);
-            if (sheet.LastRowNum < 1) continue;
+            if (sheet.LastRowNum < 1)
+                continue;
             result[sheet.SheetName] = ReadSheet<T>(sheet);
         }
 
@@ -58,13 +59,14 @@ public static class ExcelImporter
         if (sheetName != null)
         {
             return workbook.GetSheet(sheetName)
-                ?? throw new ArgumentException($"Sheet '{sheetName}' not found.");
+                   ?? throw new ArgumentException($"Sheet '{sheetName}' not found.");
         }
 
         // Try matching by ExcelSheetAttribute name
         var attrName = ReflectionHelper.GetSheetName(type);
         var sheet = workbook.GetSheet(attrName);
-        if (sheet != null) return sheet;
+        if (sheet != null)
+            return sheet;
 
         // Fallback to first sheet
         return workbook.GetSheetAt(0);
@@ -83,7 +85,8 @@ public static class ExcelImporter
         for (var col = headerRow.FirstCellNum; col < headerRow.LastCellNum; col++)
         {
             var headerValue = headerRow.GetCell(col)?.StringCellValue?.Trim();
-            if (string.IsNullOrEmpty(headerValue)) continue;
+            if (string.IsNullOrEmpty(headerValue))
+                continue;
 
             var mapping = mappings.FirstOrDefault(m =>
                 string.Equals(m.ColumnName, headerValue, StringComparison.OrdinalIgnoreCase));
@@ -96,7 +99,8 @@ public static class ExcelImporter
         for (var rowIndex = sheet.FirstRowNum + 1; rowIndex <= sheet.LastRowNum; rowIndex++)
         {
             var row = sheet.GetRow(rowIndex);
-            if (row == null) continue;
+            if (row == null)
+                continue;
 
             var item = new T();
             var hasValue = false;
@@ -104,7 +108,8 @@ public static class ExcelImporter
             foreach (var (colIndex, mapping) in columnMap)
             {
                 var cell = row.GetCell(colIndex);
-                if (cell == null || cell.CellType == CellType.Blank) continue;
+                if (cell == null || cell.CellType == CellType.Blank)
+                    continue;
 
                 var value = ConvertCellValue(cell, mapping.Property.PropertyType);
                 if (value != null)
@@ -129,7 +134,8 @@ public static class ExcelImporter
         {
             return cell.CellType switch
             {
-                CellType.Numeric when DateUtil.IsCellDateFormatted(cell) && cell.DateCellValue is { } dateVal => ConvertDateValue(dateVal, underlying),
+                CellType.Numeric when DateUtil.IsCellDateFormatted(cell) && cell.DateCellValue is { } dateVal =>
+                    ConvertDateValue(dateVal, underlying),
                 CellType.Numeric => ConvertNumericValue(cell.NumericCellValue, underlying),
                 CellType.String => ConvertStringValue(cell.StringCellValue, underlying),
                 CellType.Boolean => ConvertBoolValue(cell.BooleanCellValue, underlying),
@@ -145,45 +151,67 @@ public static class ExcelImporter
 
     private static object? ConvertDateValue(DateTime dateValue, Type targetType)
     {
-        if (targetType == typeof(DateTime)) return dateValue;
-        if (targetType == typeof(DateOnly)) return DateOnly.FromDateTime(dateValue);
-        if (targetType == typeof(string)) return dateValue.ToString("yyyy-MM-dd HH:mm:ss");
+        if (targetType == typeof(DateTime))
+            return dateValue;
+        if (targetType == typeof(DateOnly))
+            return DateOnly.FromDateTime(dateValue);
+        if (targetType == typeof(string))
+            return dateValue.ToString("yyyy-MM-dd HH:mm:ss");
         return null;
     }
 
     private static object? ConvertNumericValue(double numericValue, Type targetType)
     {
-        if (targetType == typeof(double)) return numericValue;
-        if (targetType == typeof(float)) return (float)numericValue;
-        if (targetType == typeof(decimal)) return (decimal)numericValue;
-        if (targetType == typeof(int)) return (int)numericValue;
-        if (targetType == typeof(long)) return (long)numericValue;
-        if (targetType == typeof(string)) return numericValue.ToString();
-        if (targetType == typeof(bool)) return numericValue != 0;
+        if (targetType == typeof(double))
+            return numericValue;
+        if (targetType == typeof(float))
+            return (float)numericValue;
+        if (targetType == typeof(decimal))
+            return (decimal)numericValue;
+        if (targetType == typeof(int))
+            return (int)numericValue;
+        if (targetType == typeof(long))
+            return (long)numericValue;
+        if (targetType == typeof(string))
+            return numericValue.ToString();
+        if (targetType == typeof(bool))
+            return numericValue != 0;
         return Convert.ChangeType(numericValue, targetType);
     }
 
     private static object? ConvertStringValue(string stringValue, Type targetType)
     {
-        if (targetType == typeof(string)) return stringValue;
-        if (string.IsNullOrWhiteSpace(stringValue)) return null;
+        if (targetType == typeof(string))
+            return stringValue;
+        if (string.IsNullOrWhiteSpace(stringValue))
+            return null;
 
-        if (targetType == typeof(int) && int.TryParse(stringValue, out var i)) return i;
-        if (targetType == typeof(long) && long.TryParse(stringValue, out var l)) return l;
-        if (targetType == typeof(double) && double.TryParse(stringValue, out var d)) return d;
-        if (targetType == typeof(float) && float.TryParse(stringValue, out var f)) return f;
-        if (targetType == typeof(decimal) && decimal.TryParse(stringValue, out var dec)) return dec;
-        if (targetType == typeof(bool) && bool.TryParse(stringValue, out var b)) return b;
-        if (targetType == typeof(DateTime) && DateTime.TryParse(stringValue, out var dt)) return dt;
-        if (targetType == typeof(DateOnly) && DateOnly.TryParse(stringValue, out var dateOnly)) return dateOnly;
+        if (targetType == typeof(int) && int.TryParse(stringValue, out var i))
+            return i;
+        if (targetType == typeof(long) && long.TryParse(stringValue, out var l))
+            return l;
+        if (targetType == typeof(double) && double.TryParse(stringValue, out var d))
+            return d;
+        if (targetType == typeof(float) && float.TryParse(stringValue, out var f))
+            return f;
+        if (targetType == typeof(decimal) && decimal.TryParse(stringValue, out var dec))
+            return dec;
+        if (targetType == typeof(bool) && bool.TryParse(stringValue, out var b))
+            return b;
+        if (targetType == typeof(DateTime) && DateTime.TryParse(stringValue, out var dt))
+            return dt;
+        if (targetType == typeof(DateOnly) && DateOnly.TryParse(stringValue, out var dateOnly))
+            return dateOnly;
 
         return null;
     }
 
     private static object? ConvertBoolValue(bool boolValue, Type targetType)
     {
-        if (targetType == typeof(bool)) return boolValue;
-        if (targetType == typeof(string)) return boolValue.ToString();
+        if (targetType == typeof(bool))
+            return boolValue;
+        if (targetType == typeof(string))
+            return boolValue.ToString();
         return null;
     }
 
@@ -191,7 +219,8 @@ public static class ExcelImporter
     {
         return cell.CachedFormulaResultType switch
         {
-            CellType.Numeric when DateUtil.IsCellDateFormatted(cell) && cell.DateCellValue is { } fDateVal => ConvertDateValue(fDateVal, targetType),
+            CellType.Numeric when DateUtil.IsCellDateFormatted(cell) && cell.DateCellValue is { } fDateVal =>
+                ConvertDateValue(fDateVal, targetType),
             CellType.Numeric => ConvertNumericValue(cell.NumericCellValue, targetType),
             CellType.String => ConvertStringValue(cell.StringCellValue, targetType),
             CellType.Boolean => ConvertBoolValue(cell.BooleanCellValue, targetType),
@@ -207,6 +236,7 @@ public static class ExcelImporter
         {
             ".xlsx" => ExcelFormat.Xlsx,
             ".xls" => ExcelFormat.Xls,
-            _ => throw new ArgumentException($"Unsupported file extension: {Path.GetExtension(filePath)}. Use .xlsx or .xls.")
+            _ => throw new ArgumentException(
+                $"Unsupported file extension: {Path.GetExtension(filePath)}. Use .xlsx or .xls.")
         };
 }

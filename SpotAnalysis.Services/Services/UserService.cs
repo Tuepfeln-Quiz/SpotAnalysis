@@ -1,4 +1,4 @@
-﻿using System.Security.Authentication;
+using System.Security.Authentication;
 using System.Text.RegularExpressions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -66,12 +66,8 @@ public class UserService(ILogger<UserService> logger, IDbContextFactory<Analysis
         }
 
         await using var context = await factory.CreateDbContextAsync();
-        var user = await context.Users.SingleOrDefaultAsync(u => u.UserName.ToLower() == userName.ToLower());
-
-        if (user == null)
-        {
-            throw new ArgumentException("No user was found with given user name");
-        }
+        var user = await context.Users.SingleOrDefaultAsync(u => u.UserName.ToLower() == userName.ToLower()) ??
+                   throw new ArgumentException("No user was found with given user name");
 
         if (string.IsNullOrEmpty(user.PasswordHash))
         {
@@ -118,12 +114,7 @@ public class UserService(ILogger<UserService> logger, IDbContextFactory<Analysis
             throw new InvalidOperationException("UserNameTaken");
         }
 
-        var newUser = new User
-        {
-            UserName = normalizedUserName,
-            PasswordHash = passwordString,
-            UserID = newGuid
-        };
+        var newUser = new User { UserName = normalizedUserName, PasswordHash = passwordString, UserID = newGuid };
         newUser.Roles.Add(Role.Student);
         context.Users.Add(newUser);
 

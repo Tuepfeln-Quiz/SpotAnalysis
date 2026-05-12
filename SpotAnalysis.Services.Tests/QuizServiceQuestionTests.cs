@@ -31,9 +31,13 @@ public class QuizServiceQuestionTests : BaseDatabaseTest
 
         // Seed chemicals
         var chem1 = new Chemical
-            { Name = "Chem1", Formula = "C1", ColorId = colorRot.ColorId, Type = ChemicalType.Educt };
+        {
+            Name = "Chem1", Formula = "C1", ColorId = colorRot.ColorId, Type = ChemicalType.Educt
+        };
         var chem2 = new Chemical
-            { Name = "Chem2", Formula = "C2", ColorId = colorBlau.ColorId, Type = ChemicalType.Educt };
+        {
+            Name = "Chem2", Formula = "C2", ColorId = colorBlau.ColorId, Type = ChemicalType.Educt
+        };
         await dbContext.Chemicals.AddRangeAsync(chem1, chem2);
         await dbContext.SaveChangesAsync();
         _chemical1Id = chem1.ChemicalID;
@@ -53,11 +57,17 @@ public class QuizServiceQuestionTests : BaseDatabaseTest
         await dbContext.SaveChangesAsync();
 
         var reaction1 = new Reaction(chem1, chem2)
-            { ObservationID = obs1.ObservationID, RelevantProduct = "P1", Formula = "F1" };
+        {
+            ObservationID = obs1.ObservationID, RelevantProduct = "P1", Formula = "F1"
+        };
         var reaction2 = new Reaction(chem1, chem2)
-            { ObservationID = obs2.ObservationID, RelevantProduct = "P2", Formula = "F2" };
+        {
+            ObservationID = obs2.ObservationID, RelevantProduct = "P2", Formula = "F2"
+        };
         var reaction3 = new Reaction(chem1, chem2)
-            { ObservationID = obs3.ObservationID, RelevantProduct = "P3", Formula = "F3" };
+        {
+            ObservationID = obs3.ObservationID, RelevantProduct = "P3", Formula = "F3"
+        };
         await dbContext.Reactions.AddRangeAsync(reaction1, reaction2, reaction3);
         await dbContext.SaveChangesAsync();
         _reaction1Id = reaction1.ReactionID;
@@ -132,26 +142,25 @@ public class QuizServiceQuestionTests : BaseDatabaseTest
     public async Task DeleteQuestion_WhenUsedInQuiz_ThrowsInvalidOperationException()
     {
         // Create a question
-        await _quizService.CreateSTQuestion(SeededTeacherId, new ConfigSTQuestionDto
-        {
-            Description = "Question to protect",
-            AvailableChemicals = new List<int> { _chemical1Id },
-            AvailableMethods = new List<int> { _methodId },
-            Title = "HohohoTitle"
-        });
+        await _quizService.CreateSTQuestion(SeededTeacherId,
+            new ConfigSTQuestionDto
+            {
+                Description = "Question to protect",
+                AvailableChemicals = new List<int> { _chemical1Id },
+                AvailableMethods = new List<int> { _methodId },
+                Title = "HohohoTitle"
+            });
 
         var questions = await _quizService.GetQuestions();
         var question = questions.First(q => q.Description == "Question to protect");
 
         // Create a quiz that uses this question
-        await _quizService.CreateQuiz(SeededTeacherId, new CreateQuizDto
-        {
-            Name = "Quiz with protected question",
-            Questions = new List<QuestionDto>
+        await _quizService.CreateQuiz(SeededTeacherId,
+            new CreateQuizDto
             {
-                new() { Id = question.Id, Order = 0 }
-            }
-        });
+                Name = "Quiz with protected question",
+                Questions = new List<QuestionDto> { new() { Id = question.Id, Order = 0 } }
+            });
 
         Assert.ThrowsAsync<InvalidOperationException>(async () =>
             await _quizService.DeleteQuestion(SeededTeacherId, question.Id));
@@ -160,13 +169,14 @@ public class QuizServiceQuestionTests : BaseDatabaseTest
     [Test]
     public async Task DeleteQuestion_WhenNotUsed_DeletesSuccessfully()
     {
-        await _quizService.CreateSTQuestion(SeededTeacherId, new ConfigSTQuestionDto
-        {
-            Description = "Question to delete",
-            AvailableChemicals = new List<int> { _chemical1Id },
-            AvailableMethods = new List<int> { _methodId },
-            Title = "HohohoTitle"
-        });
+        await _quizService.CreateSTQuestion(SeededTeacherId,
+            new ConfigSTQuestionDto
+            {
+                Description = "Question to delete",
+                AvailableChemicals = new List<int> { _chemical1Id },
+                AvailableMethods = new List<int> { _methodId },
+                Title = "HohohoTitle"
+            });
 
         var questions = await _quizService.GetQuestions();
         var question = questions.First(q => q.Description == "Question to delete");

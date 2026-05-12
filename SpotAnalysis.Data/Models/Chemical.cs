@@ -1,4 +1,4 @@
-﻿namespace SpotAnalysis.Data.Models;
+namespace SpotAnalysis.Data.Models;
 
 /// <summary>
 /// Contains all chemicals that are used in the reactions. Chemicals can be used as educts or additives in a reaction. They can also be used with methods to produce an observation (MethodOutput).

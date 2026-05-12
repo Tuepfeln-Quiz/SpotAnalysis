@@ -1,4 +1,4 @@
-﻿namespace SpotAnalysis.Data.Models;
+namespace SpotAnalysis.Data.Models;
 
 public class Reaction
 {

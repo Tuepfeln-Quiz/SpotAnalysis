@@ -42,7 +42,7 @@ public class DatabaseSeeder(
 
             var user = new User
             {
-                UserID = userId,
+                UserId = userId,
                 UserName = userName,
                 PasswordHash = new PasswordProvider.Password(DevPassword, userId).ParamString(),
             };
@@ -75,7 +75,7 @@ public class DatabaseSeeder(
         var newGuid = Guid.NewGuid();
         var adminUser = new User
         {
-            UserID = newGuid,
+            UserId = newGuid,
             UserName = "Admin",
             PasswordHash = new PasswordProvider.Password("admin123", newGuid).ParamString(),
         };

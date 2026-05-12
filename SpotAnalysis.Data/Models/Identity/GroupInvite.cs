@@ -3,17 +3,13 @@ namespace SpotAnalysis.Data.Models.Identity;
 [Index(nameof(Code), IsUnique = true)]
 public class GroupInvite
 {
-    [Key]
-    public int GroupInviteID { get; set; }
+    [Key] public int GroupInviteId { get; set; }
 
-    [Required]
-    [StringLength(16)]
-    public string Code { get; set; } = null!;
+    [StringLength(16)] public required string Code { get; set; } = null!;
 
-    public int GroupID { get; set; }
+    public int GroupId { get; set; }
 
-    [ForeignKey(nameof(GroupID))]
-    public virtual Group Group { get; set; } = null!;
+    [ForeignKey(nameof(GroupId))] public virtual Group Group { get; set; } = null!;
 
     public DateTime ExpiresAt { get; set; }
 

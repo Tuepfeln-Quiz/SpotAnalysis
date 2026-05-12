@@ -7,12 +7,12 @@ namespace SpotAnalysis.Services.Services;
 
 public class GroupInviteTokenService : IGroupInviteTokenService
 {
-    private static readonly TimeSpan TokenLifetime = TimeSpan.FromMinutes(15);
     private const int MaxCollisionRetries = 5;
     private const int CodeLength = 6;
 
     // Crockford Base32 Alphabet (ohne I, L, O, U — keine Verwechslungsgefahr)
     private const string Alphabet = "0123456789ABCDEFGHJKMNPQRSTVWXYZ";
+    private static readonly TimeSpan TokenLifetime = TimeSpan.FromMinutes(15);
 
     private readonly IDbContextFactory<AnalysisContext> _factory;
 
@@ -37,10 +37,7 @@ public class GroupInviteTokenService : IGroupInviteTokenService
 
             var invite = new GroupInvite
             {
-                Code = code,
-                GroupID = groupId,
-                CreatedAt = now,
-                ExpiresAt = now + TokenLifetime,
+                Code = code, GroupId = groupId, CreatedAt = now, ExpiresAt = now + TokenLifetime,
             };
             ctx.GroupInvites.Add(invite);
 
@@ -89,7 +86,7 @@ public class GroupInviteTokenService : IGroupInviteTokenService
             return null;
         }
 
-        return invite.GroupID;
+        return invite.GroupId;
     }
 
     private static string Normalize(string input)
@@ -107,6 +104,7 @@ public class GroupInviteTokenService : IGroupInviteTokenService
         {
             chars[i] = Alphabet[bytes[i] & 0x1F];
         }
+
         return new string(chars);
     }
 }

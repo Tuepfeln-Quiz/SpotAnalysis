@@ -250,7 +250,7 @@ public class XlsImportExportService : IXlsImportExportService
 
         var color = await ResolveColorAsync(colorName, colors);
         var existing = chemical.MethodOutputs
-            .FirstOrDefault(mo => mo.MethodID == method.MethodID);
+            .FirstOrDefault(mo => mo.MethodId == method.MethodId);
 
         if (existing != null)
         {
@@ -262,8 +262,8 @@ public class XlsImportExportService : IXlsImportExportService
 
         chemical.MethodOutputs.Add(new MethodOutput
         {
-            ChemicalID = chemical.ChemicalID,
-            MethodID = method.MethodID,
+            ChemicalId = chemical.ChemicalId,
+            MethodId = method.MethodId,
             ColorId = color.ColorId,
             Chemical = chemical,
             Method = method
@@ -314,7 +314,7 @@ public class XlsImportExportService : IXlsImportExportService
         await _context.SaveChangesAsync();
 
         var existingReactions = await _context.Reactions
-            .ToDictionaryAsync(r => (r.Chemical1ID, r.Chemical2ID));
+            .ToDictionaryAsync(r => (Chemical1ID: r.Chemical1Id, Chemical2ID: r.Chemical2Id));
 
         foreach (var combo in combinations)
         {
@@ -338,25 +338,25 @@ public class XlsImportExportService : IXlsImportExportService
 
             // Normalisierung: Reaction speichert Chemicals immer mit kleinerer ID zuerst (siehe Reaction-Konstruktor + CK_Reaction_ChemicalOrder).
             // Der Lookup-Key muss derselben Normalisierung folgen, sonst wird die Excel-Reihenfolge zur Duplikat-Falle.
-            var key = chem1.ChemicalID <= chem2.ChemicalID
-                ? (chem1.ChemicalID, chem2.ChemicalID)
-                : (chem2.ChemicalID, chem1.ChemicalID);
+            var key = chem1.ChemicalId <= chem2.ChemicalId
+                ? (chem1.ChemicalId, chem2.ChemicalId)
+                : (chem2.ChemicalId, chem1.ChemicalId);
 
             if (existingReactions.TryGetValue(key, out var reaction))
             {
                 var newProduct = combo.Product;
                 var newFormula = combo.Formula ?? "";
-                var newObsId = observation?.ObservationID ?? reaction.ObservationID;
+                var newObsId = observation?.ObservationId ?? reaction.ObservationId;
 
                 var changed = reaction.RelevantProduct != newProduct
                               || reaction.Formula != newFormula
-                              || reaction.ObservationID != newObsId;
+                              || reaction.ObservationId != newObsId;
 
                 if (changed)
                 {
                     reaction.RelevantProduct = newProduct;
                     reaction.Formula = newFormula;
-                    reaction.ObservationID = newObsId;
+                    reaction.ObservationId = newObsId;
                     result.ReactionsUpdated++;
                 }
                 else
@@ -370,7 +370,7 @@ public class XlsImportExportService : IXlsImportExportService
                 {
                     RelevantProduct = combo.Product,
                     Formula = combo.Formula ?? "",
-                    ObservationID = observation?.ObservationID ?? 0
+                    ObservationId = observation?.ObservationId ?? 0
                 };
                 result.ReactionsAdded++;
                 _context.Reactions.Add(reaction);
@@ -389,10 +389,10 @@ public class XlsImportExportService : IXlsImportExportService
             .Include(c => c.Color)
             .Include(c => c.MethodOutputs)
             .ThenInclude(mo => mo.Color)
-            .OrderBy(c => c.ChemicalID)
+            .OrderBy(c => c.ChemicalId)
             .ToListAsync();
 
-        var chemicalById = allChemicals.ToDictionary(c => c.ChemicalID);
+        var chemicalById = allChemicals.ToDictionary(c => c.ChemicalId);
 
         var educts = allChemicals
             .Where(c => c.Type == ChemicalType.Educt)
@@ -409,13 +409,13 @@ public class XlsImportExportService : IXlsImportExportService
 
         var reactions = await _context.Reactions
             .Include(r => r.Observation)
-            .OrderBy(r => r.ReactionID)
+            .OrderBy(r => r.ReactionId)
             .ToListAsync();
 
         var combinations = reactions.Select(r =>
         {
-            var chem1 = chemicalById[r.Chemical1ID];
-            var chem2 = chemicalById[r.Chemical2ID];
+            var chem1 = chemicalById[r.Chemical1Id];
+            var chem2 = chemicalById[r.Chemical2Id];
 
             return new Combination
             {
@@ -445,7 +445,7 @@ public class XlsImportExportService : IXlsImportExportService
                 continue;
 
             var color = chemical.MethodOutputs
-                .FirstOrDefault(mo => mo.MethodID == method.MethodID)?.Color.Name;
+                .FirstOrDefault(mo => mo.MethodId == method.MethodId)?.Color.Name;
             prop.SetValue(educt, color);
         }
     }

@@ -3,20 +3,20 @@ namespace SpotAnalysis.Data.Models.Quizzes;
 /// <summary>
 /// For every Chemical in the STAvailableChemicals table the user has to choose a formula. This table stores the user's choice and whether it is correct or not.
 /// </summary>
-public class STChemicalResult
+public class StChemicalResult
 {
-    [Key] public int ChemicalResultID { get; set; }
+    [Key] public int ChemicalResultId { get; set; }
 
-    public int ResultID { get; set; }
-    public int ChemicalID { get; set; }
+    public int ResultId { get; set; }
+    public int ChemicalId { get; set; }
 
-    [Required] [StringLength(256)] public string ChosenFormula { get; set; } = null!;
+    [StringLength(256)] public required string ChosenFormula { get; set; } = null!;
 
     public bool IsCorrect { get; set; }
 
-    [ForeignKey(nameof(ResultID))]
+    [ForeignKey(nameof(ResultId))]
     [DeleteBehavior(DeleteBehavior.Restrict)]
-    public STResult Result { get; set; } = null!;
+    public StResult Result { get; set; } = null!;
 
     [DeleteBehavior(DeleteBehavior.Restrict)]
     public Chemical Chemical { get; set; } = null!;

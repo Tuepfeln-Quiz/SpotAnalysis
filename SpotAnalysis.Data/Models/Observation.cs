@@ -5,9 +5,9 @@ namespace SpotAnalysis.Data.Models;
 /// </summary>
 public class Observation
 {
-    [Key] public int ObservationID { get; set; }
+    [Key] public int ObservationId { get; set; }
 
-    [Required] [StringLength(512)] public string Description { get; set; } = null!;
+    [StringLength(512)] public required string Description { get; set; } = null!;
 
 
     public virtual ICollection<Reaction> Reactions { get; set; } = [];

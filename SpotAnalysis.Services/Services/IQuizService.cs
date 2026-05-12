@@ -17,8 +17,8 @@ public interface IQuizService
     Task<QuizPlayDto> StartOrResumeQuiz(Guid userId, int quizId);
     Task<QuizPlayDto> StartNewAttempt(Guid userId, int quizId);
     Task CompleteAttempt(Guid userId, int attemptId);
-    Task<STLResult> ValidateAndSaveStlQuestion(ValidateStlQuestionDto answer);
-    Task<STResult> ValidateAndSaveStQuestion(ValidateStQuestionDto answer);
+    Task<StlResult> ValidateAndSaveStlQuestion(ValidateStlQuestionDto answer);
+    Task<StResult> ValidateAndSaveStQuestion(ValidateStQuestionDto answer);
 
     Task<List<QuestionOverviewDto>> GetQuestions();
     Task<List<QuestionOverviewDto>> GetQuestionsOfQuiz(int quizId);

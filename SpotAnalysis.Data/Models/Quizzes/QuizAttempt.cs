@@ -5,13 +5,13 @@ namespace SpotAnalysis.Data.Models.Quizzes;
 /// Tracks the start and completion times, as well as the associated user and quiz.
 /// </summary>
 [Table("QuizAttempts")]
-[PrimaryKey(nameof(AttemptID))]
+[PrimaryKey(nameof(AttemptId))]
 public class QuizAttempt
 {
-    public int AttemptID { get; set; }
-    public Guid UserID { get; set; }
+    public int AttemptId { get; set; }
+    public Guid UserId { get; set; }
 
-    public int QuizID { get; set; }
+    public int QuizId { get; set; }
     public DateTime Started { get; set; }
     public DateTime? Completed { get; set; }
 
@@ -21,6 +21,6 @@ public class QuizAttempt
     [DeleteBehavior(DeleteBehavior.Restrict)]
     public Quiz Quiz { get; set; } = null!;
 
-    public virtual ICollection<STLResult> STLResults { get; set; } = [];
-    public virtual ICollection<STResult> STResults { get; set; } = [];
+    public virtual ICollection<StlResult> StlResults { get; set; } = [];
+    public virtual ICollection<StResult> StResults { get; set; } = [];
 }

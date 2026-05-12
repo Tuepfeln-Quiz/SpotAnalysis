@@ -5,10 +5,10 @@ namespace SpotAnalysis.Data.Models;
 /// </summary>
 public class Method
 {
-    [Key] public int MethodID { get; set; }
+    [Key] public int MethodId { get; set; }
 
-    [Required] [StringLength(256)] public string Name { get; set; } = null!;
+    [StringLength(256)] public required string Name { get; set; } = null!;
 
     public virtual ICollection<MethodOutput> MethodOutputs { get; set; } = [];
-    public virtual ICollection<STAvailableMethod> STAvailableMethods { get; set; } = [];
+    public virtual ICollection<StAvailableMethod> StAvailableMethods { get; set; } = [];
 }

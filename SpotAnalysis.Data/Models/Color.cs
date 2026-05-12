@@ -5,9 +5,9 @@ public class Color
 {
     [Key] public int ColorId { get; set; }
 
-    [Required] [StringLength(128)] public string Name { get; set; } = null!;
+    [StringLength(128)] public required string Name { get; set; } = null!;
 
-    [Required] [StringLength(7)] public string HexValue { get; set; } = null!;
+    [StringLength(7)] public required string HexValue { get; set; } = null!;
 
 
     public virtual ICollection<Chemical> Chemicals { get; set; } = [];

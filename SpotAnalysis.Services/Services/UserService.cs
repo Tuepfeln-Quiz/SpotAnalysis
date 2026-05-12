@@ -21,20 +21,20 @@ public class UserService(ILogger<UserService> logger, IDbContextFactory<Analysis
 
         await using var context = await factory.CreateDbContextAsync();
 
-        var user = await context.Users.SingleAsync(u => u.UserID == userId);
+        var user = await context.Users.SingleAsync(u => u.UserId == userId);
 
         var correctOldPassword = PasswordProvider.Password.FromParamString(user.PasswordHash)
-            .Compare(new PasswordProvider.Password(oldPassword, user.UserID));
+            .Compare(new PasswordProvider.Password(oldPassword, user.UserId));
 
         if (!correctOldPassword)
             throw new AuthenticationException("WrongOldPassword");
 
-        var newHash = new PasswordProvider.Password(newPassword, user.UserID).ParamString();
+        var newHash = new PasswordProvider.Password(newPassword, user.UserId).ParamString();
         user.PasswordHash = newHash;
 
         await context.SaveChangesAsync();
 
-        logger.LogInformation("Password changed for user {UserId}", user.UserID);
+        logger.LogInformation("Password changed for user {UserId}", user.UserId);
 
         return user;
     }
@@ -43,7 +43,7 @@ public class UserService(ILogger<UserService> logger, IDbContextFactory<Analysis
     {
         ArgumentNullException.ThrowIfNull(newUsername);
         await using var context = await factory.CreateDbContextAsync();
-        var user = await context.Users.SingleAsync(u => u.UserID == userId);
+        var user = await context.Users.SingleAsync(u => u.UserId == userId);
 
         var isUsernameTaken = await context.Users.AnyAsync(u =>
             u.UserName.Equals(newUsername, StringComparison.CurrentCultureIgnoreCase));
@@ -74,7 +74,7 @@ public class UserService(ILogger<UserService> logger, IDbContextFactory<Analysis
             throw new ArgumentException("The given password was empty");
         }
 
-        var hashedPassword = new PasswordProvider.Password(password, user.UserID);
+        var hashedPassword = new PasswordProvider.Password(password, user.UserId);
         var storedHash = PasswordProvider.Password.FromParamString(user.PasswordHash);
 
         var isPasswordCorrect = hashedPassword.Compare(storedHash);
@@ -84,7 +84,7 @@ public class UserService(ILogger<UserService> logger, IDbContextFactory<Analysis
             throw new AuthenticationException("The given password was wrong");
         }
 
-        logger.LogInformation("Login succeeded for user {UserId}", user.UserID);
+        logger.LogInformation("Login succeeded for user {UserId}", user.UserId);
 
         return user;
     }
@@ -114,12 +114,12 @@ public class UserService(ILogger<UserService> logger, IDbContextFactory<Analysis
             throw new InvalidOperationException("UserNameTaken");
         }
 
-        var newUser = new User { UserName = normalizedUserName, PasswordHash = passwordString, UserID = newGuid };
+        var newUser = new User { UserName = normalizedUserName, PasswordHash = passwordString, UserId = newGuid };
         newUser.Roles.Add(Role.Student);
         context.Users.Add(newUser);
 
         await context.SaveChangesAsync();
 
-        logger.LogInformation("Registered new user {UserId}", newUser.UserID);
+        logger.LogInformation("Registered new user {UserId}", newUser.UserId);
     }
 }

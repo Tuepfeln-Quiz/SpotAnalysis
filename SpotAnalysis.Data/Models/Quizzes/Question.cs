@@ -7,7 +7,7 @@ namespace SpotAnalysis.Data.Models.Quizzes;
 [Index(nameof(Type))]
 public class Question
 {
-    [Key] public int QuestionID { get; set; }
+    [Key] public int QuestionId { get; set; }
 
     /// <summary>
     /// not visible to users
@@ -17,21 +17,21 @@ public class Question
 
     public QuestionType Type { get; set; }
 
-    [Required] [StringLength(1024)] public string Description { get; set; } = null!;
+    [StringLength(1024)] public required string Description { get; set; } = null!;
 
     public Guid? CreatedBy { get; set; }
 
 
     [ForeignKey(nameof(CreatedBy))]
     [DeleteBehavior(DeleteBehavior.Restrict)]
-    public User Creator { get; set; } = null!;
+    public virtual User Creator { get; set; } = null!;
 
 
     [DeleteBehavior(DeleteBehavior.Restrict)]
-    public virtual STLQuestion? STLQuestion { get; set; } = null!;
+    public virtual StlQuestion? StlQuestion { get; set; } = null!;
 
     [DeleteBehavior(DeleteBehavior.Restrict)]
-    public virtual STQuestion? STQuestion { get; set; } = null!;
+    public virtual StQuestion? StQuestion { get; set; } = null!;
 
     public virtual ICollection<QuizQuestion> QuizQuestions { get; set; } = [];
 }

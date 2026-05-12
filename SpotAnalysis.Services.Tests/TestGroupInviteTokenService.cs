@@ -6,10 +6,9 @@ namespace SpotAnalysis.Services.Tests;
 
 public class TestGroupInviteTokenService : BaseDatabaseTest
 {
-    private IGroupInviteTokenService _svc = default!;
-
     private const int SeededGroupId = 1;
     private const string SeededGroupName = "Invite Test Group";
+    private IGroupInviteTokenService _svc = default!;
 
     [OneTimeSetUp]
     public async Task InitInviteTokenService()
@@ -17,13 +16,9 @@ public class TestGroupInviteTokenService : BaseDatabaseTest
         _svc = new GroupInviteTokenService(ContextFactory);
 
         await using var ctx = await ContextFactory.CreateDbContextAsync();
-        if (!await ctx.Groups.AnyAsync(g => g.GroupID == SeededGroupId))
+        if (!await ctx.Groups.AnyAsync(g => g.GroupId == SeededGroupId))
         {
-            ctx.Groups.Add(new Group
-            {
-                GroupID = SeededGroupId,
-                Name = SeededGroupName,
-            });
+            ctx.Groups.Add(new Group { GroupId = SeededGroupId, Name = SeededGroupName, });
             await ctx.SaveChangesAsync();
         }
     }

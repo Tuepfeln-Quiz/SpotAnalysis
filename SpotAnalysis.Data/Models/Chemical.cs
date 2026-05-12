@@ -6,13 +6,13 @@ namespace SpotAnalysis.Data.Models;
 [Index(nameof(Type))]
 public class Chemical
 {
-    [Key] public int ChemicalID { get; set; }
+    [Key] public int ChemicalId { get; set; }
 
     public ChemicalType Type { get; set; }
 
-    [Required] [StringLength(256)] public string Name { get; set; } = null!;
+    [StringLength(256)] public required string Name { get; set; } = null!;
 
-    [Required] [StringLength(256)] public string Formula { get; set; } = null!;
+    [StringLength(256)] public required string Formula { get; set; } = null!;
 
     public int ColorId { get; set; }
 
@@ -30,10 +30,10 @@ public class Chemical
     [InverseProperty(nameof(Reaction.Chemical2))]
     public virtual ICollection<Reaction> Chemical2Reactions { get; set; } = [];
 
-    public virtual ICollection<STAvailableChemical> STAvailableChemicals { get; set; } = [];
+    public virtual ICollection<StAvailableChemical> StAvailableChemicals { get; set; } = [];
 
-    public virtual ICollection<STResult> STResults { get; set; } = [];
-    public virtual ICollection<STChemicalResult> STChemicalResults { get; set; } = [];
+    public virtual ICollection<StResult> StResults { get; set; } = [];
+    public virtual ICollection<StChemicalResult> StChemicalResults { get; set; } = [];
 
-    public virtual ICollection<STLQuestion> STLQuestions { get; set; } = [];
+    public virtual ICollection<StlQuestion> StlQuestions { get; set; } = [];
 }

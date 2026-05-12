@@ -20,12 +20,12 @@ public static class EndpointExtensions
                 var user = await userService.Login(userName, password);
                 var userAgent = context.Request.Headers.UserAgent.ToString();
                 var ip = context.Connection.RemoteIpAddress?.ToString();
-                var session = await sessionService.CreateSession(user.UserID, TimeSpan.FromHours(24), userAgent, ip);
+                var session = await sessionService.CreateSession(user.UserId, TimeSpan.FromHours(24), userAgent, ip);
 
                 var claims = new List<Claim>
                 {
                     new(ClaimTypes.Name, user.UserName),
-                    new(ClaimTypes.NameIdentifier, user.UserID.ToString()),
+                    new(ClaimTypes.NameIdentifier, user.UserId.ToString()),
                     new(ClaimTypes.Sid, session.SessionId.ToString())
                 };
 
@@ -61,12 +61,12 @@ public static class EndpointExtensions
                 //TODO very similar logic to /login
                 var userAgent = context.Request.Headers.UserAgent.ToString();
                 var ip = context.Connection.RemoteIpAddress?.ToString();
-                var session = await sessionService.CreateSession(user.UserID, TimeSpan.FromHours(24), userAgent, ip);
+                var session = await sessionService.CreateSession(user.UserId, TimeSpan.FromHours(24), userAgent, ip);
 
                 var claims = new List<Claim>
                 {
                     new(ClaimTypes.Name, user.UserName),
-                    new(ClaimTypes.NameIdentifier, user.UserID.ToString()),
+                    new(ClaimTypes.NameIdentifier, user.UserId.ToString()),
                     new(ClaimTypes.Sid, session.SessionId.ToString())
                 };
 

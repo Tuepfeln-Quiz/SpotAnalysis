@@ -40,14 +40,14 @@ public class QuizServiceQuestionTests : BaseDatabaseTest
         };
         await dbContext.Chemicals.AddRangeAsync(chem1, chem2);
         await dbContext.SaveChangesAsync();
-        _chemical1Id = chem1.ChemicalID;
-        _chemical2Id = chem2.ChemicalID;
+        _chemical1Id = chem1.ChemicalId;
+        _chemical2Id = chem2.ChemicalId;
 
         // Seed method
         var method = new Method { Name = "TestMethod" };
         await dbContext.Methods.AddAsync(method);
         await dbContext.SaveChangesAsync();
-        _methodId = method.MethodID;
+        _methodId = method.MethodId;
 
         // Seed observations and reactions (Reaction requires Chemical1, Chemical2, Observation)
         var obs1 = new Observation { Description = "Obs1" };
@@ -58,21 +58,21 @@ public class QuizServiceQuestionTests : BaseDatabaseTest
 
         var reaction1 = new Reaction(chem1, chem2)
         {
-            ObservationID = obs1.ObservationID, RelevantProduct = "P1", Formula = "F1"
+            ObservationId = obs1.ObservationId, RelevantProduct = "P1", Formula = "F1"
         };
         var reaction2 = new Reaction(chem1, chem2)
         {
-            ObservationID = obs2.ObservationID, RelevantProduct = "P2", Formula = "F2"
+            ObservationId = obs2.ObservationId, RelevantProduct = "P2", Formula = "F2"
         };
         var reaction3 = new Reaction(chem1, chem2)
         {
-            ObservationID = obs3.ObservationID, RelevantProduct = "P3", Formula = "F3"
+            ObservationId = obs3.ObservationId, RelevantProduct = "P3", Formula = "F3"
         };
         await dbContext.Reactions.AddRangeAsync(reaction1, reaction2, reaction3);
         await dbContext.SaveChangesAsync();
-        _reaction1Id = reaction1.ReactionID;
-        _reaction2Id = reaction2.ReactionID;
-        _reaction3Id = reaction3.ReactionID;
+        _reaction1Id = reaction1.ReactionId;
+        _reaction2Id = reaction2.ReactionId;
+        _reaction3Id = reaction3.ReactionId;
     }
 
     private QuizService _quizService = null!;

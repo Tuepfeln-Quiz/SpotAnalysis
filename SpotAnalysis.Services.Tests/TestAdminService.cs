@@ -32,7 +32,7 @@ public class TestAdminService : BaseDatabaseTest
         Assert.That(user.Roles, Has.Count.EqualTo(1));
         Assert.That(user.Roles, Contains.Item(Role.Student));
 
-        await _adminService.AddRoleToUser(user.UserID, Role.Teacher);
+        await _adminService.AddRoleToUser(user.UserId, Role.Teacher);
 
         user = await _userService.Login("RandomUser", "RandomPassword12!");
 
@@ -41,7 +41,7 @@ public class TestAdminService : BaseDatabaseTest
         Assert.That(user.Roles, Contains.Item(Role.Teacher));
         Assert.That(user.Roles, Contains.Item(Role.Student));
 
-        await _adminService.RemoveRoleFromUser(user.UserID, Role.Teacher);
+        await _adminService.RemoveRoleFromUser(user.UserId, Role.Teacher);
 
         user = await _userService.Login("RandomUser", "RandomPassword12!");
         Assert.That(user, Is.Not.Null);
@@ -60,7 +60,7 @@ public class TestAdminService : BaseDatabaseTest
 
         Assert.That(user, Is.Not.Null);
 
-        await _adminService.DeleteUser(user.UserID);
+        await _adminService.DeleteUser(user.UserId);
         Assert.ThrowsAsync<ArgumentException>(async () =>
             await _userService.Login("RandomUser", "RandomPassword12!"));
     }
@@ -78,7 +78,7 @@ public class TestAdminService : BaseDatabaseTest
         Assert.That(students, Is.Not.Empty);
         Assert.That(students.All(x => x.Roles.Contains(Role.Student.ToString())), Is.True);
 
-        await _adminService.AddRoleToUser(user.UserID, Role.Admin);
+        await _adminService.AddRoleToUser(user.UserId, Role.Admin);
         user = await _userService.Login("RandomUser", "RandomPassword12!");
         Assert.That(user, Is.Not.Null);
         Assert.That(user.Roles, Contains.Item(Role.Admin));
@@ -86,7 +86,7 @@ public class TestAdminService : BaseDatabaseTest
         Assert.That(admins, Is.Not.Empty);
         Assert.That(admins.All(x => x.Roles.Contains(Role.Admin.ToString())), Is.True);
 
-        await _adminService.AddRoleToUser(user.UserID, Role.Teacher);
+        await _adminService.AddRoleToUser(user.UserId, Role.Teacher);
         user = await _userService.Login("RandomUser", "RandomPassword12!");
         Assert.That(user, Is.Not.Null);
         Assert.That(user.Roles, Contains.Item(Role.Teacher));

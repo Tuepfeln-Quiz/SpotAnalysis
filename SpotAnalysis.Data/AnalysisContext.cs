@@ -1,4 +1,4 @@
-﻿using SpotAnalysis.Data.Models;
+using SpotAnalysis.Data.Models;
 
 namespace SpotAnalysis.Data;
 
@@ -47,6 +47,7 @@ public class AnalysisContext : DbContext
     public virtual DbSet<User> Users { get; set; }
     public virtual DbSet<Group> Groups { get; set; }
     public virtual DbSet<GroupInvite> GroupInvites { get; set; }
+    public virtual DbSet<Session> Sessions { get; set; }
 
     #endregion Users, Roles, Groups
 

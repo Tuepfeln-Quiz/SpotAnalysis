@@ -1,9 +1,9 @@
-﻿using System.Diagnostics.CodeAnalysis;
+using System.Diagnostics.CodeAnalysis;
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
 using SpotAnalysis.Services.Services;
-using System.Security.Claims;
 
 namespace SpotAnalysis.Web.Extensions;
 
@@ -11,25 +11,29 @@ public static class EndpointExtensions
 {
     public static WebApplication MapAuthEndpoints(this WebApplication app)
     {
-        app.MapPost("/api/auth/login", async (HttpContext context, [FromForm] string userName, [FromForm] string password, [FromForm] string? returnUrl, IUserService userService) =>
+        app.MapPost("/api/auth/login", async (HttpContext context, [FromForm] string userName,
+            [FromForm] string password, [FromForm] string? returnUrl, IUserService userService,
+            ISessionService sessionService) =>
         {
             try
             {
                 var user = await userService.Login(userName, password);
+                var userAgent = context.Request.Headers.UserAgent.ToString();
+                var ip = context.Connection.RemoteIpAddress?.ToString();
+                var session = await sessionService.CreateSession(user.UserID, TimeSpan.FromHours(24), userAgent, ip);
 
                 var claims = new List<Claim>
                 {
-                    new Claim(ClaimTypes.Name, user.UserName),
-                    new Claim(ClaimTypes.NameIdentifier, user.UserID.ToString())
+                    new(ClaimTypes.Name, user.UserName),
+                    new(ClaimTypes.NameIdentifier, user.UserID.ToString()),
+                    new(ClaimTypes.Sid, session.SessionId.ToString())
                 };
 
-                foreach (var role in user.Roles)
-                {
-                    claims.Add(new Claim(ClaimTypes.Role, role.ToString()));
-                }
+                claims.AddRange(user.Roles.Select(role => new Claim(ClaimTypes.Role, role.ToString())));
 
                 var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-                await context.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(identity));
+                await context.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme,
+                    new ClaimsPrincipal(identity));
 
                 var redirect = IsLocalUrl(returnUrl) ? returnUrl : "/";
                 return Results.Redirect(redirect);
@@ -40,7 +44,9 @@ public static class EndpointExtensions
             }
         });
 
-        app.MapPost("/api/auth/register", async (HttpContext context, [FromForm] string userName, [FromForm] string password, [FromForm] string confirmPassword, [FromForm] string? returnUrl, IUserService userService) =>
+        app.MapPost("/api/auth/register", async (HttpContext context, [FromForm] string userName,
+            [FromForm] string password, [FromForm] string confirmPassword, [FromForm] string? returnUrl,
+            IUserService userService, ISessionService sessionService) =>
         {
             try
             {
@@ -52,20 +58,23 @@ public static class EndpointExtensions
                 await userService.Register(userName, password);
 
                 var user = await userService.Login(userName, password);
+                //TODO very similar logic to /login
+                var userAgent = context.Request.Headers.UserAgent.ToString();
+                var ip = context.Connection.RemoteIpAddress?.ToString();
+                var session = await sessionService.CreateSession(user.UserID, TimeSpan.FromHours(24), userAgent, ip);
 
                 var claims = new List<Claim>
                 {
-                    new Claim(ClaimTypes.Name, user.UserName),
-                    new Claim(ClaimTypes.NameIdentifier, user.UserID.ToString())
+                    new(ClaimTypes.Name, user.UserName),
+                    new(ClaimTypes.NameIdentifier, user.UserID.ToString()),
+                    new(ClaimTypes.Sid, session.SessionId.ToString())
                 };
 
-                foreach (var role in user.Roles)
-                {
-                    claims.Add(new Claim(ClaimTypes.Role, role.ToString()));
-                }
+                claims.AddRange(user.Roles.Select(role => new Claim(ClaimTypes.Role, role.ToString())));
 
                 var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-                await context.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(identity));
+                await context.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme,
+                    new ClaimsPrincipal(identity));
 
                 var redirect = IsLocalUrl(returnUrl) ? returnUrl : "/";
 

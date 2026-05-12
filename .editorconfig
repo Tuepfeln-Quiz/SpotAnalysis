@@ -318,3 +318,6 @@ yaml_sequence_on_new_line = false
 yaml_space_before_colon = false
 yaml_spaces_within_braces = true
 yaml_spaces_within_brackets = true
+
+[SpotAnalysis.Data/**/*.cs]
+resharper_class_with_virtual_members_never_inherited_global_highlighting = none

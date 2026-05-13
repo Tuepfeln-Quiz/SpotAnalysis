@@ -2,7 +2,7 @@ namespace SpotAnalysis.Data.Models.Quizzes;
 
 public class StQuestion
 {
-    [Key] [ForeignKey(nameof(QuestionID))] public int QuestionID { get; set; }
+    [Key] [ForeignKey(nameof(QuestionId))] public int QuestionId { get; set; }
 
     [DeleteBehavior(DeleteBehavior.Restrict)]
     public virtual Question Question { get; set; } = null!;

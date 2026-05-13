@@ -549,7 +549,7 @@ public class QuizService(ILogger<QuizService> logger, IDbContextFactory<Analysis
                 await dbContext.StResults.Where(x => x.QuestionId == questionId).ExecuteDeleteAsync();
                 await dbContext.StAvailableChemicals.Where(x => x.QuestionId == questionId).ExecuteDeleteAsync();
                 await dbContext.StAvailableMethods.Where(x => x.QuestionId == questionId).ExecuteDeleteAsync();
-                await dbContext.StQuestions.Where(x => x.QuestionID == questionId).ExecuteDeleteAsync();
+                await dbContext.StQuestions.Where(x => x.QuestionId == questionId).ExecuteDeleteAsync();
                 break;
             case QuestionType.SpotTestLight:
                 await dbContext.StlResults.Where(x => x.QuestionId == questionId).ExecuteDeleteAsync();

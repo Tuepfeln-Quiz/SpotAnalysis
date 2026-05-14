@@ -1,16 +1,14 @@
+using SpotAnalysis.Data.Models.Identity;
+
 namespace SpotAnalysis.Services.Services;
 
 public interface IGroupInviteTokenService
 {
-    /// <summary>
-    /// Erzeugt einen kurzen, zeitlich begrenzten Einladungscode für eine Gruppe.
-    /// Gültigkeit: 15 Minuten.
-    /// </summary>
     Task<string> CreateToken(int groupId);
 
     /// <summary>
-    /// Validiert einen Einladungscode und liefert die enthaltene GroupID.
-    /// Gibt null zurück, wenn der Code unbekannt oder abgelaufen ist.
+    /// Looks up an invite by code. Returns the entity if found, null otherwise.
+    /// Does not check expiry — callers decide how to handle that.
     /// </summary>
-    Task<int?> ValidateToken(string token);
+    Task<GroupInvite?> ValidateToken(string token);
 }

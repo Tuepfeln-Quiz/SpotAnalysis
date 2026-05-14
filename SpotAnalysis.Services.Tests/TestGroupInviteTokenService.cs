@@ -8,7 +8,7 @@ public class TestGroupInviteTokenService : BaseDatabaseTest
 {
     private const int SeededGroupId = 1;
     private const string SeededGroupName = "Invite Test Group";
-    private IGroupInviteTokenService _svc = default!;
+    private IGroupInviteTokenService _svc = null!;
 
     [OneTimeSetUp]
     public async Task InitInviteTokenService()
@@ -31,12 +31,13 @@ public class TestGroupInviteTokenService : BaseDatabaseTest
     }
 
     [Test]
-    public async Task CreateToken_ThenValidate_ReturnsGroupId()
+    public async Task CreateToken_ThenValidate_ReturnsInvite()
     {
         var token = await _svc.CreateToken(SeededGroupId);
         var result = await _svc.ValidateToken(token);
 
-        Assert.That(result, Is.EqualTo(SeededGroupId));
+        Assert.That(result, Is.Not.Null);
+        Assert.That(result!.GroupId, Is.EqualTo(SeededGroupId));
     }
 
     [Test]
@@ -53,7 +54,8 @@ public class TestGroupInviteTokenService : BaseDatabaseTest
         var token = await _svc.CreateToken(SeededGroupId);
         var result = await _svc.ValidateToken(token.ToLowerInvariant());
 
-        Assert.That(result, Is.EqualTo(SeededGroupId));
+        Assert.That(result, Is.Not.Null);
+        Assert.That(result!.GroupId, Is.EqualTo(SeededGroupId));
     }
 
     [Test]
@@ -62,7 +64,8 @@ public class TestGroupInviteTokenService : BaseDatabaseTest
         var token = await _svc.CreateToken(SeededGroupId);
         var result = await _svc.ValidateToken($"  {token}  ");
 
-        Assert.That(result, Is.EqualTo(SeededGroupId));
+        Assert.That(result, Is.Not.Null);
+        Assert.That(result!.GroupId, Is.EqualTo(SeededGroupId));
     }
 
     [Test]
@@ -81,7 +84,7 @@ public class TestGroupInviteTokenService : BaseDatabaseTest
     }
 
     [Test]
-    public async Task ValidateToken_ReturnsNull_ForExpiredCode()
+    public async Task ValidateToken_ReturnsInvite_ForExpiredCode()
     {
         var token = await _svc.CreateToken(SeededGroupId);
 
@@ -94,7 +97,8 @@ public class TestGroupInviteTokenService : BaseDatabaseTest
 
         var result = await _svc.ValidateToken(token);
 
-        Assert.That(result, Is.Null);
+        Assert.That(result, Is.Not.Null);
+        Assert.That(result!.ExpiresAt, Is.LessThanOrEqualTo(DateTime.UtcNow));
     }
 
     [Test]
@@ -108,7 +112,7 @@ public class TestGroupInviteTokenService : BaseDatabaseTest
             Assert.That(token1, Is.Not.EqualTo(token2));
         });
 
-        Assert.That(await _svc.ValidateToken(token1), Is.EqualTo(SeededGroupId));
-        Assert.That(await _svc.ValidateToken(token2), Is.EqualTo(SeededGroupId));
+        Assert.That((await _svc.ValidateToken(token1))?.GroupId, Is.EqualTo(SeededGroupId));
+        Assert.That((await _svc.ValidateToken(token2))?.GroupId, Is.EqualTo(SeededGroupId));
     }
 }

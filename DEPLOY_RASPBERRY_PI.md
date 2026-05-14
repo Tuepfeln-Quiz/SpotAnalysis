@@ -239,6 +239,7 @@ Copy `rootCA.pem` from the path printed by `mkcert -CAROOT` on the Pi to each cl
 
 After this, `https://spotanalysis-pi.local` opens without browser warnings.
 
+
 ## Boot sequence summary
 
 On every Pi power-on, this happens automatically:
@@ -258,3 +259,21 @@ No manual intervention needed — just power on the Pi and connect to the WiFi.
 - **Clients can't resolve `spotanalysis-pi.local`** → verify the dnsmasq config is in place: `cat /etc/NetworkManager/dnsmasq-shared.d/dnsmasq-spotanalysis.conf`. Alternatively, clients can use `https://10.42.0.1` directly.
 - **`spotanalysis.service` fails on boot** → check `journalctl -u spotanalysis.service`. Common cause: Docker not ready yet (the `After=docker.service` dependency should prevent this, but check `systemctl status docker`).
 - **Browser still warns about the cert** → the client hasn't imported `rootCA.pem`, or imported it into the wrong store (must be *Trusted Root* / *System*, not *Personal*).
+
+
+
+## SSH-Zugriff auf den Pi
+
+Während der Client im `SpotAnalysis`-Hotspot eingeloggt ist:
+
+```bash
+ssh spotanalysis@spotanalysis-pi.local
+```
+
+Das Passwort ist dasselbe wie für die Datenbank (siehe `.env` ).
+
+Alternativ direkt über die Hotspot-IP, falls mDNS am Client nicht funktioniert:
+
+```bash
+ssh spotanalysis@10.42.0.1
+```

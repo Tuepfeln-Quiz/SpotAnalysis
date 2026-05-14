@@ -32,23 +32,7 @@ public sealed class WorkbookReader : IDisposable
 
     public List<T> ReadSheet<T>(string? sheetName = null) where T : new()
     {
-        var sheet = ResolveSheet(sheetName, typeof(T));
+        var sheet = ExcelImporter.ResolveSheet(_workbook, sheetName, typeof(T));
         return ExcelImporter.ReadSheet<T>(sheet);
-    }
-
-    private ISheet ResolveSheet(string? sheetName, Type type)
-    {
-        if (sheetName != null)
-        {
-            return _workbook.GetSheet(sheetName)
-                   ?? throw new ArgumentException($"Sheet '{sheetName}' not found.");
-        }
-
-        var attrName = ReflectionHelper.GetSheetName(type);
-        var sheet = _workbook.GetSheet(attrName);
-        if (sheet != null)
-            return sheet;
-
-        return _workbook.GetSheetAt(0);
     }
 }

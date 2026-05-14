@@ -178,6 +178,7 @@ dotnet_naming_style.underscore_camel_case.capitalization = camel_case
 dotnet_naming_style.camel_case.capitalization = camel_case
 
 resharper_place_attribute_on_same_line = false
+csharp_place_attribute_on_same_line = false
 
 [*.properties]
 properties_align_group_field_declarations = false

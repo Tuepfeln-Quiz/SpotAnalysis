@@ -447,6 +447,8 @@ public class QuizService(ILogger<QuizService> logger, IDbContextFactory<Analysis
         if (question.Id is null)
             throw new ArgumentException("Question Id is required for update.");
 
+        var questionId = question.Id.Value;
+
         await using var dbContext = await factory.CreateDbContextAsync();
         await using var transaction = await dbContext.Database.BeginTransactionAsync();
 
@@ -469,7 +471,7 @@ public class QuizService(ILogger<QuizService> logger, IDbContextFactory<Analysis
 
         var chemicals = question.AvailableChemicals.Select((chemId, index) => new StAvailableChemical
         {
-            QuestionId = question.Id.Value, ChemicalId = chemId, Order = index
+            QuestionId = questionId, ChemicalId = chemId, Order = index
         });
         await dbContext.StAvailableChemicals.AddRangeAsync(chemicals);
 
@@ -479,7 +481,7 @@ public class QuizService(ILogger<QuizService> logger, IDbContextFactory<Analysis
 
         var methods = question.AvailableMethods.Select(methodId => new StAvailableMethod
         {
-            QuestionId = question.Id.Value, MethodId = methodId
+            QuestionId = questionId, MethodId = methodId
         });
         await dbContext.StAvailableMethods.AddRangeAsync(methods);
 
@@ -491,6 +493,8 @@ public class QuizService(ILogger<QuizService> logger, IDbContextFactory<Analysis
     {
         if (question.Id is null)
             throw new ArgumentException("Question Id is required for update.");
+
+        var questionId = question.Id.Value;
 
         await using var dbContext = await factory.CreateDbContextAsync();
         await using var transaction = await dbContext.Database.BeginTransactionAsync();
@@ -516,7 +520,7 @@ public class QuizService(ILogger<QuizService> logger, IDbContextFactory<Analysis
 
         var reactions = question.AvailableReactions.Select(reactionId => new StlAvailableReaction
         {
-            QuestionId = question.Id.Value, ReactionId = reactionId
+            QuestionId = questionId, ReactionId = reactionId
         });
         await dbContext.StlAvailableReactions.AddRangeAsync(reactions);
 

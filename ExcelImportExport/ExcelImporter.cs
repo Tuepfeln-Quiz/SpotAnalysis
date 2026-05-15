@@ -128,7 +128,7 @@ public static class ExcelImporter
     }
 
     private static string FormatNumeric(double value) =>
-        value % 1 == 0 ? ((long)value).ToString() : value.ToString(CultureInfo.InvariantCulture);
+        Math.Floor(value) % 1 == 0 ? ((long)value).ToString() : value.ToString(CultureInfo.InvariantCulture);
 
     private static IWorkbook OpenWorkbook(Stream stream, ExcelFormat format) =>
         format == ExcelFormat.Xlsx ? new XSSFWorkbook(stream) : new HSSFWorkbook(stream);

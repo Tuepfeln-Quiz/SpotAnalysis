@@ -18,9 +18,10 @@ public static class EndpointExtensions
             try
             {
                 var user = await userService.Login(userName, password);
-                var userAgent = context.Request.Headers.UserAgent.ToString();
-                var ip = context.Connection.RemoteIpAddress?.ToString();
-                var session = await sessionService.CreateSession(user.UserId, TimeSpan.FromHours(24), userAgent, ip);
+                //var userAgent = context.Request.Headers.UserAgent.ToString();
+                //var ip = context.Connection.RemoteIpAddress?.ToString();
+                //TODO: include UA/IP some day
+                var session = await sessionService.CreateSession(user.UserId, TimeSpan.FromHours(24));
 
                 var claims = new List<Claim>
                 {
@@ -59,9 +60,9 @@ public static class EndpointExtensions
 
                 var user = await userService.Login(userName, password);
                 //TODO very similar logic to /login
-                var userAgent = context.Request.Headers.UserAgent.ToString();
-                var ip = context.Connection.RemoteIpAddress?.ToString();
-                var session = await sessionService.CreateSession(user.UserId, TimeSpan.FromHours(24), userAgent, ip);
+                //var userAgent = context.Request.Headers.UserAgent.ToString();
+                //var ip = context.Connection.RemoteIpAddress?.ToString();
+                var session = await sessionService.CreateSession(user.UserId, TimeSpan.FromHours(24));
 
                 var claims = new List<Claim>
                 {

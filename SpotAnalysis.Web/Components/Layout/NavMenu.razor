@@ -1,11 +1,9 @@
-@using Microsoft.AspNetCore.Components.Authorization
-@using Microsoft.AspNetCore.Components.Web
 @inject NavigationManager NavigationManager
 
 <div class="navbar-container">
     <div class="navbar-header">
         <button class="burger-btn" @onclick="ToggleMenu">
-            <i class="bi @(IsMenuOpen ? "bi-x-lg" : "bi-list")"></i>
+            <i class="bi @(_isMenuOpen ? "bi-x-lg" : "bi-list")"></i>
         </button>
         <button class="home-btn" @onclick="NavigateAndCloseMenu">
             <i class="bi bi-house"></i>
@@ -14,10 +12,11 @@
         <div class="user-greeting">
             <AuthorizeView>
                 <Authorized>
-                    <span>Willkommen, <b class="text-warning cursor-pointer" @onclick="ToggleDropdown">@context.User.Identity?.Name</b></span>
+                    <span>Welcome, <b class="text-warning cursor-pointer"
+                                      @onclick="ToggleDropdown">@context.User.Identity?.Name</b></span>
                 </Authorized>
                 <NotAuthorized>
-                    <span>Willkommen, <b class="text-warning">Tüpfler</b></span>
+                    <span>Welcome, <b class="text-warning">Tüpfler</b></span>
                 </NotAuthorized>
             </AuthorizeView>
         </div>
@@ -26,16 +25,18 @@
             <AuthorizeView>
                 <Authorized>
                     <button class="btn-user" type="button" @onclick="ToggleDropdown">
-                        <img src="/images/science.svg" class="user-avatar" />
+                        <img src="/images/science.svg" class="user-avatar" alt="science image"/>
                     </button>
 
-                    @if (IsDropdownOpen) {
+                    @if (_isDropdownOpen)
+                    {
                         <div class="fixed inset-0 z-10" @onclick="CloseAll"></div>
 
                         <ul class="dropdown-menu show dropdown-menu-end z-20" style="position:absolute; padding: 28px; right:0; top:100%">
                             <li><span class="dropdown-item-text">@context.User.Identity?.Name</span></li>
                             <li><hr class="dropdown-divider" /></li>
-                            <li><a class="btn btn-outline-warning mb-2" href="/reset-password" @onclick="CloseAll">Change Password</a></li>
+                            <li><a class="btn btn-info mb-2" href="/user/account" @onclick="CloseAll">My account</a>
+                            </li>
                             <li>
                                 <form method="post" action="/api/auth/logout">
                                     <button type="submit" class="btn btn-outline-danger w-100">
@@ -55,8 +56,8 @@
         </div>
     </div>
 
-    
-    <div class="nav-menu @(IsMenuOpen ? "open" : "")">
+
+    <div class="nav-menu @(_isMenuOpen ? "open" : "")">
         <div class="nav-links">
             <AuthorizeView Roles="Admin">
                 <Authorized>
@@ -68,7 +69,7 @@
             <AuthorizeView Roles="Admin,Teacher">
                 <Authorized>
                     <NavLink class="nav-link-item" href="/teacher" Match="NavLinkMatch.All" @onclick="CloseAll">
-                        <i class="bi bi-person-badge"></i> Lehrerbereich
+                        <i class="bi bi-person-badge"></i> Teacher area
                     </NavLink>
                     @*
                     Statistiken-Feature existiert noch nicht — Link vorerst ausgeblendet, damit kein 404/Missing-Page angezeigt wird.
@@ -101,18 +102,24 @@
     </div>
 </div>
 
-@if (IsMenuOpen || IsDropdownOpen) {
+@if (_isMenuOpen || _isDropdownOpen)
+{
     <div class="nav-overlay" @onclick="CloseAll"></div>
 }
 
 
 @code {
-    private bool IsMenuOpen = false;
-    private bool IsDropdownOpen = false;
+    private bool _isMenuOpen;
+    private bool _isDropdownOpen;
 
-    private void ToggleMenu() => IsMenuOpen = !IsMenuOpen;
-    private void ToggleDropdown() => IsDropdownOpen = !IsDropdownOpen;
-    private void CloseAll() { IsMenuOpen = false; IsDropdownOpen = false; }
+    private void ToggleMenu() => _isMenuOpen = !_isMenuOpen;
+    private void ToggleDropdown() => _isDropdownOpen = !_isDropdownOpen;
+
+    private void CloseAll()
+    {
+        _isMenuOpen = false;
+        _isDropdownOpen = false;
+    }
 
     private void NavigateAndCloseMenu() {
         CloseAll();

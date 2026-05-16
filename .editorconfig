@@ -1,0 +1,326 @@
+[*]
+charset = utf-8
+end_of_line = crlf
+indent_size = 4
+indent_style = space
+insert_final_newline = true
+max_line_length = 120
+tab_width = 4
+trim_trailing_whitespace = false
+continuation_indent_size = 8
+formatter_off_tag = @formatter:off
+formatter_on_tag = @formatter:on
+formatter_tags_enabled = true
+smart_tabs = false
+visual_guides =
+wrap_on_typing = false
+
+
+[*.cs]
+csharp_new_line_before_open_brace = all
+csharp_new_line_before_else = true
+csharp_new_line_before_catch = true
+csharp_new_line_before_finally = true
+csharp_new_line_before_members_in_object_initializers = true
+csharp_new_line_before_members_in_anonymous_types = true
+csharp_new_line_between_query_expression_clauses = true
+
+csharp_indent_case_contents = true
+csharp_indent_switch_labels = true
+csharp_indent_block_contents = true
+csharp_indent_braces = false
+
+csharp_space_after_cast = false
+csharp_space_after_keywords_in_control_flow_statements = true
+csharp_space_between_method_declaration_parameter_list_parentheses = false
+csharp_space_between_method_call_parameter_list_parentheses = false
+csharp_space_between_parentheses = false
+csharp_space_before_colon_in_inheritance_clause = true
+csharp_space_after_colon_in_inheritance_clause = true
+csharp_space_around_binary_operators = before_and_after
+csharp_space_between_method_declaration_empty_parameter_list_parentheses = false
+csharp_space_between_method_call_name_and_opening_parenthesis = false
+csharp_space_between_method_call_empty_parameter_list_parentheses = false
+
+csharp_preserve_single_line_statements = false
+csharp_preserve_single_line_blocks = true
+
+dotnet_style_qualification_for_field = false:warning
+dotnet_style_qualification_for_property = false:warning
+dotnet_style_qualification_for_method = false:warning
+dotnet_style_qualification_for_event = false:warning
+
+dotnet_style_predefined_type_for_locals_parameters_members = true:warning
+dotnet_style_predefined_type_for_member_access = true:warning
+
+csharp_style_var_for_built_in_types = true:suggestion
+csharp_style_var_when_type_is_apparent = true:suggestion
+csharp_style_var_elsewhere = true:suggestion
+
+dotnet_style_object_initializer = true:suggestion
+dotnet_style_collection_initializer = true:suggestion
+dotnet_style_explicit_tuple_names = true:warning
+dotnet_style_prefer_inferred_tuple_names = true:suggestion
+dotnet_style_prefer_inferred_anonymous_type_member_names = true:suggestion
+dotnet_style_prefer_auto_properties = true:suggestion
+dotnet_style_prefer_conditional_expression_over_assignment = true:suggestion
+dotnet_style_prefer_conditional_expression_over_return = true:silent
+dotnet_style_prefer_simplified_interpolation = true:suggestion
+dotnet_style_prefer_compound_assignment = true:suggestion
+
+dotnet_style_coalesce_expression = true:warning
+dotnet_style_null_propagation = true:warning
+dotnet_style_prefer_is_null_check_over_reference_equality_method = true:warning
+
+dotnet_style_require_accessibility_modifiers = for_non_interface_members:warning
+dotnet_style_readonly_field = true:warning
+csharp_preferred_modifier_order = public, private, protected, internal, file, static, extern, new, virtual, abstract, sealed, override, readonly, unsafe, required, volatile, async:suggestion
+
+csharp_style_pattern_matching_over_is_with_cast_check = true:suggestion
+csharp_style_pattern_matching_over_as_with_null_check = true:suggestion
+csharp_style_prefer_switch_expression = true:suggestion
+csharp_style_prefer_pattern_matching = true:suggestion
+csharp_style_prefer_not_pattern = true:suggestion
+
+csharp_prefer_braces = true:suggestion
+csharp_prefer_simple_using_statement = true:suggestion
+csharp_style_namespace_declarations = file_scoped:warning
+
+csharp_style_expression_bodied_methods = when_on_single_line:suggestion
+csharp_style_expression_bodied_constructors = false:suggestion
+csharp_style_expression_bodied_operators = when_on_single_line:suggestion
+csharp_style_expression_bodied_properties = true:suggestion
+csharp_style_expression_bodied_indexers = true:suggestion
+csharp_style_expression_bodied_accessors = true:suggestion
+csharp_style_expression_bodied_lambdas = true:suggestion
+csharp_style_expression_bodied_local_functions = when_on_single_line:suggestion
+
+csharp_style_prefer_index_operator = true:suggestion
+csharp_style_prefer_range_operator = true:suggestion
+csharp_style_deconstructed_variable_declaration = true:suggestion
+csharp_style_inlined_variable_declaration = true:suggestion
+csharp_prefer_simple_default_expression = true:suggestion
+csharp_style_prefer_local_over_anonymous_function = true:suggestion
+csharp_style_prefer_tuple_swap = true:suggestion
+csharp_style_implicit_object_creation_when_type_is_apparent = true:suggestion
+csharp_style_prefer_null_check_over_type_check = true:suggestion
+csharp_style_prefer_utf8_string_literals = true:suggestion
+csharp_style_unused_value_assignment_preference = discard_variable:suggestion
+csharp_style_unused_value_expression_statement_preference = discard_variable:silent
+
+dotnet_sort_system_directives_first = true
+dotnet_separate_import_directive_groups = false
+csharp_using_directive_placement = outside_namespace:warning
+
+dotnet_naming_rule.interface_should_begin_with_i.severity = warning
+dotnet_naming_rule.interface_should_begin_with_i.symbols = interface
+dotnet_naming_rule.interface_should_begin_with_i.style = begins_with_i
+
+dotnet_naming_rule.types_should_be_pascal_case.severity = warning
+dotnet_naming_rule.types_should_be_pascal_case.symbols = types
+dotnet_naming_rule.types_should_be_pascal_case.style = pascal_case
+
+dotnet_naming_rule.non_field_members_should_be_pascal_case.severity = warning
+dotnet_naming_rule.non_field_members_should_be_pascal_case.symbols = non_field_members
+dotnet_naming_rule.non_field_members_should_be_pascal_case.style = pascal_case
+
+dotnet_naming_rule.private_static_readonly_should_be_pascal_case.severity = suggestion
+dotnet_naming_rule.private_static_readonly_should_be_pascal_case.symbols = private_static_readonly
+dotnet_naming_rule.private_static_readonly_should_be_pascal_case.style = pascal_case
+
+dotnet_naming_rule.private_fields_should_be_camel_case.severity = suggestion
+dotnet_naming_rule.private_fields_should_be_camel_case.symbols = private_fields
+dotnet_naming_rule.private_fields_should_be_camel_case.style = underscore_camel_case
+
+dotnet_naming_rule.constants_should_be_pascal_case.severity = warning
+dotnet_naming_rule.constants_should_be_pascal_case.symbols = constants
+dotnet_naming_rule.constants_should_be_pascal_case.style = pascal_case
+
+dotnet_naming_rule.local_variables_should_be_camel_case.severity = suggestion
+dotnet_naming_rule.local_variables_should_be_camel_case.symbols = locals
+dotnet_naming_rule.local_variables_should_be_camel_case.style = camel_case
+
+dotnet_naming_rule.parameters_should_be_camel_case.severity = suggestion
+dotnet_naming_rule.parameters_should_be_camel_case.symbols = parameters
+dotnet_naming_rule.parameters_should_be_camel_case.style = camel_case
+
+dotnet_naming_symbols.interface.applicable_kinds = interface
+dotnet_naming_symbols.interface.applicable_accessibilities = public, internal, private, protected, protected_internal, private_protected
+
+dotnet_naming_symbols.types.applicable_kinds = class, struct, interface, enum, delegate
+dotnet_naming_symbols.types.applicable_accessibilities = public, internal, private, protected, protected_internal, private_protected
+
+dotnet_naming_symbols.non_field_members.applicable_kinds = property, event, method
+dotnet_naming_symbols.non_field_members.applicable_accessibilities = public, internal, private, protected, protected_internal, private_protected
+
+dotnet_naming_symbols.private_static_readonly.applicable_kinds = field
+dotnet_naming_symbols.private_static_readonly.applicable_accessibilities = private, private_protected
+dotnet_naming_symbols.private_static_readonly.required_modifiers = static, readonly
+
+dotnet_naming_symbols.private_fields.applicable_kinds = field
+dotnet_naming_symbols.private_fields.applicable_accessibilities = private, private_protected
+
+dotnet_naming_symbols.constants.applicable_kinds = field
+dotnet_naming_symbols.constants.required_modifiers = const
+
+dotnet_naming_symbols.locals.applicable_kinds = local
+
+dotnet_naming_symbols.parameters.applicable_kinds = parameter
+
+dotnet_naming_style.pascal_case.capitalization = pascal_case
+
+dotnet_naming_style.begins_with_i.required_prefix = I
+dotnet_naming_style.begins_with_i.capitalization = pascal_case
+
+dotnet_naming_style.underscore_camel_case.required_prefix = _
+dotnet_naming_style.underscore_camel_case.capitalization = camel_case
+
+dotnet_naming_style.camel_case.capitalization = camel_case
+
+resharper_place_attribute_on_same_line = false
+csharp_place_attribute_on_same_line = false
+
+[*.properties]
+properties_align_group_field_declarations = false
+properties_keep_blank_lines = false
+properties_key_value_delimiter = equals
+properties_spaces_around_key_value_delimiter = false
+
+[*.proto]
+indent_size = 2
+tab_width = 2
+continuation_indent_size = 4
+protobuf_keep_blank_lines_in_code = 2
+protobuf_keep_indents_on_empty_lines = false
+protobuf_keep_line_breaks = true
+protobuf_space_after_comma = true
+protobuf_space_before_comma = false
+protobuf_spaces_around_assignment_operators = true
+protobuf_spaces_within_braces = false
+protobuf_spaces_within_brackets = false
+
+[.editorconfig]
+editorconfig_align_group_field_declarations = false
+editorconfig_space_after_colon = false
+editorconfig_space_after_comma = true
+editorconfig_space_before_colon = false
+editorconfig_space_before_comma = false
+editorconfig_spaces_around_assignment_operators = true
+
+[{*.ant,*.appxmanifest,*.axml,*.cscfg,*.csdef,*.disco,*.dotsettings,*.filelayout,*.fxml,*.jhm,*.jnlp,*.jrxml,*.manifest,*.myapp,*.nuspec,*.rng,*.stylecop,*.svcmap,*.tld,*.wadcfgx,*.webref,*.wsdl,*.xml,*.xsd,*.xsl,*.xslt,*.xul,StyleCop.Cache}]
+xml_align_attributes = true
+xml_align_text = false
+xml_attribute_wrap = normal
+xml_block_comment_add_space = false
+xml_block_comment_at_first_column = true
+xml_keep_blank_lines = 2
+xml_keep_indents_on_empty_lines = false
+xml_keep_line_breaks = true
+xml_keep_line_breaks_in_text = true
+xml_keep_whitespaces = false
+xml_keep_whitespaces_around_cdata = preserve
+xml_keep_whitespaces_inside_cdata = false
+xml_line_comment_at_first_column = true
+xml_space_after_tag_name = false
+xml_space_around_equals_in_attribute = false
+xml_space_inside_empty_tag = false
+xml_text_wrap = normal
+
+[{*.bash,*.sh,*.zsh}]
+indent_size = 2
+tab_width = 2
+shell_binary_ops_start_line = false
+shell_keep_column_alignment_padding = false
+shell_minify_program = false
+shell_redirect_followed_by_space = false
+shell_switch_cases_indented = false
+shell_use_unix_line_separator = true
+
+[{*.har,*.jsb2,*.jsb3,*.json,*.jsonc,*.postman_collection,*.postman_collection.json,*.postman_environment,*.postman_environment.json,.babelrc,.eslintrc,.prettierrc,.stylelintrc,.ws-context,jest.config}]
+indent_size = 2
+json_array_wrapping = split_into_lines
+json_keep_blank_lines_in_code = 0
+json_keep_indents_on_empty_lines = false
+json_keep_line_breaks = true
+json_keep_trailing_comma = false
+json_object_wrapping = split_into_lines
+json_property_alignment = do_not_align
+json_space_after_colon = true
+json_space_after_comma = true
+json_space_before_colon = false
+json_space_before_comma = false
+json_spaces_within_braces = false
+json_spaces_within_brackets = false
+json_wrap_long_lines = false
+
+[{*.htm,*.html,*.sht,*.shtm,*.shtml}]
+html_add_new_line_before_tags = body, div, p, form, h1, h2, h3
+html_align_attributes = true
+html_align_text = false
+html_attribute_wrap = normal
+html_block_comment_add_space = false
+html_block_comment_at_first_column = true
+html_do_not_align_children_of_min_lines = 0
+html_do_not_break_if_inline_tags = title, h1, h2, h3, h4, h5, h6, p
+html_do_not_indent_children_of_tags = html, body, thead, tbody, tfoot
+html_enforce_quotes = false
+html_inline_tags = a, abbr, acronym, b, basefont, bdo, big, br, cite, cite, code, dfn, em, font, i, img, input, kbd, label, q, s, samp, select, small, span, strike, strong, sub, sup, textarea, tt, u, var
+html_keep_blank_lines = 2
+html_keep_indents_on_empty_lines = false
+html_keep_line_breaks = true
+html_keep_line_breaks_in_text = true
+html_keep_whitespaces = false
+html_keep_whitespaces_inside = span, pre, textarea
+html_line_comment_at_first_column = true
+html_new_line_after_last_attribute = never
+html_new_line_before_first_attribute = never
+html_quote_style = double
+html_remove_new_line_before_tags = br
+html_space_after_tag_name = false
+html_space_around_equality_in_attribute = false
+html_space_inside_empty_tag = false
+html_text_wrap = normal
+
+[{*.http,*.rest}]
+continuation_indent_size = 4
+http-request_call_parameters_wrap = normal
+http-request_method_parameters_wrap = split_into_lines
+http-request_space_before_comma = true
+http-request_spaces_around_assignment_operators = true
+
+[{*.markdown,*.md}]
+markdown_force_one_space_after_blockquote_symbol = true
+markdown_force_one_space_after_header_symbol = true
+markdown_force_one_space_after_list_bullet = true
+markdown_force_one_space_between_words = true
+markdown_format_tables = true
+markdown_insert_quote_arrows_on_wrap = true
+markdown_keep_indents_on_empty_lines = false
+markdown_keep_line_breaks_inside_text_blocks = true
+markdown_max_lines_around_block_elements = 1
+markdown_max_lines_around_header = 1
+markdown_max_lines_between_paragraphs = 1
+markdown_min_lines_around_block_elements = 1
+markdown_min_lines_around_header = 1
+markdown_min_lines_between_paragraphs = 1
+markdown_wrap_text_if_long = true
+markdown_wrap_text_inside_blockquotes = true
+
+[{*.yaml,*.yml}]
+indent_size = 2
+yaml_align_values_properties = do_not_align
+yaml_autoinsert_sequence_marker = true
+yaml_block_mapping_on_new_line = false
+yaml_indent_sequence_value = true
+yaml_keep_indents_on_empty_lines = false
+yaml_keep_line_breaks = true
+yaml_line_comment_add_space = false
+yaml_line_comment_add_space_on_reformat = false
+yaml_line_comment_at_first_column = true
+yaml_sequence_on_new_line = false
+yaml_space_before_colon = false
+yaml_spaces_within_braces = true
+yaml_spaces_within_brackets = true
+
+[SpotAnalysis.Data/**/*.cs]
+resharper_class_with_virtual_members_never_inherited_global_highlighting = none

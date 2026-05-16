@@ -30,6 +30,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IChemistryDataService, ChemistryDataService>();
         services.AddScoped<IMasterDataService, MasterDataService>();
         services.AddScoped<IDatabaseSeeder, DatabaseSeeder>();
+        services.AddScoped<ISessionService, SessionService>();
 
         return services;
     }

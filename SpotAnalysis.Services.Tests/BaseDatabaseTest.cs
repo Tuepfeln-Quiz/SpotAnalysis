@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using SpotAnalysis.Data;
 
 namespace SpotAnalysis.Services.Tests;
@@ -6,9 +6,6 @@ namespace SpotAnalysis.Services.Tests;
 [TestFixture]
 public abstract class BaseDatabaseTest
 {
-    private AnalysisContext _context;
-    protected IDbContextFactory<AnalysisContext> ContextFactory;
-
     [OneTimeSetUp]
     public async Task RunBeforeAllTests()
     {
@@ -53,6 +50,9 @@ public abstract class BaseDatabaseTest
     {
         _context.Dispose();
     }
+
+    private AnalysisContext _context;
+    protected IDbContextFactory<AnalysisContext> ContextFactory;
 
     private class TestDbContextFactory(DbContextOptions<AnalysisContext> options) : IDbContextFactory<AnalysisContext>
     {

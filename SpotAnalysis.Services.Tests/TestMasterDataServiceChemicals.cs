@@ -35,7 +35,7 @@ public class TestMasterDataServiceChemicals : BaseDatabaseTest
         await using var context = await ContextFactory.CreateDbContextAsync();
         var existing = await context.Chemicals.FirstAsync(c => c.Name == "Eisen(III)chlorid");
 
-        var result = await service.GetChemicalByIdAsync(existing.ChemicalID);
+        var result = await service.GetChemicalByIdAsync(existing.ChemicalId);
 
         Assert.That(result, Is.Not.Null);
         Assert.That(result!.Name, Is.EqualTo("Eisen(III)chlorid"));
@@ -63,10 +63,7 @@ public class TestMasterDataServiceChemicals : BaseDatabaseTest
             Formula = "TS",
             ColorName = "grün",
             Type = ChemicalType.Educt,
-            MethodOutputs = new()
-            {
-                new MethodOutputEntry { MethodName = "ph-Papier", ColorName = "gelb" }
-            }
+            MethodOutputs = new() { new MethodOutputEntry { MethodName = "ph-Papier", ColorName = "gelb" } }
         };
 
         var id = await service.CreateChemicalAsync(dto);
@@ -83,10 +80,7 @@ public class TestMasterDataServiceChemicals : BaseDatabaseTest
         var service = new MasterDataService(ContextFactory);
         var dto = new ChemicalDetailDto
         {
-            Name = "Eisen(III)chlorid",
-            Formula = "FeCl3",
-            ColorName = "orange",
-            Type = ChemicalType.Educt
+            Name = "Eisen(III)chlorid", Formula = "FeCl3", ColorName = "orange", Type = ChemicalType.Educt
         };
 
         Assert.ThrowsAsync<InvalidOperationException>(async () =>
@@ -102,7 +96,7 @@ public class TestMasterDataServiceChemicals : BaseDatabaseTest
         await using var context = await ContextFactory.CreateDbContextAsync();
         var existing = await context.Chemicals.FirstAsync(c => c.Name == "Eisen(III)chlorid");
 
-        var dto = await service.GetChemicalByIdAsync(existing.ChemicalID);
+        var dto = await service.GetChemicalByIdAsync(existing.ChemicalId);
         dto!.ColorName = "rotbraun";
         dto.ColorId = 0;
         var phPaper = dto.MethodOutputs.First(mo => mo.MethodName == "ph-Papier");
@@ -111,7 +105,7 @@ public class TestMasterDataServiceChemicals : BaseDatabaseTest
 
         await service.UpdateChemicalAsync(dto);
 
-        var reloaded = await service.GetChemicalByIdAsync(existing.ChemicalID);
+        var reloaded = await service.GetChemicalByIdAsync(existing.ChemicalId);
         Assert.That(reloaded!.ColorName, Is.EqualTo("rotbraun"));
         Assert.That(reloaded.MethodOutputs.First(mo => mo.MethodName == "ph-Papier").ColorName,
             Is.EqualTo("hellrot"));
@@ -125,7 +119,7 @@ public class TestMasterDataServiceChemicals : BaseDatabaseTest
         var a = await context.Chemicals.FirstAsync(c => c.Name == "Eisen(III)chlorid");
         var b = await context.Chemicals.Where(c => c.Name != "Eisen(III)chlorid").FirstAsync();
 
-        var dto = await service.GetChemicalByIdAsync(b.ChemicalID);
+        var dto = await service.GetChemicalByIdAsync(b.ChemicalId);
         dto!.Name = a.Name;
         dto.Formula = a.Formula;
 
@@ -140,14 +134,14 @@ public class TestMasterDataServiceChemicals : BaseDatabaseTest
         await using var context = await ContextFactory.CreateDbContextAsync();
         var existing = await context.Chemicals.FirstAsync(c => c.Name == "Eisen(III)chlorid");
 
-        var dto = await service.GetChemicalByIdAsync(existing.ChemicalID);
+        var dto = await service.GetChemicalByIdAsync(existing.ChemicalId);
         var phPaper = dto!.MethodOutputs.First(mo => mo.MethodName == "ph-Papier");
         phPaper.ColorName = "";
         phPaper.ColorId = 0;
 
         await service.UpdateChemicalAsync(dto);
 
-        var reloaded = await service.GetChemicalByIdAsync(existing.ChemicalID);
+        var reloaded = await service.GetChemicalByIdAsync(existing.ChemicalId);
         Assert.That(reloaded!.MethodOutputs.Any(mo => mo.MethodName == "ph-Papier"), Is.False);
     }
 
@@ -159,10 +153,7 @@ public class TestMasterDataServiceChemicals : BaseDatabaseTest
         var service = new MasterDataService(ContextFactory);
         var id = await service.CreateChemicalAsync(new ChemicalDetailDto
         {
-            Name = "Löschkandidat",
-            Formula = "LK",
-            ColorName = "rosa",
-            Type = ChemicalType.Additive
+            Name = "Löschkandidat", Formula = "LK", ColorName = "rosa", Type = ChemicalType.Additive
         });
 
         await service.DeleteChemicalAsync(id);
@@ -182,7 +173,7 @@ public class TestMasterDataServiceChemicals : BaseDatabaseTest
             .FirstAsync(c => c.Chemical1Reactions.Any() || c.Chemical2Reactions.Any());
 
         var ex = Assert.ThrowsAsync<InvalidOperationException>(async () =>
-            await service.DeleteChemicalAsync(chemical.ChemicalID));
+            await service.DeleteChemicalAsync(chemical.ChemicalId));
 
         Assert.That(ex!.Message, Does.Contain("referenziert"));
     }

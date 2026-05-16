@@ -1,4 +1,4 @@
-﻿namespace SpotAnalysis.Data.Enums;
+namespace SpotAnalysis.Data.Enums;
 
 public enum ChemicalType
 {

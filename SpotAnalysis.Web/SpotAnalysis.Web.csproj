@@ -45,7 +45,11 @@
 		          Dest="$(MSBuildProjectDirectory)/wwwroot/lib/bootstrap-icons/fonts/" />
 	</ItemGroup>
 
-	<Target Name="DownloadCdnAssets" BeforeTargets="Build">
+    <ItemGroup>
+        <Folder Include="Logs\"/>
+    </ItemGroup>
+
+    <Target Name="DownloadCdnAssets" BeforeTargets="Build">
 		<MakeDir Directories="%(CdnAsset.Dest)" />
 		<DownloadFile
 				SourceUrl="%(CdnAsset.Url)"

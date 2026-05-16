@@ -123,7 +123,8 @@ public class XlsImportExportService : IXlsImportExportService
 
         foreach (var educt in educts)
         {
-            if (string.IsNullOrWhiteSpace(educt.Substance)) continue;
+            if (string.IsNullOrWhiteSpace(educt.Substance))
+                continue;
 
             var isNew = !existing.TryGetValue(educt.Substance, out var chemical);
             var baseChanged = false;
@@ -135,10 +136,7 @@ public class XlsImportExportService : IXlsImportExportService
             {
                 chemical = new Chemical
                 {
-                    Name = educt.Substance,
-                    Formula = newFormula,
-                    ColorId = color.ColorId,
-                    Type = ChemicalType.Educt
+                    Name = educt.Substance, Formula = newFormula, ColorId = color.ColorId, Type = ChemicalType.Educt
                 };
                 _context.Chemicals.Add(chemical);
                 existing[educt.Substance] = chemical;
@@ -174,9 +172,12 @@ public class XlsImportExportService : IXlsImportExportService
                 }
             }
 
-            if (isNew) result.ChemicalsAdded++;
-            else if (baseChanged || methodsChanged) result.ChemicalsUpdated++;
-            else result.ChemicalsSkipped++;
+            if (isNew)
+                result.ChemicalsAdded++;
+            else if (baseChanged || methodsChanged)
+                result.ChemicalsUpdated++;
+            else
+                result.ChemicalsSkipped++;
         }
 
         await _context.SaveChangesAsync();
@@ -195,7 +196,8 @@ public class XlsImportExportService : IXlsImportExportService
 
         foreach (var additive in additives)
         {
-            if (string.IsNullOrWhiteSpace(additive.Name)) continue;
+            if (string.IsNullOrWhiteSpace(additive.Name))
+                continue;
 
             var isNew = !existing.TryGetValue(additive.Name, out var chemical);
             var changed = false;
@@ -228,8 +230,10 @@ public class XlsImportExportService : IXlsImportExportService
                     changed = true;
                 }
 
-                if (changed) result.ChemicalsUpdated++;
-                else result.ChemicalsSkipped++;
+                if (changed)
+                    result.ChemicalsUpdated++;
+                else
+                    result.ChemicalsSkipped++;
             }
         }
 
@@ -241,23 +245,25 @@ public class XlsImportExportService : IXlsImportExportService
         Chemical chemical, Method method, string? colorName,
         Dictionary<string, Color> colors)
     {
-        if (string.IsNullOrWhiteSpace(colorName)) return false;
+        if (string.IsNullOrWhiteSpace(colorName))
+            return false;
 
         var color = await ResolveColorAsync(colorName, colors);
         var existing = chemical.MethodOutputs
-            .FirstOrDefault(mo => mo.MethodID == method.MethodID);
+            .FirstOrDefault(mo => mo.MethodId == method.MethodId);
 
         if (existing != null)
         {
-            if (existing.ColorId == color.ColorId) return false;
+            if (existing.ColorId == color.ColorId)
+                return false;
             existing.ColorId = color.ColorId;
             return true;
         }
 
         chemical.MethodOutputs.Add(new MethodOutput
         {
-            ChemicalID = chemical.ChemicalID,
-            MethodID = method.MethodID,
+            ChemicalId = chemical.ChemicalId,
+            MethodId = method.MethodId,
             ColorId = color.ColorId,
             Chemical = chemical,
             Method = method
@@ -267,9 +273,11 @@ public class XlsImportExportService : IXlsImportExportService
 
     private static Chemical? FindChemical(Dictionary<string, Chemical> chemicals, string? name)
     {
-        if (string.IsNullOrWhiteSpace(name)) return null;
+        if (string.IsNullOrWhiteSpace(name))
+            return null;
         // Try by name first, then by formula (Excel "Zusatzstoff" column uses formula)
-        if (chemicals.TryGetValue(name, out var chem)) return chem;
+        if (chemicals.TryGetValue(name, out var chem))
+            return chem;
         return chemicals.Values.FirstOrDefault(c =>
             string.Equals(c.Formula, name, StringComparison.OrdinalIgnoreCase));
     }
@@ -306,19 +314,23 @@ public class XlsImportExportService : IXlsImportExportService
         await _context.SaveChangesAsync();
 
         var existingReactions = await _context.Reactions
-            .ToDictionaryAsync(r => (r.Chemical1ID, r.Chemical2ID));
+            .ToDictionaryAsync(r => (Chemical1ID: r.Chemical1Id, Chemical2ID: r.Chemical2Id));
 
         foreach (var combo in combinations)
         {
-            if (string.IsNullOrWhiteSpace(combo.FirstEductName)) continue;
-            if (string.IsNullOrWhiteSpace(combo.Product)) continue;
+            if (string.IsNullOrWhiteSpace(combo.FirstEductName))
+                continue;
+            if (string.IsNullOrWhiteSpace(combo.Product))
+                continue;
 
             var chem1 = FindChemical(chemicals, combo.FirstEductName);
-            if (chem1 == null) continue;
+            if (chem1 == null)
+                continue;
 
             var chem2 = FindChemical(chemicals, combo.SecondEductName)
                         ?? FindChemical(chemicals, combo.AdditiveName);
-            if (chem2 == null) continue;
+            if (chem2 == null)
+                continue;
 
             Observation? observation = null;
             if (!string.IsNullOrWhiteSpace(combo.Observation))
@@ -326,25 +338,25 @@ public class XlsImportExportService : IXlsImportExportService
 
             // Normalisierung: Reaction speichert Chemicals immer mit kleinerer ID zuerst (siehe Reaction-Konstruktor + CK_Reaction_ChemicalOrder).
             // Der Lookup-Key muss derselben Normalisierung folgen, sonst wird die Excel-Reihenfolge zur Duplikat-Falle.
-            var key = chem1.ChemicalID <= chem2.ChemicalID
-                ? (chem1.ChemicalID, chem2.ChemicalID)
-                : (chem2.ChemicalID, chem1.ChemicalID);
+            var key = chem1.ChemicalId <= chem2.ChemicalId
+                ? (chem1.ChemicalId, chem2.ChemicalId)
+                : (chem2.ChemicalId, chem1.ChemicalId);
 
             if (existingReactions.TryGetValue(key, out var reaction))
             {
                 var newProduct = combo.Product;
                 var newFormula = combo.Formula ?? "";
-                var newObsId = observation?.ObservationID ?? reaction.ObservationID;
+                var newObsId = observation?.ObservationId ?? reaction.ObservationId;
 
                 var changed = reaction.RelevantProduct != newProduct
                               || reaction.Formula != newFormula
-                              || reaction.ObservationID != newObsId;
+                              || reaction.ObservationId != newObsId;
 
                 if (changed)
                 {
                     reaction.RelevantProduct = newProduct;
                     reaction.Formula = newFormula;
-                    reaction.ObservationID = newObsId;
+                    reaction.ObservationId = newObsId;
                     result.ReactionsUpdated++;
                 }
                 else
@@ -358,7 +370,7 @@ public class XlsImportExportService : IXlsImportExportService
                 {
                     RelevantProduct = combo.Product,
                     Formula = combo.Formula ?? "",
-                    ObservationID = observation?.ObservationID ?? 0
+                    ObservationId = observation?.ObservationId ?? 0
                 };
                 result.ReactionsAdded++;
                 _context.Reactions.Add(reaction);
@@ -377,42 +389,33 @@ public class XlsImportExportService : IXlsImportExportService
             .Include(c => c.Color)
             .Include(c => c.MethodOutputs)
             .ThenInclude(mo => mo.Color)
-            .OrderBy(c => c.ChemicalID)
+            .OrderBy(c => c.ChemicalId)
             .ToListAsync();
 
-        var chemicalById = allChemicals.ToDictionary(c => c.ChemicalID);
+        var chemicalById = allChemicals.ToDictionary(c => c.ChemicalId);
 
         var educts = allChemicals
             .Where(c => c.Type == ChemicalType.Educt)
             .Select(c =>
             {
-                var educt = new Educt
-                {
-                    Substance = c.Name,
-                    Formula = c.Formula,
-                    InherentColor = c.Color.Name
-                };
+                var educt = new Educt { Substance = c.Name, Formula = c.Formula, InherentColor = c.Color.Name };
                 SetMethodProperties(educt, c, methods);
                 return educt;
             }).ToList();
 
         var additives = allChemicals
             .Where(c => c.Type == ChemicalType.Additive)
-            .Select(c => new Additive
-            {
-                Name = c.Name,
-                Formula = c.Formula
-            }).ToList();
+            .Select(c => new Additive { Name = c.Name, Formula = c.Formula }).ToList();
 
         var reactions = await _context.Reactions
             .Include(r => r.Observation)
-            .OrderBy(r => r.ReactionID)
+            .OrderBy(r => r.ReactionId)
             .ToListAsync();
 
         var combinations = reactions.Select(r =>
         {
-            var chem1 = chemicalById[r.Chemical1ID];
-            var chem2 = chemicalById[r.Chemical2ID];
+            var chem1 = chemicalById[r.Chemical1Id];
+            var chem2 = chemicalById[r.Chemical2Id];
 
             return new Combination
             {
@@ -434,13 +437,15 @@ public class XlsImportExportService : IXlsImportExportService
         foreach (var prop in typeof(Educt).GetProperties())
         {
             var attr = prop.GetCustomAttribute<ExcelColumnAttribute>();
-            if (attr is not { IsMethod: true }) continue;
+            if (attr is not { IsMethod: true })
+                continue;
 
             var methodName = attr.Name ?? prop.Name;
-            if (!methods.TryGetValue(methodName, out var method)) continue;
+            if (!methods.TryGetValue(methodName, out var method))
+                continue;
 
             var color = chemical.MethodOutputs
-                .FirstOrDefault(mo => mo.MethodID == method.MethodID)?.Color.Name;
+                .FirstOrDefault(mo => mo.MethodId == method.MethodId)?.Color.Name;
             prop.SetValue(educt, color);
         }
     }

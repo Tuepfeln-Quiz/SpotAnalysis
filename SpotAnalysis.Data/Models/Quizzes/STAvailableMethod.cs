@@ -1,20 +1,19 @@
-﻿namespace SpotAnalysis.Data.Models.Quizzes;
+namespace SpotAnalysis.Data.Models.Quizzes;
 
 /// <summary>
 /// Contains the methods that can be used in the specified SpotTestQuestion.
 /// </summary>
-
-[PrimaryKey(nameof(QuestionID), nameof(MethodID))]
-public class STAvailableMethod
+[PrimaryKey(nameof(QuestionId), nameof(MethodId))]
+public class StAvailableMethod
 {
-    public int QuestionID { get; set; }
-    public int MethodID { get; set; }
+    public int QuestionId { get; set; }
+    public int MethodId { get; set; }
 
-    [ForeignKey(nameof(QuestionID))]
+    [ForeignKey(nameof(QuestionId))]
     [DeleteBehavior(DeleteBehavior.Restrict)]
-    public STQuestion STQuestion { get; set; } = null!;
+    public StQuestion StQuestion { get; set; } = null!;
 
-    [ForeignKey(nameof(MethodID))]
+    [ForeignKey(nameof(MethodId))]
     [DeleteBehavior(DeleteBehavior.Restrict)]
     public Method Method { get; set; } = null!;
 }

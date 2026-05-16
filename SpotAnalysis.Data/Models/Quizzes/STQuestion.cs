@@ -1,14 +1,12 @@
-﻿namespace SpotAnalysis.Data.Models.Quizzes;
+namespace SpotAnalysis.Data.Models.Quizzes;
 
-public class STQuestion
+public class StQuestion
 {
-    [Key]
-    [ForeignKey(nameof(QuestionID))]
-    public int QuestionID { get; set; }
+    [Key] [ForeignKey(nameof(QuestionId))] public int QuestionId { get; set; }
 
     [DeleteBehavior(DeleteBehavior.Restrict)]
     public virtual Question Question { get; set; } = null!;
 
-    public virtual ICollection<STAvailableChemical> AvailableChemicals { get; set; } = [];
-    public virtual ICollection<STAvailableMethod> AvailableMethods { get; set; } = [];
+    public virtual ICollection<StAvailableChemical> AvailableChemicals { get; set; } = [];
+    public virtual ICollection<StAvailableMethod> AvailableMethods { get; set; } = [];
 }

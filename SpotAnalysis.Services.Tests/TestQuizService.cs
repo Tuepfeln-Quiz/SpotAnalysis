@@ -1,8 +1,9 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 using SpotAnalysis.Data.Enums;
 using SpotAnalysis.Data.Models.Identity;
+using SpotAnalysis.Data.Models.Quizzes;
 using SpotAnalysis.Services.DTOs;
 using SpotAnalysis.Services.Services;
 
@@ -11,17 +12,6 @@ namespace SpotAnalysis.Services.Tests;
 [TestFixture]
 public class TestQuizService : BaseDatabaseTest
 {
-    private QuizService _quizService;
-    private GroupService _teacherService;
-
-    private readonly Guid _createdBy = Guid.NewGuid();
-
-    #region Users
-
-    private static readonly Guid Teacher1 = Guid.Parse("9c9c2138-f945-41fa-823e-f3bd286c0fa1");
-
-    #endregion
-
     [OneTimeSetUp]
     public void InitGroupService()
     {
@@ -30,6 +20,13 @@ public class TestQuizService : BaseDatabaseTest
         var inviteTokens = new GroupInviteTokenService(ContextFactory);
         _teacherService = new GroupService(ContextFactory, inviteTokens);
     }
+
+    private QuizService _quizService;
+    private GroupService _teacherService;
+
+    private readonly Guid _createdBy = Guid.NewGuid();
+
+    private static readonly Guid Teacher1 = Guid.Parse("9c9c2138-f945-41fa-823e-f3bd286c0fa1");
 
     [Test]
     public async Task GetAllQuizzes_ReturnAllQuizzes()
@@ -52,18 +49,13 @@ public class TestQuizService : BaseDatabaseTest
 
         var newQuizName = "My cool new name";
 
-        var quizToUpdate = new UpdateQuizDto
-        {
-            Id = 10,
-            Name = newQuizName,
-            Questions = []
-        };
+        var quizToUpdate = new UpdateQuizDto { Id = 10, Name = newQuizName, Questions = [] };
 
         await _quizService.UpdateQuiz(_createdBy, quizToUpdate);
 
         await using var dbContext = await ContextFactory.CreateDbContextAsync();
 
-        var quiz = await dbContext.Quizzes.SingleAsync(x => x.QuizID == 10);
+        var quiz = await dbContext.Quizzes.SingleAsync(x => x.QuizId == 10);
 
         Assert.That(quiz.Name, Is.EqualTo(newQuizName));
     }
@@ -83,7 +75,7 @@ public class TestQuizService : BaseDatabaseTest
 
         var ex = Assert.Throws<InvalidOperationException>(() =>
         {
-            _ = dbContext.Quizzes.Single(x => x.QuizID == 10);
+            _ = dbContext.Quizzes.Single(x => x.QuizId == 10);
         });
 
         Assert.That(ex.Message, Is.EqualTo("Sequence contains no elements"));
@@ -98,21 +90,18 @@ public class TestQuizService : BaseDatabaseTest
 
         await using var dbContext = await ContextFactory.CreateDbContextAsync();
 
-        var result = await dbContext.Groups.AddAsync(new Group
-        {
-            Name = "Fetzige Group"
-        });
+        var result = await dbContext.Groups.AddAsync(new Group { Name = "Fetzige Group" });
 
         await dbContext.SaveChangesAsync();
 
         Assert.DoesNotThrowAsync(async () =>
         {
-            await _quizService.AssignGroupToQuiz(_createdBy, 1, result.Entity.GroupID);
+            await _quizService.AssignGroupToQuiz(_createdBy, 1, result.Entity.GroupId);
         });
 
         var group = await dbContext.Groups
             .Include(x => x.Quizzes)
-            .SingleAsync(x => x.GroupID == result.Entity.GroupID);
+            .SingleAsync(x => x.GroupId == result.Entity.GroupId);
 
         Assert.That(group.Quizzes, Has.Count.EqualTo(1));
     }
@@ -130,11 +119,7 @@ public class TestQuizService : BaseDatabaseTest
         {
             var quiz = await dbContext.Quizzes.FirstAsync();
 
-            var result = await dbContext.Groups.AddAsync(new Group
-            {
-                Name = "Fetzige Group",
-                Quizzes = [quiz]
-            });
+            var result = await dbContext.Groups.AddAsync(new Group { Name = "Fetzige Group", Quizzes = [quiz] });
 
             createdQuiz = result.Entity;
 
@@ -142,7 +127,7 @@ public class TestQuizService : BaseDatabaseTest
 
             Assert.DoesNotThrowAsync(async () =>
             {
-                await _quizService.RemoveGroupFromQuiz(_createdBy, quiz.QuizID, createdQuiz.GroupID);
+                await _quizService.RemoveGroupFromQuiz(_createdBy, quiz.QuizId, createdQuiz.GroupId);
             });
         }
 
@@ -150,7 +135,7 @@ public class TestQuizService : BaseDatabaseTest
         {
             var group = await dbContext.Groups
                 .Include(x => x.Quizzes)
-                .SingleAsync(x => x.GroupID == createdQuiz.GroupID);
+                .SingleAsync(x => x.GroupId == createdQuiz.GroupId);
 
             Assert.That(group.Quizzes, Has.Count.EqualTo(0));
         }
@@ -169,11 +154,7 @@ public class TestQuizService : BaseDatabaseTest
         {
             var quiz = await dbContext.Quizzes.FirstAsync();
 
-            var result = await dbContext.Groups.AddAsync(new Group
-            {
-                Name = "Fetzige Group",
-                Quizzes = [quiz]
-            });
+            var result = await dbContext.Groups.AddAsync(new Group { Name = "Fetzige Group", Quizzes = [quiz] });
 
             createdQuiz = result.Entity;
 
@@ -181,7 +162,7 @@ public class TestQuizService : BaseDatabaseTest
 
             Assert.DoesNotThrowAsync(async () =>
             {
-                await _quizService.RemoveGroupFromQuiz(_createdBy, quiz.QuizID, createdQuiz.GroupID);
+                await _quizService.RemoveGroupFromQuiz(_createdBy, quiz.QuizId, createdQuiz.GroupId);
             });
         }
 
@@ -189,7 +170,7 @@ public class TestQuizService : BaseDatabaseTest
         {
             var group = await dbContext.Groups
                 .Include(x => x.Quizzes)
-                .SingleAsync(x => x.GroupID == createdQuiz.GroupID);
+                .SingleAsync(x => x.GroupId == createdQuiz.GroupId);
 
             Assert.That(group.Quizzes, Has.Count.EqualTo(0));
         }
@@ -201,10 +182,7 @@ public class TestQuizService : BaseDatabaseTest
         {
             await dbContext.Users.AddAsync(new User
             {
-                UserID = _createdBy,
-                UserName = "Test",
-                PasswordHash = "HohohoNoHash",
-                Roles = [Role.Teacher]
+                UserId = _createdBy, UserName = "Test", PasswordHash = "HohohoNoHash", Roles = [Role.Teacher]
             });
 
             await dbContext.SaveChangesAsync();
@@ -214,11 +192,7 @@ public class TestQuizService : BaseDatabaseTest
 
         for (int i = 0; i < 100; i++)
         {
-            tasks.Add(_quizService.CreateQuiz(_createdBy, new CreateQuizDto
-            {
-                Name = i.ToString(),
-                Questions = []
-            }));
+            tasks.Add(_quizService.CreateQuiz(_createdBy, new CreateQuizDto { Name = i.ToString(), Questions = [] }));
         }
 
         Task.WaitAll(tasks);
@@ -268,20 +242,13 @@ public class TestQuizService : BaseDatabaseTest
     [Test]
     public async Task GetQuizzes_ReturnsCreatedQuiz()
     {
-        await _teacherService.CreateGroup(Teacher1, new ConfigGroupDto
-        {
-            Name = "Test Quiz Group",
-        });
+        await _teacherService.CreateGroup(Teacher1, new ConfigGroupDto { Name = "Test Quiz Group", });
 
         var groups = await _teacherService.GetGroups(Teacher1);
 
         Assert.That(groups, Has.Count.EqualTo(1));
 
-        await _quizService.CreateQuiz(Teacher1, new CreateQuizDto
-        {
-            Name = "Test Quiz",
-            Questions = [],
-        });
+        await _quizService.CreateQuiz(Teacher1, new CreateQuizDto { Name = "Test Quiz", Questions = [], });
 
         var quizzes = await _quizService.GetQuizzes(Teacher1);
 
@@ -298,7 +265,8 @@ public class TestQuizService : BaseDatabaseTest
         await _quizService.CreateSTLQuestion(Teacher1, new ConfigSTLQuestionDto
         {
             Description = "A Test STL Question",
-            AvailableReactions = [
+            AvailableReactions =
+            [
                 1
             ],
             ShowEductId = 1,
@@ -310,12 +278,9 @@ public class TestQuizService : BaseDatabaseTest
         {
             Name = "Test Quiz",
             Id = quiz.Id,
-            Questions = [
-                new QuestionDto
-                {
-                    Id = 1,
-                    Order = 1
-                },
+            Questions =
+            [
+                new QuestionDto { Id = 1, Order = 1 },
             ],
         });
     }
@@ -368,26 +333,26 @@ public class TestQuizService : BaseDatabaseTest
     {
         await using var db = await ContextFactory.CreateDbContextAsync();
 
-        if (!await db.Users.AnyAsync(u => u.UserID == creatorId))
-            db.Users.Add(new User { UserID = creatorId, UserName = "Creator", PasswordHash = "x" });
+        if (!await db.Users.AnyAsync(u => u.UserId == creatorId))
+            db.Users.Add(new User { UserId = creatorId, UserName = "Creator", PasswordHash = "x" });
 
-        if (userId != creatorId && !await db.Users.AnyAsync(u => u.UserID == userId))
-            db.Users.Add(new User { UserID = userId, UserName = "Member", PasswordHash = "x" });
+        if (userId != creatorId && !await db.Users.AnyAsync(u => u.UserId == userId))
+            db.Users.Add(new User { UserId = userId, UserName = "Member", PasswordHash = "x" });
 
-        var quiz = new SpotAnalysis.Data.Models.Quizzes.Quiz { Name = "Seed", CreatedBy = creatorId };
+        var quiz = new Quiz { Name = "Seed", CreatedBy = creatorId };
         db.Quizzes.Add(quiz);
         await db.SaveChangesAsync();
 
         if (assignViaGroup)
         {
-            var group = new SpotAnalysis.Data.Models.Identity.Group { Name = "SeedGroup" };
-            group.Users.Add(await db.Users.SingleAsync(u => u.UserID == userId));
+            var group = new Group { Name = "SeedGroup" };
+            group.Users.Add(await db.Users.SingleAsync(u => u.UserId == userId));
             group.Quizzes.Add(quiz);
             db.Groups.Add(group);
             await db.SaveChangesAsync();
         }
 
-        return quiz.QuizID;
+        return quiz.QuizId;
     }
 
     [Test]
@@ -426,7 +391,7 @@ public class TestQuizService : BaseDatabaseTest
 
         await using (var db = await ContextFactory.CreateDbContextAsync())
         {
-            db.Users.Add(new User { UserID = strangerId, UserName = "Stranger", PasswordHash = "x" });
+            db.Users.Add(new User { UserId = strangerId, UserName = "Stranger", PasswordHash = "x" });
             await db.SaveChangesAsync();
         }
 
@@ -447,7 +412,7 @@ public class TestQuizService : BaseDatabaseTest
         Assert.That(second.AttemptID, Is.Not.EqualTo(first.AttemptID));
 
         await using var db = await ContextFactory.CreateDbContextAsync();
-        var closed = await db.QuizAttempts.SingleAsync(a => a.AttemptID == first.AttemptID);
+        var closed = await db.QuizAttempts.SingleAsync(a => a.AttemptId == first.AttemptID);
         Assert.That(closed.Completed, Is.GreaterThan(DateTime.UtcNow.AddMinutes(-1)));
     }
 
@@ -484,27 +449,22 @@ public class TestQuizService : BaseDatabaseTest
         int attemptId;
         await using (var db = await ContextFactory.CreateDbContextAsync())
         {
-            await db.Users.AddAsync(new User { UserID = _createdBy, UserName = "U", PasswordHash = "x" });
-            var quiz = new SpotAnalysis.Data.Models.Quizzes.Quiz { Name = "Q", CreatedBy = _createdBy };
+            await db.Users.AddAsync(new User { UserId = _createdBy, UserName = "U", PasswordHash = "x" });
+            var quiz = new Quiz { Name = "Q", CreatedBy = _createdBy };
             db.Quizzes.Add(quiz);
             await db.SaveChangesAsync();
 
-            var attempt = new SpotAnalysis.Data.Models.Quizzes.QuizAttempt
-            {
-                UserID = _createdBy,
-                QuizID = quiz.QuizID,
-                Started = DateTime.UtcNow
-            };
+            var attempt = new QuizAttempt { UserId = _createdBy, QuizId = quiz.QuizId, Started = DateTime.UtcNow };
             db.QuizAttempts.Add(attempt);
             await db.SaveChangesAsync();
-            attemptId = attempt.AttemptID;
+            attemptId = attempt.AttemptId;
         }
 
         await _quizService.CompleteAttempt(_createdBy, attemptId);
 
         await using (var db = await ContextFactory.CreateDbContextAsync())
         {
-            var updated = await db.QuizAttempts.SingleAsync(a => a.AttemptID == attemptId);
+            var updated = await db.QuizAttempts.SingleAsync(a => a.AttemptId == attemptId);
             Assert.That(updated.Completed, Is.GreaterThan(DateTime.UtcNow.AddMinutes(-1)));
         }
     }

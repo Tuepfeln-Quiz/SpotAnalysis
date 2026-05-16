@@ -9,23 +9,6 @@ public class TestGroupService : BaseDatabaseTest
     private IGroupService _groupService = default!;
     private IGroupInviteTokenService _inviteTokens = default!;
 
-    #region Users
-
-    private static readonly Guid Teacher1 = Guid.Parse("9c9c2138-f945-41fa-823e-f3bd286c0fa1");
-    private static readonly Guid Teacher2 = Guid.Parse("48bb93c8-214f-47f0-910f-9056b19de94a");
-    private static readonly Guid Student1 = Guid.Parse("2195c82c-0a67-4938-9c88-20c089276da5");
-    private static readonly Guid Student2 = Guid.Parse("f01c1e4f-c5e0-4f77-a3b3-f59f8b837553");
-
-    #endregion
-
-    #region Groups
-
-    private const int GroupId1 = 1;
-    private const string GroupName1 = "Test Group";
-    private const string GroupDescription1 = "Test description";
-
-    #endregion
-
     private int _quizCountBeforeDelete;
     private int _userCountBeforeDelete;
 
@@ -42,11 +25,8 @@ public class TestGroupService : BaseDatabaseTest
         #region TestCreateGroup
 
         {
-            await _groupService.CreateGroup(Teacher1, new ConfigGroupDto
-            {
-                Name = GroupName1,
-                Description = GroupDescription1
-            });
+            await _groupService.CreateGroup(Teacher1,
+                new ConfigGroupDto { Name = GroupName1, Description = GroupDescription1 });
 
             var groups = await _groupService.GetGroups(Teacher1);
 
@@ -93,7 +73,6 @@ public class TestGroupService : BaseDatabaseTest
         }
         catch (InvalidOperationException)
         {
-
         }
         catch (Exception)
         {
@@ -115,11 +94,8 @@ public class TestGroupService : BaseDatabaseTest
         #region TestUpdateGroup
 
         {
-            await _groupService.UpdateGroup(Teacher1, new ConfigGroupDto
-            {
-                Name = GroupName1,
-                Description = GroupDescription1 + "_edited"
-            });
+            await _groupService.UpdateGroup(Teacher1,
+                new ConfigGroupDto { Name = GroupName1, Description = GroupDescription1 + "_edited" });
 
             var groups = await _groupService.GetGroups(Teacher1);
 
@@ -163,13 +139,15 @@ public class TestGroupService : BaseDatabaseTest
             {
                 var quizCountAfter = await ctxAfter.Quizzes.CountAsync();
                 var userCountAfter = await ctxAfter.Users.CountAsync();
-                var groupStillExists = await ctxAfter.Groups.AnyAsync(g => g.GroupID == GroupId1);
+                var groupStillExists = await ctxAfter.Groups.AnyAsync(g => g.GroupId == GroupId1);
 
                 using (Assert.EnterMultipleScope())
                 {
                     Assert.That(groupStillExists, Is.False, "Gruppe sollte hard-deleted sein");
-                    Assert.That(quizCountAfter, Is.EqualTo(_quizCountBeforeDelete), "Quizze dürfen nicht gelöscht werden");
-                    Assert.That(userCountAfter, Is.EqualTo(_userCountBeforeDelete), "User dürfen nicht gelöscht werden");
+                    Assert.That(quizCountAfter, Is.EqualTo(_quizCountBeforeDelete),
+                        "Quizze dürfen nicht gelöscht werden");
+                    Assert.That(userCountAfter, Is.EqualTo(_userCountBeforeDelete),
+                        "User dürfen nicht gelöscht werden");
                 }
             }
         }
@@ -181,11 +159,8 @@ public class TestGroupService : BaseDatabaseTest
     public async Task TestJoinGroupByToken()
     {
         const string groupName = "JoinTestGruppe";
-        await _groupService.CreateGroup(Teacher2, new ConfigGroupDto
-        {
-            Name = groupName,
-            Description = "for JoinGroupByToken test"
-        });
+        await _groupService.CreateGroup(Teacher2,
+            new ConfigGroupDto { Name = groupName, Description = "for JoinGroupByToken test" });
         var groups = await _groupService.GetGroups(Teacher2);
         var groupId = groups.Single(g => g.Name == groupName).Id;
 
@@ -230,11 +205,8 @@ public class TestGroupService : BaseDatabaseTest
     public async Task TestMultipleTeachersPerGroup()
     {
         const string groupName = "MultiTeacherGruppe";
-        await _groupService.CreateGroup(Teacher1, new ConfigGroupDto
-        {
-            Name = groupName,
-            Description = "Multi-Teacher test"
-        });
+        await _groupService.CreateGroup(Teacher1,
+            new ConfigGroupDto { Name = groupName, Description = "Multi-Teacher test" });
         var groups = await _groupService.GetGroups(Teacher1);
         var groupId = groups.Single(g => g.Name == groupName).Id;
 
@@ -274,4 +246,21 @@ public class TestGroupService : BaseDatabaseTest
         // Aufräumen
         await _groupService.DeleteGroup(Teacher1, groupId);
     }
+
+    #region Users
+
+    private static readonly Guid Teacher1 = Guid.Parse("9c9c2138-f945-41fa-823e-f3bd286c0fa1");
+    private static readonly Guid Teacher2 = Guid.Parse("48bb93c8-214f-47f0-910f-9056b19de94a");
+    private static readonly Guid Student1 = Guid.Parse("2195c82c-0a67-4938-9c88-20c089276da5");
+    private static readonly Guid Student2 = Guid.Parse("f01c1e4f-c5e0-4f77-a3b3-f59f8b837553");
+
+    #endregion
+
+    #region Groups
+
+    private const int GroupId1 = 1;
+    private const string GroupName1 = "Test Group";
+    private const string GroupDescription1 = "Test description";
+
+    #endregion
 }

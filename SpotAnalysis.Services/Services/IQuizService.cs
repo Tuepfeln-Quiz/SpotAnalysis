@@ -5,27 +5,27 @@ namespace SpotAnalysis.Services.Services;
 
 public interface IQuizService
 {
-    public Task<List<QuizOverviewDto>> GetAllQuizzes();
-    public Task<int> CreateQuiz(Guid teacherId, CreateQuizDto quiz);
-    public Task UpdateQuiz(Guid teacherId, UpdateQuizDto quiz);
-    public Task DeleteQuiz(Guid teacherId, int quizId);
-    public Task AssignGroupToQuiz(Guid teacherId, int quizId, int groupId);
-    public Task RemoveGroupFromQuiz(Guid teacherId, int quizId, int groupId);
-    public Task<List<GroupDto>> GetGroupsByQuiz(Guid teacherId, int quizId);
+    Task<List<QuizOverviewDto>> GetAllQuizzes();
+    Task<int> CreateQuiz(Guid teacherId, CreateQuizDto quiz);
+    Task UpdateQuiz(Guid teacherId, UpdateQuizDto quiz);
+    Task DeleteQuiz(Guid teacherId, int quizId);
+    Task AssignGroupToQuiz(Guid teacherId, int quizId, int groupId);
+    Task RemoveGroupFromQuiz(Guid teacherId, int quizId, int groupId);
+    Task<List<GroupDto>> GetGroupsByQuiz(Guid teacherId, int quizId);
 
-    public Task<List<QuizOverviewDto>> GetQuizzes(Guid studentId);
-    public Task<QuizPlayDto> StartOrResumeQuiz(Guid userId, int quizId);
-    public Task<QuizPlayDto> StartNewAttempt(Guid userId, int quizId);
-    public Task CompleteAttempt(Guid userId, int attemptId);
-    public Task<STLResult> ValidateAndSaveStlQuestion(ValidateStlQuestionDto answer);
-    public Task<STResult> ValidateAndSaveStQuestion(ValidateStQuestionDto answer);
+    Task<List<QuizOverviewDto>> GetQuizzes(Guid studentId);
+    Task<QuizPlayDto> StartOrResumeQuiz(Guid userId, int quizId);
+    Task<QuizPlayDto> StartNewAttempt(Guid userId, int quizId);
+    Task CompleteAttempt(Guid userId, int attemptId);
+    Task<StlResult> ValidateAndSaveStlQuestion(ValidateStlQuestionDto answer);
+    Task<StResult> ValidateAndSaveStQuestion(ValidateStQuestionDto answer);
 
-    public Task<List<QuestionOverviewDto>> GetQuestions();
-    public Task<List<QuestionOverviewDto>> GetQuestionsOfQuiz(int quizId);
-    public Task<QuestionDetailDto> GetQuestionDetail(int questionId);
-    public Task CreateSTQuestion(Guid teacherId, ConfigSTQuestionDto question);
-    public Task CreateSTLQuestion(Guid teacherId, ConfigSTLQuestionDto question);
-    public Task UpdateSTQuestion(Guid teacherId, ConfigSTQuestionDto question);
-    public Task UpdateSTLQuestion(Guid teacherId, ConfigSTLQuestionDto question);
-    public Task DeleteQuestion(Guid teacherId, int questionId);
+    Task<List<QuestionOverviewDto>> GetQuestions();
+    Task<List<QuestionOverviewDto>> GetQuestionsOfQuiz(int quizId);
+    Task<QuestionDetailDto> GetQuestionDetail(int questionId);
+    Task CreateSTQuestion(Guid teacherId, ConfigSTQuestionDto question);
+    Task CreateSTLQuestion(Guid teacherId, ConfigSTLQuestionDto question);
+    Task UpdateSTQuestion(Guid teacherId, ConfigSTQuestionDto question);
+    Task UpdateSTLQuestion(Guid teacherId, ConfigSTLQuestionDto question);
+    Task DeleteQuestion(Guid teacherId, int questionId);
 }

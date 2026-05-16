@@ -1,7 +1,4 @@
-﻿using SpotAnalysis.Data.Models;
-
 namespace SpotAnalysis.Services.DTOs;
-
 
 public class ValidateQuestionDto
 {

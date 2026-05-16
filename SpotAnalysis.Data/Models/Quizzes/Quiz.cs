@@ -1,13 +1,11 @@
-﻿namespace SpotAnalysis.Data.Models.Quizzes;
+namespace SpotAnalysis.Data.Models.Quizzes;
 
 public class Quiz
 {
-    [Key]
-    public int QuizID { get; set; }
+    [Key] public int QuizId { get; set; }
 
-    [Required]
-    [StringLength(128)]
-    public string Name { get; set; } = null!;
+    [StringLength(128)] public required string Name { get; set; } = null!;
+
     public Guid? CreatedBy { get; set; }
 
 

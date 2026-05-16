@@ -1,19 +1,15 @@
-﻿namespace SpotAnalysis.Data.Models.Identity;
+namespace SpotAnalysis.Data.Models.Identity;
 
 [Index(nameof(UserName), IsUnique = true)]
 public class User
 {
     [Key]
     [DatabaseGenerated(DatabaseGeneratedOption.None)]
-    public Guid UserID { get; set; }
+    public Guid UserId { get; set; }
 
-    [Required]
-    [StringLength(128)]
-    public string UserName { get; set; } = null!;
+    [StringLength(128)] public required string UserName { get; set; } = null!;
 
-    [Required]
-    [StringLength(256)]
-    public string PasswordHash { get; set; } = null!;
+    [StringLength(256)] public required string PasswordHash { get; set; } = null!;
 
     public DateTime? LastLogin { get; set; }
 
@@ -22,4 +18,6 @@ public class User
 
     public virtual ICollection<Quiz> Quizzes { get; set; } = [];
     public virtual ICollection<Question> Questions { get; set; } = [];
+
+    public virtual ICollection<Session> Sessions { get; set; } = [];
 }

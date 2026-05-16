@@ -1,6 +1,5 @@
 namespace SpotAnalysis.Services.DTOs;
 
-
 public class UserStatisticsDto
 {
     public int TotalAttempts { get; set; }

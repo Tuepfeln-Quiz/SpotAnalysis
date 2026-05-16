@@ -9,7 +9,11 @@ public static class ColorHelper
     // (inkrementell erkennbar: farblose oder nicht vorhandene Beobachtungen).
     private static readonly HashSet<string> TransparentKeys = new(StringComparer.OrdinalIgnoreCase)
     {
-        "keine", "nichts", "farblos", "durchsichtig", "klar"
+        "keine",
+        "nichts",
+        "farblos",
+        "durchsichtig",
+        "klar"
     };
 
     // Chemie-Kontext: Eigenfarben von Feststoffen und Lösungen, Flammenfärbungen,
@@ -172,15 +176,18 @@ public static class ColorHelper
     public static string GetCssColor(string? colorName)
     {
         var key = Normalize(colorName);
-        if (key is null) return FallbackColor;
+        if (key is null)
+            return FallbackColor;
         return Colors.TryGetValue(key, out var color) ? color : FallbackColor;
     }
 
     public static string GetBorderColor(string? colorName)
     {
         var key = Normalize(colorName);
-        if (key is null) return "transparent";
-        if (TransparentKeys.Contains(key)) return "transparent";
+        if (key is null)
+            return "transparent";
+        if (TransparentKeys.Contains(key))
+            return "transparent";
         return Colors.TryGetValue(key, out var color) ? color : "transparent";
     }
 }

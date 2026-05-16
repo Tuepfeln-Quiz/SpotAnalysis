@@ -1,4 +1,4 @@
-﻿namespace SpotAnalysis.Services.DTOs;
+namespace SpotAnalysis.Services.DTOs;
 
 public class UpdateQuizDto
 {

@@ -22,10 +22,7 @@ public class TestMasterDataServiceObservations : BaseDatabaseTest
     public async Task CreateObservationAsync_Inserts()
     {
         var service = new MasterDataService(ContextFactory);
-        var id = await service.CreateObservationAsync(new ObservationDetailDto
-        {
-            Description = "Test-Beobachtung"
-        });
+        var id = await service.CreateObservationAsync(new ObservationDetailDto { Description = "Test-Beobachtung" });
         Assert.That(id, Is.GreaterThan(0));
     }
 
@@ -61,11 +58,11 @@ public class TestMasterDataServiceObservations : BaseDatabaseTest
         var service = new MasterDataService(ContextFactory);
         await using var context = await ContextFactory.CreateDbContextAsync();
         var inUse = await context.Observations
-            .Where(o => context.Reactions.Any(r => r.ObservationID == o.ObservationID))
+            .Where(o => context.Reactions.Any(r => r.ObservationId == o.ObservationId))
             .FirstAsync();
 
         Assert.ThrowsAsync<InvalidOperationException>(async () =>
-            await service.DeleteObservationAsync(inUse.ObservationID));
+            await service.DeleteObservationAsync(inUse.ObservationId));
     }
 
     [Test]

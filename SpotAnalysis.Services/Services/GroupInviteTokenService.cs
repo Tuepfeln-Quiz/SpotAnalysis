@@ -5,25 +5,18 @@ using SpotAnalysis.Data.Models.Identity;
 
 namespace SpotAnalysis.Services.Services;
 
-public class GroupInviteTokenService : IGroupInviteTokenService
+public class GroupInviteTokenService(IDbContextFactory<AnalysisContext> factory) : IGroupInviteTokenService
 {
-    private static readonly TimeSpan TokenLifetime = TimeSpan.FromMinutes(15);
     private const int MaxCollisionRetries = 5;
     private const int CodeLength = 6;
 
     // Crockford Base32 Alphabet (ohne I, L, O, U — keine Verwechslungsgefahr)
     private const string Alphabet = "0123456789ABCDEFGHJKMNPQRSTVWXYZ";
-
-    private readonly IDbContextFactory<AnalysisContext> _factory;
-
-    public GroupInviteTokenService(IDbContextFactory<AnalysisContext> factory)
-    {
-        _factory = factory;
-    }
+    private static readonly TimeSpan TokenLifetime = TimeSpan.FromMinutes(15);
 
     public async Task<string> CreateToken(int groupId)
     {
-        await using var ctx = await _factory.CreateDbContextAsync();
+        await using var ctx = await factory.CreateDbContextAsync();
         var now = DateTime.UtcNow;
 
         for (var attempt = 0; attempt < MaxCollisionRetries; attempt++)
@@ -37,10 +30,7 @@ public class GroupInviteTokenService : IGroupInviteTokenService
 
             var invite = new GroupInvite
             {
-                Code = code,
-                GroupID = groupId,
-                CreatedAt = now,
-                ExpiresAt = now + TokenLifetime,
+                Code = code, GroupId = groupId, CreatedAt = now, ExpiresAt = now + TokenLifetime,
             };
             ctx.GroupInvites.Add(invite);
 
@@ -60,36 +50,20 @@ public class GroupInviteTokenService : IGroupInviteTokenService
             $"Konnte nach {MaxCollisionRetries} Versuchen keinen eindeutigen Einladungscode erzeugen.");
     }
 
-    public async Task<int?> ValidateToken(string token)
+    public async Task<GroupInvite?> ValidateToken(string token)
     {
         if (string.IsNullOrWhiteSpace(token))
-        {
             return null;
-        }
 
         var normalized = Normalize(token);
         if (normalized.Length == 0)
-        {
             return null;
-        }
 
-        await using var ctx = await _factory.CreateDbContextAsync();
+        await using var ctx = await factory.CreateDbContextAsync();
 
-        var invite = await ctx.GroupInvites
+        return await ctx.GroupInvites
             .AsNoTracking()
             .SingleOrDefaultAsync(i => i.Code == normalized);
-
-        if (invite is null)
-        {
-            return null;
-        }
-
-        if (invite.ExpiresAt <= DateTime.UtcNow)
-        {
-            return null;
-        }
-
-        return invite.GroupID;
     }
 
     private static string Normalize(string input)
@@ -107,6 +81,7 @@ public class GroupInviteTokenService : IGroupInviteTokenService
         {
             chars[i] = Alphabet[bytes[i] & 0x1F];
         }
+
         return new string(chars);
     }
 }

@@ -6,16 +6,16 @@ using SpotAnalysis.Services.DTOs;
 
 namespace SpotAnalysis.Services.Services;
 
-public class AdminService(IDbContextFactory<AnalysisContext> contextFactory, ILogger<AdminService> logger) : IAdminService
+public class AdminService(IDbContextFactory<AnalysisContext> contextFactory, ILogger<AdminService> logger)
+    : IAdminService
 {
     public async Task<ConfigUserDto> GetUser(Guid userId)
     {
         await using var dbContext = await contextFactory.CreateDbContextAsync();
 
-        return await dbContext.Users.AsNoTracking().Where(x => x.UserID == userId).Select(x => new ConfigUserDto
+        return await dbContext.Users.AsNoTracking().Where(x => x.UserId == userId).Select(x => new ConfigUserDto
         {
-            UserName = x.UserName,
-            Roles = x.Roles.ToList()
+            UserName = x.UserName, Roles = x.Roles.ToList()
         }).SingleAsync();
     }
 
@@ -25,7 +25,7 @@ public class AdminService(IDbContextFactory<AnalysisContext> contextFactory, ILo
         {
             await using var dbContext = await contextFactory.CreateDbContextAsync();
 
-            var user = await dbContext.Users.SingleAsync(x => x.UserID == userId);
+            var user = await dbContext.Users.SingleAsync(x => x.UserId == userId);
 
             if (!user.Roles.Contains(role))
             {
@@ -47,7 +47,7 @@ public class AdminService(IDbContextFactory<AnalysisContext> contextFactory, ILo
         {
             await using var dbContext = await contextFactory.CreateDbContextAsync();
 
-            var user = await dbContext.Users.SingleAsync(x => x.UserID == userId);
+            var user = await dbContext.Users.SingleAsync(x => x.UserId == userId);
 
             if (user.Roles.Count == 1 && user.Roles.Contains(role))
             {
@@ -72,8 +72,8 @@ public class AdminService(IDbContextFactory<AnalysisContext> contextFactory, ILo
     {
         await using var dbContext = await contextFactory.CreateDbContextAsync();
 
-        await dbContext.QuizAttempts.Where(x => x.UserID == userId).ExecuteDeleteAsync();
-        await dbContext.Users.Where(x => x.UserID == userId).ExecuteDeleteAsync();
+        await dbContext.QuizAttempts.Where(x => x.UserId == userId).ExecuteDeleteAsync();
+        await dbContext.Users.Where(x => x.UserId == userId).ExecuteDeleteAsync();
     }
 
     public async Task<List<UserDto>> GetUsersByRole(Role role)
@@ -84,14 +84,10 @@ public class AdminService(IDbContextFactory<AnalysisContext> contextFactory, ILo
             .Where(u => u.Roles.Contains(role))
             .Select(u => new UserDto
             {
-                Id = u.UserID,
+                Id = u.UserId,
                 UserName = u.UserName,
                 Roles = u.Roles.Select(r => r.ToString()).ToList(),
-                AssignedGroups = u.Groups.Select(g => new GroupDto
-                {
-                    Id = g.GroupID,
-                    Name = g.Name
-                }).ToList()
+                AssignedGroups = u.Groups.Select(g => new GroupDto { Id = g.GroupId, Name = g.Name }).ToList()
             })
             .ToListAsync();
     }

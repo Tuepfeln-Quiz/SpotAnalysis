@@ -42,21 +42,21 @@ public class TestMasterDataServiceReactions : BaseDatabaseTest
     {
         var service = new MasterDataService(ContextFactory);
         await using var context = await ContextFactory.CreateDbContextAsync();
-        var c1 = await context.Chemicals.OrderBy(c => c.ChemicalID).FirstAsync();
-        var c2 = await context.Chemicals.OrderBy(c => c.ChemicalID).Skip(1).FirstAsync();
+        var c1 = await context.Chemicals.OrderBy(c => c.ChemicalId).FirstAsync();
+        var c2 = await context.Chemicals.OrderBy(c => c.ChemicalId).Skip(1).FirstAsync();
         var obs = await context.Observations.FirstAsync();
 
         var id = await service.CreateReactionAsync(new ReactionDetailDto
         {
-            Chemical1Id = c2.ChemicalID,        // bewusst umgekehrt
-            Chemical2Id = c1.ChemicalID,
+            Chemical1Id = c2.ChemicalId, // bewusst umgekehrt
+            Chemical2Id = c1.ChemicalId,
             RelevantProduct = "TestProdukt",
             Formula = "T",
-            ObservationId = obs.ObservationID
+            ObservationId = obs.ObservationId
         });
 
-        var reaction = await context.Reactions.AsNoTracking().FirstAsync(r => r.ReactionID == id);
-        Assert.That(reaction.Chemical1ID, Is.LessThanOrEqualTo(reaction.Chemical2ID));
+        var reaction = await context.Reactions.AsNoTracking().FirstAsync(r => r.ReactionId == id);
+        Assert.That(reaction.Chemical1Id, Is.LessThanOrEqualTo(reaction.Chemical2Id));
     }
 
     [Test]
@@ -68,11 +68,11 @@ public class TestMasterDataServiceReactions : BaseDatabaseTest
 
         var dto = new ReactionDetailDto
         {
-            Chemical1Id = existing.Chemical2ID,   // umgekehrt
-            Chemical2Id = existing.Chemical1ID,
+            Chemical1Id = existing.Chemical2Id, // umgekehrt
+            Chemical2Id = existing.Chemical1Id,
             RelevantProduct = "X",
             Formula = "X",
-            ObservationId = existing.ObservationID
+            ObservationId = existing.ObservationId
         };
 
         Assert.ThrowsAsync<InvalidOperationException>(async () =>
@@ -84,13 +84,13 @@ public class TestMasterDataServiceReactions : BaseDatabaseTest
     {
         var service = new MasterDataService(ContextFactory);
         await using var context = await ContextFactory.CreateDbContextAsync();
-        var c1 = await context.Chemicals.OrderBy(c => c.ChemicalID).FirstAsync();
-        var c2 = await context.Chemicals.OrderByDescending(c => c.ChemicalID).FirstAsync();
+        var c1 = await context.Chemicals.OrderBy(c => c.ChemicalId).FirstAsync();
+        var c2 = await context.Chemicals.OrderByDescending(c => c.ChemicalId).FirstAsync();
 
         var id = await service.CreateReactionAsync(new ReactionDetailDto
         {
-            Chemical1Id = c1.ChemicalID,
-            Chemical2Id = c2.ChemicalID,
+            Chemical1Id = c1.ChemicalId,
+            Chemical2Id = c2.ChemicalId,
             RelevantProduct = "Neu",
             Formula = "N",
             NewObservationDescription = "Brandneue Beobachtung"
@@ -109,15 +109,15 @@ public class TestMasterDataServiceReactions : BaseDatabaseTest
         await using var context = await ContextFactory.CreateDbContextAsync();
         var existing = await context.Reactions.AsNoTracking().FirstAsync();
 
-        var dto = await service.GetReactionByIdAsync(existing.ReactionID);
+        var dto = await service.GetReactionByIdAsync(existing.ReactionId);
         dto!.RelevantProduct = "GeändertesProdukt";
         (dto.Chemical1Id, dto.Chemical2Id) = (dto.Chemical2Id, dto.Chemical1Id);
 
         await service.UpdateReactionAsync(dto);
 
-        var reloaded = await context.Reactions.AsNoTracking().FirstAsync(r => r.ReactionID == existing.ReactionID);
+        var reloaded = await context.Reactions.AsNoTracking().FirstAsync(r => r.ReactionId == existing.ReactionId);
         Assert.That(reloaded.RelevantProduct, Is.EqualTo("GeändertesProdukt"));
-        Assert.That(reloaded.Chemical1ID, Is.LessThanOrEqualTo(reloaded.Chemical2ID));
+        Assert.That(reloaded.Chemical1Id, Is.LessThanOrEqualTo(reloaded.Chemical2Id));
     }
 
     // ── Delete ──────────────────────────────────────────────────────
@@ -128,17 +128,17 @@ public class TestMasterDataServiceReactions : BaseDatabaseTest
         var service = new MasterDataService(ContextFactory);
         await using var context = await ContextFactory.CreateDbContextAsync();
 
-        var c1 = await context.Chemicals.OrderBy(c => c.ChemicalID).FirstAsync();
-        var c2 = await context.Chemicals.OrderBy(c => c.ChemicalID).Skip(2).FirstAsync();
+        var c1 = await context.Chemicals.OrderBy(c => c.ChemicalId).FirstAsync();
+        var c2 = await context.Chemicals.OrderBy(c => c.ChemicalId).Skip(2).FirstAsync();
         var obs = await context.Observations.FirstAsync();
 
         var id = await service.CreateReactionAsync(new ReactionDetailDto
         {
-            Chemical1Id = c1.ChemicalID,
-            Chemical2Id = c2.ChemicalID,
+            Chemical1Id = c1.ChemicalId,
+            Chemical2Id = c2.ChemicalId,
             RelevantProduct = "Temp",
             Formula = "T",
-            ObservationId = obs.ObservationID
+            ObservationId = obs.ObservationId
         });
 
         await service.DeleteReactionAsync(id);

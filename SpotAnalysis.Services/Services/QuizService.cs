@@ -597,6 +597,7 @@ public class QuizService(ILogger<QuizService> logger, IDbContextFactory<Analysis
         var hasAccess = await db.Quizzes.AnyAsync(q =>
             q.QuizId == quizId &&
             (q.CreatedBy == userId || q.Groups.Any(g => g.Users.Any(u => u.UserId == userId))));
+
         if (!hasAccess)
             throw new UnauthorizedAccessException("User has no access to this quiz.");
 
@@ -638,11 +639,9 @@ public class QuizService(ILogger<QuizService> logger, IDbContextFactory<Analysis
 
     private static async Task<QuizPlayDto> BuildQuizPlayDto(AnalysisContext db, int quizId, int attemptId)
     {
-        var methods = await db.Methods.AsNoTracking()
-            .ToDictionaryAsync(m => m.MethodId, m => m.Name);
-
         var quiz = await db.Quizzes
             .AsNoTracking()
+            .AsSplitQuery()
             .Where(q => q.QuizId == quizId)
             .Select(q => new
             {

@@ -6,7 +6,7 @@
     <div class="card border-0 shadow-sm mb-4">
         <div class="card-body p-4">
             <h5 class="fw-bold mb-2">
-                <i class="bi bi-question-circle me-2 text-primary"></i>Aufgabe
+                <i class="bi bi-question-circle me-2 text-primary"></i>Task
             </h5>
             <p class="mb-0 fs-5">@Description</p>
         </div>
@@ -14,60 +14,70 @@
 
     <div class="card border-0 shadow-sm mb-4">
         <div class="card-body p-4">
-            <h5 class="fw-bold mb-3"><i class="bi bi-eye-slash me-2"></i>Unbekannte Edukte</h5>
+            <h5 class="fw-bold mb-3"><i class="bi bi-eye-slash me-2"></i>Unknown educts</h5>
             <div class="d-flex flex-wrap gap-3">
-                @for (int i = 0; i < Question.UnknownEducts.Count; i++)
+                @for (var i = 0; i < Question.UnknownEducts.Count; i++)
                 {
                     var educt = Question.UnknownEducts[i];
                     var idx = i;
-                    var eigenfarbe = string.IsNullOrWhiteSpace(educt.Color?.Name) ? null : educt.Color.Name;
-                    var phPaper = educt.MethodOutputs.GetValueOrDefault("pH-Papier")?.Name;
-                    var flame = educt.MethodOutputs.GetValueOrDefault("Flammenfärbung")?.Name;
+                    var eigenfarbe = string.IsNullOrWhiteSpace(educt.Color.Name) ? null : educt.Color.Name;
+                    var phPaper = educt.MethodOutputs.GetValueOrDefault(Method.PhPaper)?.Name;
+                    var flame = educt.MethodOutputs.GetValueOrDefault(Method.FlameColoration)?.Name;
 
                     var borderColor = ColorHelper.GetBorderColor(eigenfarbe);
                     if (_hasChecked && _answerResults.TryGetValue(idx, out var correct))
-                        borderColor = correct == true ? "#16a34a" : "#dc2626";
+                        borderColor = correct ? "#16a34a" : "#dc2626";
                     else if (_dragOverEductIndex == idx)
                         borderColor = "#6b21a8";
 
-                    <div class="educt-box chemical-@(educt.ChemicalTypeName.ToLowerInvariant()) @(_dragOverEductIndex == idx ? "drag-over" : "")"
+                    <div
+                        class="educt-box chemical-@(educt.Type.ToString().ToLowerInvariant()) @(_dragOverEductIndex == idx ? "drag-over" : "")"
                          style="border-color: @borderColor;"
                          draggable="true"
-                         @ondragstart="() => StartDragEduct(idx)"
-                         @ondrop="() => HandleDropOnEduct(idx)"
+                        @ondragstart="@(() => StartDragEduct(idx))"
+                        @ondrop="@(() => HandleDropOnEduct(idx))"
                          @ondrop:preventDefault
                          @ondrop:stopPropagation
-                         @ondragover="() => _dragOverEductIndex = idx"
+                        @ondragover="@(() => _dragOverEductIndex = idx)"
                          @ondragover:preventDefault
-                         @ondragleave="() => { if (_dragOverEductIndex == idx) _dragOverEductIndex = -1; }">
+                        @ondragleave="@(() =>
+                                      {
+                                          if (_dragOverEductIndex == idx) _dragOverEductIndex = -1;
+                                      })">
                         <div class="d-flex align-items-baseline gap-2">
                             <span class="fw-bold fs-5">@(idx + 1)</span>
                             <input type="text" class="form-control form-control-sm flex-grow-1 @GetAnswerResultClass(idx)"
-                                   placeholder="Formel"
+                                   placeholder="Formula"
                                    value="@_answers[idx]"
                                    @onchange="(e) => _answers[idx] = e.Value?.ToString() ?? string.Empty"
                                    disabled="@_hasChecked" />
-                            @if (_hasChecked && _answerResults.TryGetValue(idx, out var isCorrect) && isCorrect != null)
+                            @if (_hasChecked && _answerResults.TryGetValue(idx, out var isCorrect))
                             {
-                                <i class="bi @(isCorrect == true ? "bi-check-circle-fill text-success" : "bi-x-circle-fill text-danger")"></i>
+                                <i class="bi @(isCorrect ? "bi-check-circle-fill text-success" : "bi-x-circle-fill text-danger")"></i>
                             }
                         </div>
-                        @if (_hasChecked && _answerResults.GetValueOrDefault(idx) == false)
+                        @if (_hasChecked && _answerResults.TryGetValue(idx, out var wasCorrect) && !wasCorrect)
                         {
-                            <small class="text-muted">Richtig: <strong><ChemFormula Value="@educt.Formula" /></strong></small>
+                            <small class="text-muted">Correct: <strong>
+                                    <ChemFormula Value="@educt.Formula"/>
+                                </strong></small>
                         }
                         <div class="d-flex flex-wrap gap-2 mt-1">
                             @if (eigenfarbe != null)
                             {
-                                <small title="Eigenfarbe" style="color: @ColorHelper.GetCssColor(eigenfarbe);"><strong><TestTubeIcon /> @eigenfarbe</strong></small>
+                                <small title="Own color" style="color: @ColorHelper.GetCssColor(eigenfarbe);"><strong>
+                                        <TestTubeIcon/> @eigenfarbe</strong></small>
                             }
-                            @if (_revealedMethods.GetValueOrDefault(idx)?.Contains("Flammenfärbung") == true && flame != null)
+                            @if (_revealedMethods.GetValueOrDefault(idx)?.Contains(Method.FlameColoration) == true && flame != null)
                             {
-                                <small title="Flammenfärbung" style="color: @ColorHelper.GetCssColor(flame);"><strong><FlameIcon /> @flame</strong></small>
+                                <small title="Flame coloration" style="color: @ColorHelper.GetCssColor(flame);"><strong>
+                                        <FlameIcon/> @flame</strong></small>
                             }
-                            @if (_revealedMethods.GetValueOrDefault(idx)?.Contains("pH-Papier") == true && phPaper != null)
+                            @if (_revealedMethods.GetValueOrDefault(idx)?.Contains(Method.PhPaper) == true && phPaper != null)
                             {
-                                <small title="pH-Papier Färbung" style="color: @ColorHelper.GetCssColor(phPaper);"><strong><PhPaperIcon /> @phPaper</strong></small>
+                                <small title="pH paper coloration"
+                                       style="color: @ColorHelper.GetCssColor(phPaper);"><strong>
+                                        <PhPaperIcon/> @phPaper</strong></small>
                             }
                         </div>
                     </div>
@@ -78,20 +88,20 @@
                 @if (!_hasChecked)
                 {
                     <button class="btn btn-primary" @onclick="CheckAnswers"
-                            disabled="@(_answers.Values.Any(a => string.IsNullOrWhiteSpace(a)))">
-                        <i class="bi bi-check-lg me-1"></i> Überprüfen
+                            disabled="@_answers.Values.Any(string.IsNullOrWhiteSpace)">
+                        <i class="bi bi-check-lg me-1"></i> Check
                     </button>
                 }
                 else
                 {
-                    @if (_answerResults.Values.Any(r => r == false))
+                    @if (_answerResults.Values.Any(r => !r))
                     {
                         <button class="btn btn-outline-primary" @onclick="RetryQuestion">
-                            <i class="bi bi-arrow-counterclockwise me-1"></i> Erneut versuchen
+                            <i class="bi bi-arrow-counterclockwise me-1"></i> Retry
                         </button>
                     }
                     <button class="btn btn-primary" @onclick="Continue">
-                        <i class="bi bi-arrow-right me-1"></i> Weiter
+                        <i class="bi bi-arrow-right me-1"></i> Continue
                     </button>
                 }
             </div>
@@ -100,29 +110,30 @@
 
     <div class="card border-0 shadow-sm mb-4">
         <div class="card-body p-4">
-            <h5 class="fw-bold mb-3"><i class="bi bi-moisture me-2"></i>Mischbereich</h5>
+            <h5 class="fw-bold mb-3"><i class="bi bi-moisture me-2"></i>Mixing area</h5>
             <div class="row g-3 mb-4">
                 <div class="col-6">
                     <div class="drop-zone @(_mixDragOverSlot == 1 ? "drag-over" : "")"
                          @ondrop="() => MixDrop(1)"
                          @ondrop:preventDefault
                          @ondrop:stopPropagation
-                         @ondragover="() => _mixDragOverSlot = 1"
+                         @ondragover="@(() => _mixDragOverSlot = 1)"
                          @ondragover:preventDefault
-                         @ondragleave="() => _mixDragOverSlot = 0">
-                        @if (_mixSlot1Label != null)
+                         @ondragleave="@(() => _mixDragOverSlot = 0)">
+                        @if (_mixSlot1 is { } slot1)
                         {
-                            <div class="compound-card chemical-edukt d-flex align-items-center justify-content-center"
+                            <div
+                                class="compound-card chemical-@(slot1.Kind == DragKind.Educt ? "educt" : "method") d-flex align-items-center justify-content-center"
                                  draggable="true"
-                                 @ondragstart="() => { _mixDragSource = 1; }">
-                                <strong>@_mixSlot1Label</strong>
+                                @ondragstart="@(() => { _mixDragSource = 1; })">
+                                <strong>@slot1.Label</strong>
                             </div>
                         }
                         else
                         {
                             <div class="text-muted">
                                 <i class="bi bi-plus-circle fs-3 d-block mb-2"></i>
-                                Hierher ziehen
+                                Drag here
                             </div>
                         }
                     </div>
@@ -132,22 +143,23 @@
                          @ondrop="() => MixDrop(2)"
                          @ondrop:preventDefault
                          @ondrop:stopPropagation
-                         @ondragover="() => _mixDragOverSlot = 2"
+                         @ondragover="@(() => _mixDragOverSlot = 2)"
                          @ondragover:preventDefault
-                         @ondragleave="() => _mixDragOverSlot = 0">
-                        @if (_mixSlot2Label != null)
+                         @ondragleave="@(() => _mixDragOverSlot = 0)">
+                        @if (_mixSlot2 is { } slot2)
                         {
-                            <div class="compound-card d-flex align-items-center justify-content-center @(_mixSlot2Type == "chemical" ? "chemical-zusatzstoff" : "chemical-edukt")"
+                            <div
+                                class="compound-card d-flex align-items-center justify-content-center chemical-@(slot2.Kind == DragKind.Chemical ? "additive" : "educt")"
                                  draggable="true"
-                                 @ondragstart="() => { _mixDragSource = 2; }">
-                                <strong>@_mixSlot2Label</strong>
+                                @ondragstart="@(() => { _mixDragSource = 2; })">
+                                <strong>@slot2.Label</strong>
                             </div>
                         }
                         else
                         {
                             <div class="text-muted">
                                 <i class="bi bi-plus-circle fs-3 d-block mb-2"></i>
-                                Hierher ziehen
+                                Drag here
                             </div>
                         }
                     </div>
@@ -156,11 +168,11 @@
 
             <div class="d-flex gap-2">
                 <button class="btn btn-primary" @onclick="ExecuteMix"
-                        disabled="@(_mixSlot1Type == null || _mixSlot2Type == null || _hasChecked)">
+                        disabled="@(_mixSlot1 == null || _mixSlot2 == null || _hasChecked)">
                     <i class="bi bi-play-fill me-1"></i> Mischen
                 </button>
                 <button class="btn btn-outline-secondary" @onclick="ClearMixSlots">
-                    <i class="bi bi-arrow-counterclockwise me-1"></i> Zurücksetzen
+                    <i class="bi bi-arrow-counterclockwise me-1"></i> Reset
                 </button>
             </div>
 
@@ -175,16 +187,16 @@
     {
         <div class="card border-0 shadow-sm mb-4">
             <div class="card-body p-4">
-                <h5 class="fw-bold mb-3"><i class="bi bi-clock-history me-2"></i>Aktionsprotokoll</h5>
+                <h5 class="fw-bold mb-3"><i class="bi bi-clock-history me-2"></i>Action log</h5>
                 <div class="table-responsive">
                     <table class="table table-sm table-striped mb-0">
                         <thead>
                             <tr>
-                                <th style="width: 30%;">Links</th>
+                                <th style="width: 30%;">Left</th>
                                 <th style="width: 5%;" class="text-center">+</th>
-                                <th style="width: 30%;">Rechts</th>
+                                <th style="width: 30%;">Right</th>
                                 <th style="width: 5%;" class="text-center">→</th>
-                                <th>Ergebnis</th>
+                                <th>Result</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -211,21 +223,32 @@
 </button>
 
 <div class="tools-panel @(_toolsPanelOpen ? "open" : "")">
-    <h5 class="fw-bold mb-3"><i class="bi bi-tools me-2"></i>Werkzeuge</h5>
+    <h5 class="fw-bold mb-3"><i class="bi bi-tools me-2"></i>Tools</h5>
 
     @if (Question.AvailableMethods.Count > 0)
     {
-        <h6 class="text-muted fw-semibold mt-3 mb-2">Methoden</h6>
+        <h6 class="text-muted fw-semibold mt-3 mb-2">Methods</h6>
         <div class="d-flex flex-column gap-2 mb-3">
             @foreach (var method in Question.AvailableMethods)
             {
-                <div class="compound-card compound-card-static chemical-edukt"
+                <div class="compound-card compound-card-static chemical-educt"
                      draggable="true"
                      style="cursor: grab;"
-                     @ondragstart="() => StartDragMethod(method)">
-                    @if (method == "pH-Papier") { <strong><PhPaperIcon Size="16" /> @method</strong> }
-                    else if (method == "Flammenfärbung") { <strong><FlameIcon Size="16" /> @method</strong> }
-                    else { <strong>@method</strong> }
+                     @ondragstart="@(() => StartDragMethod(method))">
+                    @switch (method)
+                    {
+                        case Method.PhPaper:
+                            <strong>
+                                <PhPaperIcon Size="16"/> @method</strong>
+                            break;
+                        case Method.FlameColoration:
+                            <strong>
+                                <FlameIcon Size="16"/> @method</strong>
+                            break;
+                        default:
+                            <strong>@method</strong>
+                            break;
+                    }
                 </div>
             }
         </div>
@@ -233,14 +256,14 @@
 
     @if (Question.AvailableAdditives.Count > 0)
     {
-        <h6 class="text-muted fw-semibold mt-3 mb-2">Zusatzstoffe</h6>
+        <h6 class="text-muted fw-semibold mt-3 mb-2">Additives</h6>
         <div class="d-flex flex-column gap-2 mb-3">
             @foreach (var chem in Question.AvailableAdditives)
             {
-                <div class="compound-card chemical-@(chem.ChemicalTypeName.ToLowerInvariant())"
+                <div class="compound-card chemical-@(chem.Type.ToString().ToLowerInvariant())"
                      style="border-color: @ColorHelper.GetBorderColor(chem.Color.Name); cursor: grab;"
                      draggable="true"
-                     @ondragstart="() => StartDragChemical(chem)">
+                     @ondragstart="@(() => StartDragChemical(chem))">
                     <SubstanceCard Chemical="chem" />
                 </div>
             }
@@ -251,68 +274,67 @@
 @code {
     [Parameter, EditorRequired] public SpotTestPayloadDto Question { get; set; } = null!;
     [Parameter, EditorRequired] public string Description { get; set; } = "";
-    [Parameter, EditorRequired] public List<LabReactionDto> AllReactions { get; set; } = new();
+    [Parameter, EditorRequired] public List<LabReactionDto> AllReactions { get; set; } = [];
     [Parameter, EditorRequired] public EventCallback<SpotTestAnswered> OnAnswered { get; set; }
 
+    private enum DragKind
+    {
+        None,
+        Method,
+        Chemical,
+        Educt
+    }
+
+    private record struct DragPayload(DragKind Kind, Method Method = default, LabChemicalDto? Chemical = null, int EductIndex = -1);
+
+    private record MixSlotContent(DragKind Kind, string Label, int EductIndex = -1, Method Method = default, LabChemicalDto? Chemical = null);
+
     private Dictionary<int, string> _answers = new();
-    private Dictionary<int, bool?> _answerResults = new();
+    private Dictionary<int, bool> _answerResults = new();
     private bool _hasChecked;
 
-    private Dictionary<int, HashSet<string>> _revealedMethods = new();
-    private List<ActionLogEntry> _actionLog = new();
+    private Dictionary<int, HashSet<Method>> _revealedMethods = new();
+    private readonly List<ActionLogEntry> _actionLog = [];
 
     private bool _toolsPanelOpen;
 
-    private string? _dragType;
-    private string? _dragMethodName;
-    private LabChemicalDto? _dragChemical;
-    private int _dragEductIndex = -1;
+    private DragPayload _drag;
     private int _dragOverEductIndex = -1;
 
-    private string? _mixSlot1Type;
-    private int _mixSlot1EductIdx = -1;
-    private string? _mixSlot1MethodName;
-    private string? _mixSlot1Label;
-
-    private string? _mixSlot2Type;
-    private int _mixSlot2EductIdx = -1;
-    private LabChemicalDto? _mixSlot2Chemical;
-    private string? _mixSlot2MethodName;
-    private string? _mixSlot2Label;
-
+    private MixSlotContent? _mixSlot1;
+    private MixSlotContent? _mixSlot2;
     private int _mixDragOverSlot;
     private int _mixDragSource;
     private string? _mixError;
 
     protected override void OnParametersSet()
     {
-        _answers = new();
-        _answerResults = new();
-        _revealedMethods = new();
-        for (int i = 0; i < Question.UnknownEducts.Count; i++)
+        _answers = new Dictionary<int, string>();
+        _answerResults = new Dictionary<int, bool>();
+        _revealedMethods = new Dictionary<int, HashSet<Method>>();
+        for (var i = 0; i < Question.UnknownEducts.Count; i++)
         {
             _answers[i] = "";
-            _answerResults[i] = null;
-            _revealedMethods[i] = new HashSet<string>();
+            _revealedMethods[i] = [];
         }
         _actionLog.Clear();
         _hasChecked = false;
         _toolsPanelOpen = false;
         _mixError = null;
         ClearMixSlots();
-        ResetDragState();
+        _drag = default;
     }
 
     private string GetAnswerResultClass(int idx)
     {
-        if (_hasChecked && _answerResults.TryGetValue(idx, out var isCorrect) && isCorrect != null)
-            return isCorrect == true ? "border-success" : "border-danger";
+        if (_hasChecked && _answerResults.TryGetValue(idx, out var isCorrect))
+            return isCorrect ? "border-success" : "border-danger";
         return "";
     }
 
     private void CheckAnswers()
     {
-        for (int i = 0; i < Question.UnknownEducts.Count; i++)
+        for (var i = 0; i < Question.UnknownEducts.Count; i++)
         {
             var actual = Question.UnknownEducts[i];
             var entered = _answers.GetValueOrDefault(i, "").Trim();
@@ -324,8 +346,7 @@
     private void RetryQuestion()
     {
         _hasChecked = false;
-        foreach (var key in _answerResults.Keys.ToList())
-            _answerResults[key] = null;
+        _answerResults.Clear();
     }
 
     private Task Continue()
@@ -344,169 +365,169 @@
         });
     }
 
-    private void StartDragMethod(string methodName)
-    {
-        _dragType = "method"; _dragMethodName = methodName;
-        _dragChemical = null; _dragEductIndex = -1;
-    }
+    private void StartDragMethod(Method method) =>
+        _drag = new DragPayload(DragKind.Method, Method: method);
 
-    private void StartDragChemical(LabChemicalDto chem)
-    {
-        _dragType = "chemical"; _dragChemical = chem;
-        _dragMethodName = null; _dragEductIndex = -1;
-    }
+    private void StartDragChemical(LabChemicalDto chem) =>
+        _drag = new DragPayload(DragKind.Chemical, Chemical: chem);
 
-    private void StartDragEduct(int index)
-    {
-        _dragType = "educt"; _dragEductIndex = index;
-        _dragMethodName = null; _dragChemical = null;
-    }
+    private void StartDragEduct(int index) =>
+        _drag = new DragPayload(DragKind.Educt, EductIndex: index);
 
     private void HandleDropOnEduct(int targetIndex)
     {
         _dragOverEductIndex = -1;
-        if (_hasChecked) return;
-
-        if (_dragType == "method" && _dragMethodName != null)
+        if (_hasChecked)
         {
-            _revealedMethods[targetIndex].Add(_dragMethodName);
-            var educt = Question.UnknownEducts[targetIndex];
-            var colorDto = educt.MethodOutputs.GetValueOrDefault(_dragMethodName);
-            var result = colorDto?.Name ?? "keine";
-            _actionLog.Add(new ActionLogEntry { Left = $"Edukt {targetIndex + 1}", Right = _dragMethodName, Result = result });
+            _drag = default;
+            return;
         }
-        else if (_dragType == "chemical" && _dragChemical != null)
+
+        switch (_drag.Kind)
         {
-            var educt = Question.UnknownEducts[targetIndex];
-            var reaction = FindReaction(educt.ChemicalID, _dragChemical.ChemicalID);
-            _actionLog.Add(new ActionLogEntry
+            case DragKind.Method:
             {
-                Left = $"Edukt {targetIndex + 1}",
-                Right = _dragChemical.Name,
-                Result = reaction?.ObservationDescription ?? "Keine Reaktion"
-            });
-        }
-        else if (_dragType == "educt" && _dragEductIndex >= 0)
-        {
-            if (_dragEductIndex == targetIndex) { ResetDragState(); return; }
-            var left = Question.UnknownEducts[_dragEductIndex];
-            var right = Question.UnknownEducts[targetIndex];
-            var reaction = FindReaction(left.ChemicalID, right.ChemicalID);
-            _actionLog.Add(new ActionLogEntry
+                _revealedMethods[targetIndex].Add(_drag.Method);
+                var educt = Question.UnknownEducts[targetIndex];
+                var colorDto = educt.MethodOutputs.GetValueOrDefault(_drag.Method);
+                _actionLog.Add(new ActionLogEntry { Left = $"Educt {targetIndex + 1}", Right = _drag.Method.ToString(), Result = colorDto?.Name ?? "none" });
+                break;
+            }
+            case DragKind.Chemical when _drag.Chemical != null:
             {
-                Left = $"Edukt {_dragEductIndex + 1}",
-                Right = $"Edukt {targetIndex + 1}",
-                Result = reaction?.ObservationDescription ?? "Keine Reaktion"
-            });
+                var educt = Question.UnknownEducts[targetIndex];
+                var reaction = FindReaction(educt.ChemicalId, _drag.Chemical.ChemicalId);
+                _actionLog.Add(new ActionLogEntry
+                {
+                    Left = $"Educt {targetIndex + 1}",
+                    Right = _drag.Chemical.Name,
+                    Result = reaction?.ObservationDescription ?? "No reaction"
+                });
+                break;
+            }
+            case DragKind.Educt:
+            {
+                if (_drag.EductIndex == targetIndex)
+                {
+                    _drag = default;
+                    return;
+                }
+
+                var left = Question.UnknownEducts[_drag.EductIndex];
+                var right = Question.UnknownEducts[targetIndex];
+                var reaction = FindReaction(left.ChemicalId, right.ChemicalId);
+                _actionLog.Add(new ActionLogEntry
+                {
+                    Left = $"Educt {_drag.EductIndex + 1}",
+                    Right = $"Educt {targetIndex + 1}",
+                    Result = reaction?.ObservationDescription ?? "No reaction"
+                });
+                break;
+            }
         }
 
-        ResetDragState();
-    }
-
-    private void ResetDragState()
-    {
-        _dragType = null; _dragMethodName = null; _dragChemical = null;
-        _dragEductIndex = -1; _dragOverEductIndex = -1;
+        _drag = default;
     }
 
     private void MixDropOutside()
     {
-        if (_mixDragSource == 1) ClearMixSlot1();
-        if (_mixDragSource == 2) ClearMixSlot2();
+        if (_mixDragSource == 1) _mixSlot1 = null;
+        if (_mixDragSource == 2) _mixSlot2 = null;
         _mixDragSource = 0; _mixDragOverSlot = 0;
     }
+
+    private MixSlotContent? MixSlotFromDrag() => _drag.Kind switch
+    {
+        DragKind.Educt => new MixSlotContent(DragKind.Educt, $"Educt {_drag.EductIndex + 1}", EductIndex: _drag.EductIndex),
+        DragKind.Method => new MixSlotContent(DragKind.Method, _drag.Method.ToString(), Method: _drag.Method),
+        DragKind.Chemical when _drag.Chemical != null => new MixSlotContent(DragKind.Chemical, _drag.Chemical.Name, Chemical: _drag.Chemical),
+        _ => null
+    };
 
     private void MixDrop(int slot)
     {
         _mixDragOverSlot = 0;
-        if (_mixDragSource == 1) ClearMixSlot1();
-        if (_mixDragSource == 2) ClearMixSlot2();
+        if (_mixDragSource == 1) _mixSlot1 = null;
+        if (_mixDragSource == 2) _mixSlot2 = null;
         _mixDragSource = 0;
-        if (_dragType == null) return;
+        if (_drag.Kind == DragKind.None) return;
+
+        var content = MixSlotFromDrag();
+        if (content == null) return;
 
         if (slot == 1)
-        {
-            if (_dragType == "educt" && _dragEductIndex >= 0)
-            { _mixSlot1Type = "educt"; _mixSlot1EductIdx = _dragEductIndex; _mixSlot1Label = $"Edukt {_dragEductIndex + 1}"; }
-            else if (_dragType == "method" && _dragMethodName != null)
-            { _mixSlot1Type = "method"; _mixSlot1MethodName = _dragMethodName; _mixSlot1Label = _dragMethodName; }
-            else return;
-        }
+            _mixSlot1 = content;
         else
-        {
-            if (_dragType == "educt" && _dragEductIndex >= 0)
-            { _mixSlot2Type = "educt"; _mixSlot2EductIdx = _dragEductIndex; _mixSlot2Label = $"Edukt {_dragEductIndex + 1}"; }
-            else if (_dragType == "chemical" && _dragChemical != null)
-            { _mixSlot2Type = "chemical"; _mixSlot2Chemical = _dragChemical; _mixSlot2Label = _dragChemical.Name; }
-            else if (_dragType == "method" && _dragMethodName != null)
-            { _mixSlot2Type = "method"; _mixSlot2MethodName = _dragMethodName; _mixSlot2Label = _dragMethodName; }
-            else return;
-        }
+            _mixSlot2 = content;
 
-        ResetDragState();
+        _drag = default;
     }
 
     private void ExecuteMix()
     {
-        if (_mixSlot1Type == null || _mixSlot2Type == null) return;
+        if (_mixSlot1 is not { } slot1 || _mixSlot2 is not { } slot2) return;
         _mixError = null;
 
-        if (_mixSlot1Type == "educt" && _mixSlot2Type == "educt")
+        switch (slot1.Kind, slot2.Kind)
         {
-            if (_mixSlot1EductIdx == _mixSlot2EductIdx)
-            { _mixError = "Du kannst ein Edukt nicht mit sich selbst mischen."; return; }
-            var left = Question.UnknownEducts[_mixSlot1EductIdx];
-            var right = Question.UnknownEducts[_mixSlot2EductIdx];
-            var reaction = FindReaction(left.ChemicalID, right.ChemicalID);
-            _actionLog.Add(new ActionLogEntry
+            case (DragKind.Educt, DragKind.Educt):
             {
-                Left = $"Edukt {_mixSlot1EductIdx + 1}",
-                Right = $"Edukt {_mixSlot2EductIdx + 1}",
-                Result = reaction?.ObservationDescription ?? "Keine Reaktion"
-            });
-        }
-        else if (_mixSlot1Type == "educt" && _mixSlot2Type == "chemical" && _mixSlot2Chemical != null)
-        {
-            var educt = Question.UnknownEducts[_mixSlot1EductIdx];
-            var reaction = FindReaction(educt.ChemicalID, _mixSlot2Chemical.ChemicalID);
-            _actionLog.Add(new ActionLogEntry
+                if (slot1.EductIndex == slot2.EductIndex)
+                {
+                    _mixError = "You cannot mix an educt with itself.";
+                    return;
+                }
+
+                var left = Question.UnknownEducts[slot1.EductIndex];
+                var right = Question.UnknownEducts[slot2.EductIndex];
+                var reaction = FindReaction(left.ChemicalId, right.ChemicalId);
+                _actionLog.Add(new ActionLogEntry
+                {
+                    Left = $"Educt {slot1.EductIndex + 1}",
+                    Right = $"Educt {slot2.EductIndex + 1}",
+                    Result = reaction?.ObservationDescription ?? "No reaction"
+                });
+                break;
+            }
+            case (DragKind.Educt, DragKind.Chemical) when slot2.Chemical != null:
             {
-                Left = $"Edukt {_mixSlot1EductIdx + 1}",
-                Right = _mixSlot2Chemical.Name,
-                Result = reaction?.ObservationDescription ?? "Keine Reaktion"
-            });
-        }
-        else if (_mixSlot1Type == "educt" && _mixSlot2Type == "method" && _mixSlot2MethodName != null)
-        {
-            ApplyMethodToEduct(_mixSlot1EductIdx, _mixSlot2MethodName);
-        }
-        else if (_mixSlot1Type == "method" && _mixSlot2Type == "educt" && _mixSlot1MethodName != null)
-        {
-            ApplyMethodToEduct(_mixSlot2EductIdx, _mixSlot1MethodName);
-        }
-        else
-        {
-            _mixError = "Diese Kombination ist nicht möglich.";
+                var educt = Question.UnknownEducts[slot1.EductIndex];
+                var reaction = FindReaction(educt.ChemicalId, slot2.Chemical.ChemicalId);
+                _actionLog.Add(new ActionLogEntry
+                {
+                    Left = $"Educt {slot1.EductIndex + 1}",
+                    Right = slot2.Chemical.Name,
+                    Result = reaction?.ObservationDescription ?? "No reaction"
+                });
+                break;
+            }
+            case (DragKind.Educt, DragKind.Method):
+                ApplyMethodToEduct(slot1.EductIndex, slot2.Method);
+                break;
+            case (DragKind.Method, DragKind.Educt):
+                ApplyMethodToEduct(slot2.EductIndex, slot1.Method);
+                break;
+            default:
+                _mixError = "This combination is not possible.";
+                break;
         }
     }
 
-    private void ApplyMethodToEduct(int eductIdx, string methodName)
+    private void ApplyMethodToEduct(int eductIdx, Method method)
     {
-        _revealedMethods[eductIdx].Add(methodName);
+        _revealedMethods[eductIdx].Add(method);
         var educt = Question.UnknownEducts[eductIdx];
-        var colorDto = educt.MethodOutputs.GetValueOrDefault(methodName);
-        var result = colorDto?.Name ?? "keine";
-        _actionLog.Add(new ActionLogEntry { Left = $"Edukt {eductIdx + 1}", Right = methodName, Result = result });
+        var colorDto = educt.MethodOutputs.GetValueOrDefault(method);
+        _actionLog.Add(new ActionLogEntry { Left = $"Educt {eductIdx + 1}", Right = method.ToString(), Result = colorDto?.Name ?? "none" });
     }
-
-    private void ClearMixSlot1()
-    { _mixSlot1Type = null; _mixSlot1Label = null; _mixSlot1EductIdx = -1; _mixSlot1MethodName = null; }
-
-    private void ClearMixSlot2()
-    { _mixSlot2Type = null; _mixSlot2Label = null; _mixSlot2EductIdx = -1; _mixSlot2Chemical = null; _mixSlot2MethodName = null; }
 
     private void ClearMixSlots()
-    { ClearMixSlot1(); ClearMixSlot2(); _mixDragOverSlot = 0; _mixError = null; }
+    {
+        _mixSlot1 = null;
+        _mixSlot2 = null;
+        _mixDragOverSlot = 0;
+        _mixError = null;
+    }
 
     private LabReactionDto? FindReaction(int c1, int c2) =>
         AllReactions.FirstOrDefault(r =>
@@ -527,7 +548,7 @@
 
     public class SpotTestAnswered
     {
-        public List<string> ChemicalFormulas { get; init; } = new();
+        public List<string> ChemicalFormulas { get; init; } = [];
         public bool AllCorrect { get; init; }
         public int CorrectCount { get; init; }
         public int TotalCount { get; init; }
@@ -535,8 +556,8 @@
 
     private class ActionLogEntry
     {
-        public string Left { get; set; } = "";
-        public string Right { get; set; } = "";
-        public string Result { get; set; } = "";
+        public string Left { get; init; } = "";
+        public string Right { get; init; } = "";
+        public string Result { get; init; } = "";
     }
 }

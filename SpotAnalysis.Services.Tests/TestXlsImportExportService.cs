@@ -56,11 +56,11 @@ public class TestXlsImportExportService : BaseDatabaseTest
     [Test, Order(2)]
     public async Task Import_CreatesMethodOutputs()
     {
-        var context = ContextFactory.CreateDbContext();
+        var context = await ContextFactory.CreateDbContextAsync();
 
         var feCl3 = await context.Chemicals
             .Include(c => c.Color)
-            .Include(c => c.MethodOutputs).ThenInclude(mo => mo.Method)
+            .Include(c => c.MethodOutputs)
             .Include(c => c.MethodOutputs).ThenInclude(mo => mo.Color)
             .FirstAsync(c => c.Name == "Eisen(III)chlorid");
 

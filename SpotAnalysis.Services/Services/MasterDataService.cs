@@ -1,5 +1,7 @@
+using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
 using SpotAnalysis.Data;
+using SpotAnalysis.Data.Enums;
 using SpotAnalysis.Data.Models;
 using SpotAnalysis.Services.DTOs;
 
@@ -7,58 +9,70 @@ namespace SpotAnalysis.Services.Services;
 
 public class MasterDataService(IDbContextFactory<AnalysisContext> factory) : IMasterDataService
 {
-    // ── Chemicals ───────────────────────────────────────────────────
+    private static readonly Expression<Func<Chemical, ChemicalRow>> ChemicalProjection =
+        c => new ChemicalRow(
+            c.ChemicalId, c.Name, c.Formula, c.ColorId, c.Color.Name,
+            c.Type, c.ImagePath,
+            c.MethodOutputs
+                .OrderBy(mo => mo.Method)
+                .Select(mo => new MethodOutputEntry
+                {
+                    Method = mo.Method, ColorId = mo.ColorId, ColorName = mo.Color.Name
+                }).ToList(),
+            c.Chemical1Reactions
+                .Select(r => new ReactionRef(r.ReactionId, r.Chemical1.Name, r.Chemical2.Name))
+                .ToList(),
+            c.Chemical2Reactions
+                .Select(r => new ReactionRef(r.ReactionId, r.Chemical1.Name, r.Chemical2.Name))
+                .ToList(),
+            c.StAvailableChemicals
+                .Select(sac => new QuizRef(sac.QuestionId, sac.StQuestion.Question.Title))
+                .ToList(),
+            c.StlQuestions
+                .Select(stl => new QuizRef(stl.QuestionId, stl.Question.Title))
+                .ToList()
+        );
+
+    private static readonly Expression<Func<Reaction, ReactionRow>> ReactionProjection =
+        r => new ReactionRow(
+            r.ReactionId, r.Chemical1.ChemicalId, r.Chemical2.ChemicalId,
+            r.Chemical1.Name, r.Chemical2.Name,
+            r.RelevantProduct, r.Formula,
+            r.ObservationId, r.Observation!.Description,
+            r.ImagePath,
+            r.StlQuestions
+                .Select(q => new QuizRef(q.QuestionId, q.Question.Title))
+                .ToList(),
+            r.StlAvailableReactions
+                .Select(ar => new QuizRef(ar.QuestionId, ar.StlQuestion.Question.Title))
+                .ToList()
+        );
 
     public async Task<List<ChemicalDetailDto>> GetChemicalsAsync(CancellationToken ct = default)
     {
         await using var context = await factory.CreateDbContextAsync(ct);
 
-        var chemicals = await context.Chemicals
-            .Include(c => c.Color)
-            .Include(c => c.MethodOutputs)
-            .ThenInclude(mo => mo.Method)
-            .Include(c => c.MethodOutputs)
-            .ThenInclude(mo => mo.Color)
-            .Include(c => c.Chemical1Reactions)
-            .ThenInclude(r => r.Chemical2)
-            .Include(c => c.Chemical2Reactions)
-            .ThenInclude(r => r.Chemical1)
-            .Include(c => c.StAvailableChemicals)
-            .ThenInclude(sac => sac.StQuestion)
-            .ThenInclude(stq => stq.Question)
-            .Include(c => c.StlQuestions)
-            .ThenInclude(stl => stl.Question)
+        var rows = await context.Chemicals
             .AsNoTracking()
             .OrderBy(c => c.Type)
             .ThenBy(c => c.Name)
+            .Select(ChemicalProjection)
             .ToListAsync(ct);
 
-        return chemicals.Select(MapChemicalToDetail).ToList();
+        return rows.ConvertAll(MapChemicalRow);
     }
 
     public async Task<ChemicalDetailDto?> GetChemicalByIdAsync(int id, CancellationToken ct = default)
     {
         await using var context = await factory.CreateDbContextAsync(ct);
 
-        var chemical = await context.Chemicals
-            .Include(c => c.Color)
-            .Include(c => c.MethodOutputs)
-            .ThenInclude(mo => mo.Method)
-            .Include(c => c.MethodOutputs)
-            .ThenInclude(mo => mo.Color)
-            .Include(c => c.Chemical1Reactions)
-            .ThenInclude(r => r.Chemical2)
-            .Include(c => c.Chemical2Reactions)
-            .ThenInclude(r => r.Chemical1)
-            .Include(c => c.StAvailableChemicals)
-            .ThenInclude(sac => sac.StQuestion)
-            .ThenInclude(stq => stq.Question)
-            .Include(c => c.StlQuestions)
-            .ThenInclude(stl => stl.Question)
+        var row = await context.Chemicals
             .AsNoTracking()
-            .FirstOrDefaultAsync(c => c.ChemicalId == id, ct);
+            .Where(c => c.ChemicalId == id)
+            .Select(ChemicalProjection)
+            .FirstOrDefaultAsync(ct);
 
-        return chemical is null ? null : MapChemicalToDetail(chemical);
+        return row is null ? null : MapChemicalRow(row);
     }
 
     public async Task<int> CreateChemicalAsync(ChemicalDetailDto dto, CancellationToken ct = default)
@@ -121,72 +135,53 @@ public class MasterDataService(IDbContextFactory<AnalysisContext> factory) : IMa
         await using var context = await factory.CreateDbContextAsync(ct);
 
         var chemical = await context.Chemicals
-                           .Include(c => c.Chemical1Reactions)
-                           .ThenInclude(r => r.Chemical2)
-                           .Include(c => c.Chemical2Reactions)
-                           .ThenInclude(r => r.Chemical1)
                            .Include(c => c.MethodOutputs)
-                           .ThenInclude(mo => mo.Method)
-                           .Include(c => c.StAvailableChemicals)
-                           .ThenInclude(sac => sac.StQuestion)
-                           .ThenInclude(stq => stq.Question)
-                           .Include(c => c.StlQuestions)
-                           .ThenInclude(stl => stl.Question)
                            .FirstOrDefaultAsync(c => c.ChemicalId == id, ct)
                        ?? throw new InvalidOperationException($"Chemikalie {id} nicht gefunden.");
 
-        var references = BuildChemicalReferences(chemical);
-        if (references.Total > 0)
+        var refCount = await context.Chemicals
+            .Where(c => c.ChemicalId == id)
+            .Select(c =>
+                c.Chemical1Reactions.Count() +
+                c.Chemical2Reactions.Count() +
+                c.StAvailableChemicals.Count() +
+                c.StlQuestions.Count())
+            .SingleAsync(ct);
+
+        if (refCount > 0)
             throw new InvalidOperationException(
-                $"Chemikalie wird noch referenziert ({references.Total} Einträge) und kann nicht gelöscht werden.");
+                $"Chemikalie wird noch referenziert ({refCount} Einträge) und kann nicht gelöscht werden.");
 
         context.MethodOutputs.RemoveRange(chemical.MethodOutputs);
         context.Chemicals.Remove(chemical);
         await context.SaveChangesAsync(ct);
     }
 
-    // ── Reactions ───────────────────────────────────────────────────
-
     public async Task<List<ReactionDetailDto>> GetReactionsAsync(CancellationToken ct = default)
     {
         await using var context = await factory.CreateDbContextAsync(ct);
 
-        var reactions = await context.Reactions
-            .Include(r => r.Chemical1)
-            .Include(r => r.Chemical2)
-            .Include(r => r.Observation)
-            .Include(r => r.StlResults)
-            .Include(r => r.StlAvailableReactions)
-            .ThenInclude(ar => ar.StlQuestion)
-            .ThenInclude(stl => stl.Question)
-            .Include(r => r.StlQuestions)
-            .ThenInclude(stl => stl.Question)
+        var rows = await context.Reactions
             .AsNoTracking()
             .OrderBy(r => r.Chemical1.Name)
             .ThenBy(r => r.Chemical2.Name)
+            .Select(ReactionProjection)
             .ToListAsync(ct);
 
-        return reactions.Select(MapReactionToDetail).ToList();
+        return rows.ConvertAll(MapReactionRow);
     }
 
     public async Task<ReactionDetailDto?> GetReactionByIdAsync(int id, CancellationToken ct = default)
     {
         await using var context = await factory.CreateDbContextAsync(ct);
 
-        var reaction = await context.Reactions
-            .Include(r => r.Chemical1)
-            .Include(r => r.Chemical2)
-            .Include(r => r.Observation)
-            .Include(r => r.StlResults)
-            .Include(r => r.StlAvailableReactions)
-            .ThenInclude(ar => ar.StlQuestion)
-            .ThenInclude(stl => stl.Question)
-            .Include(r => r.StlQuestions)
-            .ThenInclude(stl => stl.Question)
+        var row = await context.Reactions
             .AsNoTracking()
-            .FirstOrDefaultAsync(r => r.ReactionId == id, ct);
+            .Where(r => r.ReactionId == id)
+            .Select(ReactionProjection)
+            .FirstOrDefaultAsync(ct);
 
-        return reaction is null ? null : MapReactionToDetail(reaction);
+        return row is null ? null : MapReactionRow(row);
     }
 
     public async Task<int> CreateReactionAsync(ReactionDetailDto dto, CancellationToken ct = default)
@@ -268,40 +263,40 @@ public class MasterDataService(IDbContextFactory<AnalysisContext> factory) : IMa
         await using var context = await factory.CreateDbContextAsync(ct);
 
         var reaction = await context.Reactions
-                           .Include(r => r.StlResults)
-                           .Include(r => r.StlAvailableReactions)
-                           .ThenInclude(ar => ar.StlQuestion)
-                           .ThenInclude(stl => stl.Question)
-                           .Include(r => r.StlQuestions)
-                           .ThenInclude(stl => stl.Question)
                            .FirstOrDefaultAsync(r => r.ReactionId == id, ct)
                        ?? throw new InvalidOperationException($"Reaktion {id} nicht gefunden.");
 
-        var references = BuildReactionReferences(reaction);
-        if (references.Total > 0)
+        var refCount = await context.Reactions
+            .Where(r => r.ReactionId == id)
+            .Select(r => r.StlQuestions.Count() + r.StlAvailableReactions.Count())
+            .SingleAsync(ct);
+
+        if (refCount > 0)
             throw new InvalidOperationException(
-                $"Reaktion wird noch referenziert ({references.Total} Einträge) und kann nicht gelöscht werden.");
+                $"Reaktion wird noch referenziert ({refCount} Einträge) und kann nicht gelöscht werden.");
 
         context.Reactions.Remove(reaction);
         await context.SaveChangesAsync(ct);
     }
 
-    // ── Observations ────────────────────────────────────────────────
-
     public async Task<List<ObservationDetailDto>> GetObservationsAsync(CancellationToken ct = default)
     {
         await using var context = await factory.CreateDbContextAsync(ct);
 
-        var observations = await context.Observations
-            .Include(o => o.Reactions)
-            .ThenInclude(r => r.Chemical1)
-            .Include(o => o.Reactions)
-            .ThenInclude(r => r.Chemical2)
+        var rows = await context.Observations
             .AsNoTracking()
             .OrderBy(o => o.Description)
+            .Select(o => new
+            {
+                o.ObservationId,
+                o.Description,
+                Reactions = o.Reactions
+                    .Select(r => new ReactionRef(r.ReactionId, r.Chemical1.Name, r.Chemical2.Name))
+                    .ToList()
+            })
             .ToListAsync(ct);
 
-        return observations.Select(o => new ObservationDetailDto
+        return rows.ConvertAll(o => new ObservationDetailDto
         {
             Id = o.ObservationId,
             Description = o.Description,
@@ -311,10 +306,10 @@ public class MasterDataService(IDbContextFactory<AnalysisContext> factory) : IMa
                 {
                     Kind = "Reaction",
                     Id = r.ReactionId,
-                    Description = $"Reaktion #{r.ReactionId}: {r.Chemical1.Name} + {r.Chemical2.Name}"
+                    Description = $"Reaktion #{r.ReactionId}: {r.Chem1} + {r.Chem2}"
                 }).ToList()
             }
-        }).ToList();
+        });
     }
 
     public async Task<int> CreateObservationAsync(ObservationDetailDto dto, CancellationToken ct = default)
@@ -357,118 +352,88 @@ public class MasterDataService(IDbContextFactory<AnalysisContext> factory) : IMa
         await using var context = await factory.CreateDbContextAsync(ct);
 
         var obs = await context.Observations
-                      .Include(o => o.Reactions)
                       .FirstOrDefaultAsync(o => o.ObservationId == id, ct)
                   ?? throw new InvalidOperationException($"Beobachtung {id} nicht gefunden.");
 
-        if (obs.Reactions.Count > 0)
+        var reactionCount = await context.Observations
+            .Where(o => o.ObservationId == id)
+            .Select(o => o.Reactions.Count())
+            .SingleAsync(ct);
+
+        if (reactionCount > 0)
             throw new InvalidOperationException(
-                $"Beobachtung wird von {obs.Reactions.Count} Reaktionen verwendet und kann nicht gelöscht werden.");
+                $"Beobachtung wird von {reactionCount} Reaktionen verwendet und kann nicht gelöscht werden.");
 
         context.Observations.Remove(obs);
         await context.SaveChangesAsync(ct);
     }
 
-    // ── Helpers: Chemicals ──────────────────────────────────────────
 
-    private static ChemicalDetailDto MapChemicalToDetail(Chemical c) => new()
+    private static ChemicalDetailDto MapChemicalRow(ChemicalRow c) => new()
     {
         Id = c.ChemicalId,
         Name = c.Name,
         Formula = c.Formula,
         ColorId = c.ColorId,
-        ColorName = c.Color.Name,
+        ColorName = c.ColorName,
         Type = c.Type,
         ImagePath = c.ImagePath,
-        MethodOutputs = c.MethodOutputs
-            .OrderBy(mo => mo.Method)
-            .Select(mo => new MethodOutputEntry { Method = mo.Method, ColorId = mo.ColorId, ColorName = mo.Color.Name })
-            .ToList(),
-        References = BuildChemicalReferences(c)
+        MethodOutputs = c.MethodOutputs,
+        References = new ReferenceReport
+        {
+            Items = c.Chem1Reactions.Concat(c.Chem2Reactions)
+                .Select(r => new ReferenceItem
+                {
+                    Kind = "Reaction",
+                    Id = r.ReactionId,
+                    Description = $"Reaktion #{r.ReactionId}: {r.Chem1} + {r.Chem2}"
+                })
+                .Concat(c.StQuizRefs.Select(q => new ReferenceItem
+                {
+                    Kind = "Quiz",
+                    Id = q.QuestionId,
+                    Description = q.Title ?? $"Frage #{q.QuestionId}",
+                    RouteTemplate = "/teacher/questions/{0}/edit?type=SpotTest"
+                }))
+                .Concat(c.StlQuizRefs.Select(q => new ReferenceItem
+                {
+                    Kind = "Quiz",
+                    Id = q.QuestionId,
+                    Description = q.Title ?? $"Frage #{q.QuestionId}",
+                    RouteTemplate = "/teacher/questions/{0}/edit?type=SpotTestLight"
+                }))
+                .ToList()
+        }
     };
 
-    private static ReferenceReport BuildChemicalReferences(Chemical c)
-    {
-        var report = new ReferenceReport();
-        foreach (var r in c.Chemical1Reactions.Concat(c.Chemical2Reactions))
-            report.Items.Add(new ReferenceItem
-            {
-                Kind = "Reaction",
-                Id = r.ReactionId,
-                Description = $"Reaktion #{r.ReactionId}: {r.Chemical1.Name} + {r.Chemical2.Name}"
-            });
-        foreach (var sac in c.StAvailableChemicals)
-        {
-            var title = sac.StQuestion?.Question?.Title;
-            report.Items.Add(new ReferenceItem
-            {
-                Kind = "Quiz",
-                Id = sac.QuestionId,
-                Description = string.IsNullOrWhiteSpace(title) ? $"Frage #{sac.QuestionId}" : title,
-                RouteTemplate = "/teacher/questions/{0}/edit?type=SpotTest"
-            });
-        }
-
-        foreach (var stl in c.StlQuestions)
-        {
-            var title = stl.Question?.Title;
-            report.Items.Add(new ReferenceItem
-            {
-                Kind = "Quiz",
-                Id = stl.QuestionId,
-                Description = string.IsNullOrWhiteSpace(title) ? $"Frage #{stl.QuestionId}" : title,
-                RouteTemplate = "/teacher/questions/{0}/edit?type=SpotTestLight"
-            });
-        }
-
-        return report;
-    }
-
-    // ── Helpers: Reactions ──────────────────────────────────────────
-
-    private static ReactionDetailDto MapReactionToDetail(Reaction r) => new()
+    private static ReactionDetailDto MapReactionRow(ReactionRow r) => new()
     {
         Id = r.ReactionId,
-        Chemical1Id = r.Chemical1.ChemicalId,
-        Chemical2Id = r.Chemical2.ChemicalId,
-        Chemical1Name = r.Chemical1.Name,
-        Chemical2Name = r.Chemical2.Name,
+        Chemical1Id = r.Chemical1Id,
+        Chemical2Id = r.Chemical2Id,
+        Chemical1Name = r.Chemical1Name,
+        Chemical2Name = r.Chemical2Name,
         RelevantProduct = r.RelevantProduct,
         Formula = r.Formula,
         ObservationId = r.ObservationId == 0 ? null : r.ObservationId,
-        ObservationDescription = r.Observation?.Description ?? "",
+        ObservationDescription = r.ObservationDescription ?? "",
         ImagePath = r.ImagePath,
-        References = BuildReactionReferences(r)
+        References = new ReferenceReport
+        {
+            Items = r.StlQuestionRefs.Select(q => new ReferenceItem
+                {
+                    Kind = "Quiz",
+                    Id = q.QuestionId,
+                    Description = q.Title ?? $"Frage #{q.QuestionId}",
+                    RouteTemplate = "/teacher/questions/{0}/edit?type=SpotTestLight"
+                })
+                .Concat(r.StlAvailableReactionRefs.Select(q => new ReferenceItem
+                {
+                    Kind = "Quiz", Id = q.QuestionId, Description = q.Title ?? $"Frage #{q.QuestionId}"
+                }))
+                .ToList()
+        }
     };
-
-    private static ReferenceReport BuildReactionReferences(Reaction r)
-    {
-        var report = new ReferenceReport();
-        foreach (var q in r.StlQuestions)
-        {
-            var title = q.Question?.Title;
-            report.Items.Add(new ReferenceItem
-            {
-                Kind = "Quiz",
-                Id = q.QuestionId,
-                Description = string.IsNullOrWhiteSpace(title) ? $"Frage #{q.QuestionId}" : title,
-                RouteTemplate = "/teacher/questions/{0}/edit?type=SpotTestLight"
-            });
-        }
-
-        foreach (var ar in r.StlAvailableReactions)
-        {
-            var title = ar.StlQuestion?.Question?.Title;
-            report.Items.Add(new ReferenceItem
-            {
-                Kind = "Quiz",
-                Id = ar.QuestionId,
-                Description = string.IsNullOrWhiteSpace(title) ? $"Frage #{ar.QuestionId}" : title
-            });
-        }
-
-        return report;
-    }
 
     private static async Task<Observation> ResolveObservationAsync(
         AnalysisContext context, ReactionDetailDto dto, CancellationToken ct)
@@ -494,8 +459,6 @@ public class MasterDataService(IDbContextFactory<AnalysisContext> factory) : IMa
         return created;
     }
 
-    // ── Helpers: Color resolution ─────────────────────────────────────
-
     private static async Task<int> ResolveColorIdAsync(
         AnalysisContext context, int colorId, string colorName, CancellationToken ct)
     {
@@ -512,8 +475,6 @@ public class MasterDataService(IDbContextFactory<AnalysisContext> factory) : IMa
         await context.SaveChangesAsync(ct);
         return color.ColorId;
     }
-
-    // ── Helpers: MethodOutputs ──────────────────────────────────────
 
     private static async Task UpsertMethodOutputsAsync(
         AnalysisContext context, Chemical chemical, List<MethodOutputEntry> entries, CancellationToken ct)
@@ -548,4 +509,36 @@ public class MasterDataService(IDbContextFactory<AnalysisContext> factory) : IMa
             }
         }
     }
+
+    private sealed record ReactionRef(int ReactionId, string Chem1, string Chem2);
+
+    private sealed record QuizRef(int QuestionId, string? Title);
+
+    private sealed record ChemicalRow(
+        int ChemicalId,
+        string Name,
+        string Formula,
+        int ColorId,
+        string ColorName,
+        ChemicalType Type,
+        string? ImagePath,
+        List<MethodOutputEntry> MethodOutputs,
+        List<ReactionRef> Chem1Reactions,
+        List<ReactionRef> Chem2Reactions,
+        List<QuizRef> StQuizRefs,
+        List<QuizRef> StlQuizRefs);
+
+    private sealed record ReactionRow(
+        int ReactionId,
+        int Chemical1Id,
+        int Chemical2Id,
+        string Chemical1Name,
+        string Chemical2Name,
+        string RelevantProduct,
+        string Formula,
+        int ObservationId,
+        string? ObservationDescription,
+        string? ImagePath,
+        List<QuizRef> StlQuestionRefs,
+        List<QuizRef> StlAvailableReactionRefs);
 }

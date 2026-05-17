@@ -330,11 +330,8 @@ public class QuizService(ILogger<QuizService> logger, IDbContextFactory<Analysis
                     }).ToList()
                     : new List<ChemicalQuestionDto>(),
                 Methods = x.StQuestion != null
-                    ? x.StQuestion.AvailableMethods.Select(am => new MethodQuestionDto
-                    {
-                        Id = am.MethodId, Name = am.Method.Name
-                    }).ToList()
-                    : new List<MethodQuestionDto>(),
+                    ? x.StQuestion.AvailableMethods.Select(am => am.Method).ToList()
+                    : new List<Method>(),
                 AvailableReactionIds = x.StlQuestion != null
                     ? x.StlQuestion.AvailableReactions.Select(ar => ar.ReactionId).ToList()
                     : new List<int>(),
@@ -379,7 +376,7 @@ public class QuizService(ILogger<QuizService> logger, IDbContextFactory<Analysis
             .ToListAsync();
     }
 
-    public async Task CreateSTQuestion(Guid teacherId, ConfigSTQuestionDto question)
+    public async Task CreateSTQuestion(Guid teacherId, ConfigStQuestionDto question)
     {
         await using var dbContext = await factory.CreateDbContextAsync();
 
@@ -402,9 +399,9 @@ public class QuizService(ILogger<QuizService> logger, IDbContextFactory<Analysis
         });
         dbContext.StAvailableChemicals.AddRange(chemicals);
 
-        var methods = question.AvailableMethods.Select(methodId => new StAvailableMethod
+        var methods = question.AvailableMethods.Select(method => new StAvailableMethod
         {
-            StQuestion = stQuestion, MethodId = methodId
+            StQuestion = stQuestion, Method = method
         });
         dbContext.StAvailableMethods.AddRange(methods);
 
@@ -442,7 +439,7 @@ public class QuizService(ILogger<QuizService> logger, IDbContextFactory<Analysis
         await dbContext.SaveChangesAsync();
     }
 
-    public async Task UpdateSTQuestion(Guid teacherId, ConfigSTQuestionDto question)
+    public async Task UpdateSTQuestion(Guid teacherId, ConfigStQuestionDto question)
     {
         if (question.Id is null)
             throw new ArgumentException("Question Id is required for update.");
@@ -479,9 +476,9 @@ public class QuizService(ILogger<QuizService> logger, IDbContextFactory<Analysis
             .Where(m => m.QuestionId == question.Id)
             .ExecuteDeleteAsync();
 
-        var methods = question.AvailableMethods.Select(methodId => new StAvailableMethod
+        var methods = question.AvailableMethods.Select(method => new StAvailableMethod
         {
-            QuestionId = questionId, MethodId = methodId
+            QuestionId = questionId, Method = method
         });
         await dbContext.StAvailableMethods.AddRangeAsync(methods);
 
@@ -677,7 +674,7 @@ public class QuizService(ILogger<QuizService> logger, IDbContextFactory<Analysis
                                     MethodOutputs = ac.Chemical.MethodOutputs
                                         .Select(mo => new
                                         {
-                                            MethodID = mo.MethodId,
+                                            mo.Method,
                                             Color = new { mo.Color.ColorId, mo.Color.Name, mo.Color.HexValue }
                                         }).ToList()
                                 }).ToList(),
@@ -698,12 +695,12 @@ public class QuizService(ILogger<QuizService> logger, IDbContextFactory<Analysis
                                     MethodOutputs = ac.Chemical.MethodOutputs
                                         .Select(mo => new
                                         {
-                                            MethodID = mo.MethodId,
+                                            mo.Method,
                                             Color = new { mo.Color.ColorId, mo.Color.Name, mo.Color.HexValue }
                                         }).ToList()
                                 }).ToList(),
                             AvailableMethods = qq.Question.StQuestion.AvailableMethods
-                                .Select(am => am.MethodId).ToList()
+                                .Select(am => am.Method).ToList()
                         }
                         : null,
                     Light = qq.Question.StlQuestion != null
@@ -721,8 +718,7 @@ public class QuizService(ILogger<QuizService> logger, IDbContextFactory<Analysis
                             ShownEductMethodOutputs = qq.Question.StlQuestion.ShownEduct.MethodOutputs
                                 .Select(mo => new
                                 {
-                                    MethodID = mo.MethodId,
-                                    Color = new { mo.Color.ColorId, mo.Color.Name, mo.Color.HexValue }
+                                    mo.Method, Color = new { mo.Color.ColorId, mo.Color.Name, mo.Color.HexValue }
                                 })
                                 .ToList(),
                             Observation = qq.Question.StlQuestion.Reaction.Observation.Description,
@@ -761,18 +757,16 @@ public class QuizService(ILogger<QuizService> logger, IDbContextFactory<Analysis
                     {
                         UnknownEducts = q.SpotTest.UnknownEducts.Select(e => new LabChemicalDto
                         {
-                            ChemicalID = e.ChemicalID,
+                            ChemicalId = e.ChemicalID,
                             Name = e.Name,
                             Formula = e.Formula,
                             ImagePath = e.ImagePath,
                             Type = e.Type,
-                            ChemicalTypeID = (int)e.Type,
-                            ChemicalTypeName = "Edukt",
                             Color = new ColorDto
                             {
                                 Id = e.Color.ColorId, Name = e.Color.Name, HexValue = e.Color.HexValue
                             },
-                            MethodOutputs = e.MethodOutputs.ToDictionary(mo => methods[mo.MethodID],
+                            MethodOutputs = e.MethodOutputs.ToDictionary(mo => mo.Method,
                                 mo => new ColorDto
                                 {
                                     Id = mo.Color.ColorId, Name = mo.Color.Name, HexValue = mo.Color.HexValue
@@ -780,24 +774,22 @@ public class QuizService(ILogger<QuizService> logger, IDbContextFactory<Analysis
                         }).ToList(),
                         AvailableAdditives = q.SpotTest.AvailableAdditives.Select(e => new LabChemicalDto
                         {
-                            ChemicalID = e.ChemicalID,
+                            ChemicalId = e.ChemicalID,
                             Name = e.Name,
                             Formula = e.Formula,
                             ImagePath = e.ImagePath,
                             Type = e.Type,
-                            ChemicalTypeID = (int)e.Type,
-                            ChemicalTypeName = "Zusatzstoff",
                             Color = new ColorDto
                             {
                                 Id = e.Color.ColorId, Name = e.Color.Name, HexValue = e.Color.HexValue
                             },
-                            MethodOutputs = e.MethodOutputs.ToDictionary(mo => methods[mo.MethodID],
+                            MethodOutputs = e.MethodOutputs.ToDictionary(mo => mo.Method,
                                 mo => new ColorDto
                                 {
                                     Id = mo.Color.ColorId, Name = mo.Color.Name, HexValue = mo.Color.HexValue
                                 })
                         }).ToList(),
-                        AvailableMethods = q.SpotTest.AvailableMethods.Select(id => methods[id]).ToList()
+                        AvailableMethods = q.SpotTest.AvailableMethods.ToList()
                     }
                     : null,
                 Light = q.Light != null
@@ -820,7 +812,7 @@ public class QuizService(ILogger<QuizService> logger, IDbContextFactory<Analysis
                                     q.Light.ShownEductMethodOutputs.Select(mo =>
                                         new MethodInfoDto
                                         {
-                                            Name = methods[mo.MethodID],
+                                            Method = mo.Method,
                                             Color =
                                                 new ColorDto
                                                 {

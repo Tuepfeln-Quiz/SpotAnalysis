@@ -66,7 +66,7 @@ public class TestXlsImportExportService : BaseDatabaseTest
 
         Assert.That(feCl3.Color.Name, Is.EqualTo("orange"));
 
-        Assert.That(feCl3.MethodOutputs.Any(mo => nameof(mo.Method) == "Eigenfarbe"), Is.False,
+        Assert.That(feCl3.MethodOutputs.Any(mo => mo.Method.ToString() == "Eigenfarbe"), Is.False,
             "Eigenfarbe darf nicht mehr als MethodOutput importiert werden");
 
         var phPapier = feCl3.MethodOutputs.First(mo => mo.Method == Method.PhPaper);

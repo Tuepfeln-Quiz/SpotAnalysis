@@ -14,7 +14,6 @@ public class ChemistryDataService(IDbContextFactory<AnalysisContext> factory) : 
         var chemicals = await context.Chemicals
             .Include(c => c.Color)
             .Include(c => c.MethodOutputs)
-            .ThenInclude(mo => mo.Method)
             .Include(c => c.MethodOutputs)
             .ThenInclude(mo => mo.Color)
             .AsNoTracking()
@@ -56,11 +55,15 @@ public class ChemistryDataService(IDbContextFactory<AnalysisContext> factory) : 
             .AsNoTracking()
             .OrderBy(c => c.Name.Length)
             .ThenBy(c => c.Name)
-            .Select(c => new ColorDto { Id = c.ColorId, Name = c.Name, HexValue = c.HexValue })
+            .Select(c =>
+                new ColorDto { Id = c.ColorId, Name = c.Name, HexValue = c.HexValue, IsColorless = c.IsColorless })
             .ToListAsync();
     }
 
-    private static ColorDto MapColor(Color c) => new() { Id = c.ColorId, Name = c.Name, HexValue = c.HexValue };
+    private static ColorDto MapColor(Color c) => new()
+    {
+        Id = c.ColorId, Name = c.Name, HexValue = c.HexValue, IsColorless = c.IsColorless
+    };
 
     private static LabChemicalDto MapChemical(Chemical c) => new()
     {

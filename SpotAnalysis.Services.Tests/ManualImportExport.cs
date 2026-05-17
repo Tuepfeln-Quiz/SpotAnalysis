@@ -34,9 +34,8 @@ public class ManualImportExport
 
         var chemicals = await context.Chemicals.CountAsync();
         var reactions = await context.Reactions.CountAsync();
-        var methods = await context.Methods.CountAsync();
 
-        await TestContext.Out.WriteLineAsync($"Import abgeschlossen: {chemicals} Chemicals, {reactions} Reactions, {methods} Methods");
+        await TestContext.Out.WriteLineAsync($"Import abgeschlossen: {chemicals} Chemicals, {reactions} Reactions");
     }
 
     [Test]
@@ -63,11 +62,10 @@ public class ManualImportExport
         context.Chemicals.RemoveRange(context.Chemicals);
         await context.SaveChangesAsync();
 
-        var methods = await context.Methods.CountAsync();
-        context.Methods.RemoveRange(context.Methods);
         await context.SaveChangesAsync();
 
-        await TestContext.Out.WriteLineAsync($"Gelöscht: {reactions} Reactions, {methodOutputs} MethodOutputs, {observations} Observations, {chemicals} Chemicals, {methods} Methods");
+        await TestContext.Out.WriteLineAsync(
+            $"Gelöscht: {reactions} Reactions, {methodOutputs} MethodOutputs, {observations} Observations, {chemicals} Chemicals");
     }
 
     [Test]

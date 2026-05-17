@@ -381,11 +381,9 @@ public class MasterDataService(IDbContextFactory<AnalysisContext> factory) : IMa
         Type = c.Type,
         ImagePath = c.ImagePath,
         MethodOutputs = c.MethodOutputs
-            .OrderBy(mo => mo.Method.Name)
-            .Select(mo => new MethodOutputEntry
-            {
-                MethodId = mo.MethodId, MethodName = mo.Method.Name, ColorId = mo.ColorId, ColorName = mo.Color.Name
-            }).ToList(),
+            .OrderBy(mo => mo.Method)
+            .Select(mo => new MethodOutputEntry { Method = mo.Method, ColorId = mo.ColorId, ColorName = mo.Color.Name })
+            .ToList(),
         References = BuildChemicalReferences(c)
     };
 
@@ -520,18 +518,13 @@ public class MasterDataService(IDbContextFactory<AnalysisContext> factory) : IMa
     private static async Task UpsertMethodOutputsAsync(
         AnalysisContext context, Chemical chemical, List<MethodOutputEntry> entries, CancellationToken ct)
     {
-        var methodsByName = await context.Methods.ToDictionaryAsync(m => m.Name, ct);
-
         var existingOutputs = await context.MethodOutputs
             .Where(mo => mo.ChemicalId == chemical.ChemicalId)
             .ToListAsync(ct);
 
         foreach (var entry in entries)
         {
-            if (!methodsByName.TryGetValue(entry.MethodName, out var method))
-                continue; // unbekannte Method überspringen
-
-            var existing = existingOutputs.FirstOrDefault(mo => mo.MethodId == method.MethodId);
+            var existing = existingOutputs.FirstOrDefault(mo => mo.Method == entry.Method);
 
             if (entry.ColorId == 0 && string.IsNullOrWhiteSpace(entry.ColorName))
             {
@@ -545,7 +538,7 @@ public class MasterDataService(IDbContextFactory<AnalysisContext> factory) : IMa
                 {
                     context.MethodOutputs.Add(new MethodOutput
                     {
-                        ChemicalId = chemical.ChemicalId, MethodId = method.MethodId, ColorId = colorId
+                        ChemicalId = chemical.ChemicalId, Method = entry.Method, ColorId = colorId
                     });
                 }
                 else

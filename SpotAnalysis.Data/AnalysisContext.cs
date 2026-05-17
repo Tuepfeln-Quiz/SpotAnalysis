@@ -7,10 +7,7 @@ public class AnalysisContext : DbContext
     // Connection String wird NICHT in diesem Projekt definiert.
     // Zur Laufzeit: DI-Konfiguration in SpotAnalysis.Web/Program.cs (AddDbContext + appsettings.json)
     // Für Migrations: --startup-project SpotAnalysis.Web (siehe EF-MIGRATIONS.md)
-    public AnalysisContext(DbContextOptions<AnalysisContext> options)
-        : base(options)
-    {
-    }
+    public AnalysisContext(DbContextOptions<AnalysisContext> options) : base(options) { }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -22,7 +19,7 @@ public class AnalysisContext : DbContext
             .HasMany(u => u.Groups)
             .WithMany(r => r.Users)
             .UsingEntity(
-                // deleting a group is only possible, when it is not referenced by any user
+                // deleting a group is only possible when it is not referenced by any user
                 groupForeignKey => groupForeignKey
                     .HasOne(typeof(Group)).WithMany().HasForeignKey(nameof(Group.GroupId))
                     .OnDelete(DeleteBehavior.Restrict),
@@ -35,10 +32,10 @@ public class AnalysisContext : DbContext
             .HasMany(q => q.Groups)
             .WithMany(g => g.Quizzes)
             .UsingEntity(
-                // deleting a quiz is only possible, when it is not referenced by any group
+                // deleting a quiz is only possible when it is not referenced by any group
                 q => q.HasOne(typeof(Group)).WithMany().HasForeignKey(nameof(Group.GroupId))
                     .OnDelete(DeleteBehavior.Restrict),
-                // deleting a group is only possible, when it is not referenced by any quiz
+                // deleting a group is only possible when it is not referenced by any quiz
                 g => g.HasOne(typeof(Quiz)).WithMany().HasForeignKey(nameof(Quiz.QuizId))
                     .OnDelete(DeleteBehavior.Restrict)
             );
@@ -60,7 +57,6 @@ public class AnalysisContext : DbContext
 
     public virtual DbSet<Color> Colors { get; set; }
     public virtual DbSet<Chemical> Chemicals { get; set; }
-    public virtual DbSet<Method> Methods { get; set; }
     public virtual DbSet<MethodOutput> MethodOutputs { get; set; }
     public virtual DbSet<Reaction> Reactions { get; set; }
     public virtual DbSet<Observation> Observations { get; set; }

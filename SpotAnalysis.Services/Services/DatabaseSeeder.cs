@@ -98,10 +98,9 @@ public class DatabaseSeeder(
         await xlsImportExportService.ImportFromStreamAsync(stream, ExcelFormat.Xlsx);
 
         logger.LogInformation(
-            "Stammdaten-Seed eingespielt: {Chemicals} Chemicals, {Reactions} Reactions, {Methods} Methods, {Observations} Observations.",
+            "Stammdaten-Seed eingespielt: {Chemicals} Chemicals, {Reactions} Reactions, {Observations} Observations.",
             await context.Chemicals.CountAsync(cancellationToken),
             await context.Reactions.CountAsync(cancellationToken),
-            await context.Methods.CountAsync(cancellationToken),
             await context.Observations.CountAsync(cancellationToken));
     }
 
@@ -113,12 +112,11 @@ public class DatabaseSeeder(
         // Ohne sie würden die FK-Referenzen im Skript scheitern.
         var hasReactions = await context.Reactions.AnyAsync(cancellationToken);
         var hasChemicals = await context.Chemicals.AnyAsync(cancellationToken);
-        var hasMethods = await context.Methods.AnyAsync(cancellationToken);
-        if (!hasReactions || !hasChemicals || !hasMethods)
+        if (!hasReactions || !hasChemicals)
         {
             logger.LogWarning(
-                "Quiz-Seed übersprungen: Stammdaten fehlen (Reactions={HasReactions}, Chemicals={HasChemicals}, Methods={HasMethods}).",
-                hasReactions, hasChemicals, hasMethods);
+                "Quiz-Seed übersprungen: Stammdaten fehlen (Reactions={HasReactions}, Chemicals={HasChemicals}).",
+                hasReactions, hasChemicals);
             return;
         }
 

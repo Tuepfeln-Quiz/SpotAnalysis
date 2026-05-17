@@ -1,6 +1,5 @@
 using Microsoft.EntityFrameworkCore;
 using SpotAnalysis.Data;
-using SpotAnalysis.Data.Enums;
 using SpotAnalysis.Data.Models;
 using SpotAnalysis.Services.DTOs;
 
@@ -50,14 +49,6 @@ public class ChemistryDataService(IDbContextFactory<AnalysisContext> factory) : 
             .ToListAsync();
     }
 
-    public async Task<List<MethodQuestionDto>> GetAllMethodsAsync()
-    {
-        await using var context = await factory.CreateDbContextAsync();
-        return await context.Methods
-            .AsNoTracking()
-            .Select(m => new MethodQuestionDto { Id = m.MethodId, Name = m.Name }).ToListAsync();
-    }
-
     public async Task<List<ColorDto>> GetAllColorsAsync()
     {
         await using var context = await factory.CreateDbContextAsync();
@@ -73,14 +64,12 @@ public class ChemistryDataService(IDbContextFactory<AnalysisContext> factory) : 
 
     private static LabChemicalDto MapChemical(Chemical c) => new()
     {
-        ChemicalID = c.ChemicalId,
+        ChemicalId = c.ChemicalId,
         Name = c.Name,
         Formula = c.Formula,
         ImagePath = c.ImagePath,
         Type = c.Type,
-        ChemicalTypeID = (int)c.Type,
-        ChemicalTypeName = c.Type == ChemicalType.Educt ? "Edukt" : "Zusatzstoff",
         Color = MapColor(c.Color),
-        MethodOutputs = c.MethodOutputs.ToDictionary(mo => mo.Method.Name, mo => MapColor(mo.Color))
+        MethodOutputs = c.MethodOutputs.ToDictionary(mo => mo.Method, mo => MapColor(mo.Color))
     };
 }

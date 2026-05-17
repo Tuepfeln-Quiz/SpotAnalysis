@@ -46,10 +46,11 @@
                             <span style="min-width:150px;">Methode</span>
                             <span class="flex-grow-1">Beobachtete Farbe</span>
                         </div>
-                        @foreach (var method in _allMethodNames)
+                        @foreach (var method in AllMethods)
                         {
-                            var entry = Dto.MethodOutputs.FirstOrDefault(m => m.MethodName == method)
+                            var entry = Dto.MethodOutputs.FirstOrDefault(m => m.Method == method)
                                       ?? AddNewEntry(method);
+
                             <div class="d-flex gap-2 align-items-start mb-2">
                                 <span style="min-width:150px; padding-top:9px;">@method</span>
                                 <div class="flex-grow-1">
@@ -85,14 +86,14 @@
     [Parameter] public EventCallback OnCancel { get; set; }
 
     // Methods sind laut Spec auf diese zwei beschränkt und werden durch den DatabaseSeeder angelegt.
-    private static readonly string[] _allMethodNames = { "ph-Papier", "Flammenfärbung" };
+    private static readonly Method[] AllMethods = [Method.PhPaper, Method.FlameColoration];
 
     private string? _saveError;
     private bool _saving;
 
-    private MethodOutputEntry AddNewEntry(string methodName)
+    private MethodOutputEntry AddNewEntry(Method method)
     {
-        var entry = new MethodOutputEntry { MethodName = methodName, ColorName = "" };
+        var entry = new MethodOutputEntry { Method = method, ColorName = "" };
         Dto.MethodOutputs.Add(entry);
         return entry;
     }

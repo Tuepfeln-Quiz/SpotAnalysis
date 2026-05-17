@@ -6,6 +6,5 @@ public interface IChemistryDataService
 {
     Task<List<LabChemicalDto>> GetAllChemicalsAsync();
     Task<List<LabReactionDto>> GetAllReactionsAsync();
-    Task<List<MethodQuestionDto>> GetAllMethodsAsync();
     Task<List<ColorDto>> GetAllColorsAsync();
 }

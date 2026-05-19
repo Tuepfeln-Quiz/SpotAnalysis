@@ -1,46 +1,46 @@
 @page "/admin/{userId:guid}/edit"
+@using SpotAnalysis.Data.Models.Identity
 @rendermode InteractiveServer
-@using SpotAnalysis.Data.Enums
-@using SpotAnalysis.Services.DTOs
-@using SpotAnalysis.Services.Services
+
+@inject ISessionService SessionService;
 
 @attribute [Authorize(Roles = "Admin")]
 
 <AuthorizeView Roles="Admin">
     <NotAuthorized>
-        <PageTitle>Zugriff verweigert</PageTitle>
+        <PageTitle>Access denied</PageTitle>
 
         <div class="container py-4 flex-grow-1">
             <div class="alert alert-danger text-center" role="alert">
                 <i class="bi bi-x-circle me-2"></i>
-                Sie haben keinen Zugriff auf diesen Bereich.
+                You are not authorized to view this page.
             </div>
         </div>
     </NotAuthorized>
     <Authorized>
-        <PageTitle>Nutzer bearbeiten – Tüpfeln Digital</PageTitle>
+        <PageTitle>User editor</PageTitle>
 
         <div class="container py-4">
             <div class="d-flex justify-content-between align-items-center mb-3">
-                <h4 class="fw-bold mb-0">Nutzer bearbeiten</h4>
+                <h4 class="fw-bold mb-0">Edit user</h4>
             </div>
 
             @if (_user is null)
             {
-                <p class="text-muted">Laden...</p>
+                <p class="text-muted">Loading...</p>
             }
             else
             {
                 <div class="card-form">
                     <div class="mb-4">
-                        <label class="form-label-custom">Nutzername</label>
+                        <label class="form-label-custom">Username</label>
                         <input type="text" class="form-control input-custom"
                                value="@_user.UserName" readonly />
                     </div>
 
                     <div class="mb-4">
-                        <label class="form-label-custom">Rollen</label>
-                        <p class="hint-text">Bestimmt, welche Bereiche der Nutzer aufrufen darf</p>
+                        <label class="form-label-custom">Roles</label>
+                        <p class="hint-text">Determines which pages a user can visit</p>
                         <div class="d-flex flex-wrap gap-2">
                             @foreach (var role in _availableRoles)
                             {
@@ -55,15 +55,17 @@
                         </div>
                     </div>
 
+                    <SessionList Sessions="_sessions" Revoke="RevokeSession"/>
+
                     @if (_errorMessage is not null)
                     {
                         <div class="alert alert-danger">@_errorMessage</div>
                     }
 
                     <div class="d-flex gap-3 justify-content-end">
-                        <button class="btn btn-secondary" @onclick="NavigateBack">Abbrechen</button>
+                        <button class="btn btn-secondary" @onclick="NavigateBack">Cancel</button>
                         <button class="btn btn-primary-purple" @onclick="Update" disabled="@_saving">
-                            @(_saving ? "Speichern..." : "Aktualisieren")
+                            @(_saving ? "Saving..." : "Update")
                         </button>
                     </div>
                 </div>
@@ -75,12 +77,13 @@
 @code {
     [Parameter] public required Guid UserId { get; set; }
 
-    [Inject] private IAdminService AdminService { get; set; } = default!;
-    [Inject] private NavigationManager NavManager { get; set; } = default!;
+    [Inject] private IAdminService AdminService { get; set; } = null!;
+    [Inject] private NavigationManager NavManager { get; set; } = null!;
 
     private ConfigUserDto? _user;
     private bool _saving;
     private string? _errorMessage;
+    private List<Session> _sessions = [];
 
     private readonly List<AssignableRole> _availableRoles = Enum.GetValues<Role>()
         .Select(role => new AssignableRole { Role = role, IsAssigned = false })
@@ -89,12 +92,13 @@
     protected override async Task OnInitializedAsync()
     {
         var user = await AdminService.GetUser(UserId);
-        foreach (var role in user.Roles)
+        foreach (var slot in user.Roles.Select(role => _availableRoles.SingleOrDefault(x => x.Role == role)).OfType<AssignableRole>())
         {
-            var slot = _availableRoles.SingleOrDefault(x => x.Role == role);
-            if (slot is not null) slot.IsAssigned = true;
+            slot.IsAssigned = true;
         }
         _user = user;
+
+        await LoadSessions();
     }
 
     private async Task Update()
@@ -106,7 +110,7 @@
         var assigned = _availableRoles.Where(x => x.IsAssigned).Select(x => x.Role).ToList();
         if (assigned.Count == 0)
         {
-            _errorMessage = "Mindestens eine Rolle ist erforderlich.";
+            _errorMessage = "At least one role is required";
             return;
         }
 
@@ -134,6 +138,18 @@
         {
             _saving = false;
         }
+    }
+
+    private async Task LoadSessions()
+    {
+        var all = await SessionService.GetUserSessions(UserId);
+        _sessions = all.Where(s => s.Expiry > DateTime.UtcNow).OrderByDescending(s => s.StartTime).ToList();
+    }
+
+    private async Task RevokeSession(Guid sessionId)
+    {
+        await SessionService.InvalidateSession(sessionId);
+        await LoadSessions();
     }
 
     private void NavigateBack() => NavManager.NavigateTo("/admin/overview");

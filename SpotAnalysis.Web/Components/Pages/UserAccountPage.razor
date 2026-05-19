@@ -1,0 +1,57 @@
+@page "/user/account"
+@using SpotAnalysis.Data.Models.Identity
+@using SpotAnalysis.Web.Components.Auth
+@attribute [Authorize]
+@inject ISessionService SessionService
+
+<div class="container py-4" style="max-width: 720px;">
+    <h3 class="mb-4">My Account</h3>
+
+    <div class="card mb-3">
+        <div class="card-body">
+            <h5 class="card-title">Username</h5>
+            <p class="card-text fs-5"><strong>@_userName</strong></p>
+        </div>
+    </div>
+
+    <div class="card mb-3">
+        <div class="card-body">
+            <h5 class="card-title">Change Password</h5>
+            <ResetPassword UserId="_userId" UserName="@_userName"/>
+        </div>
+    </div>
+
+    <SessionList Sessions="_sessions" CurrentSession="_currentSessionId" Revoke="RevokeSession"/>
+</div>
+
+@code {
+    [CascadingParameter] private Task<AuthenticationState> AuthState { get; set; } = null!;
+
+    private Guid _userId;
+    private Guid _currentSessionId;
+    private string _userName = string.Empty;
+    private List<Session> _sessions = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        var auth = await AuthState;
+        _userId = Guid.Parse(auth.User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+        _userName = auth.User.FindFirst(ClaimTypes.Name)!.Value;
+        _currentSessionId = Guid.Parse(auth.User.FindFirst(ClaimTypes.Sid)!.Value);
+
+        await LoadSessions();
+    }
+
+    private async Task LoadSessions()
+    {
+        var all = await SessionService.GetUserSessions(_userId);
+        _sessions = all.Where(s => s.Expiry > DateTime.UtcNow).OrderByDescending(s => s.StartTime).ToList();
+    }
+
+    private async Task RevokeSession(Guid sessionId)
+    {
+        await SessionService.InvalidateSession(sessionId);
+        await LoadSessions();
+    }
+
+}

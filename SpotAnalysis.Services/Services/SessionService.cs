@@ -60,10 +60,10 @@ public class SessionService(ILogger<SessionService> logger, IDbContextFactory<An
     {
         await using var context = await factory.CreateDbContextAsync();
 
-        return await context.Sessions.AsNoTracking().OrderBy(s => s.SessionId).ToListAsync();
+        return await context.Sessions.AsNoTracking().OrderBy(s => s.User.UserName).ToListAsync();
     }
 
-    public async Task InvalidateForUser(Guid userId)
+    public async Task InvalidateAllForUser(Guid userId)
     {
         await using var context = await factory.CreateDbContextAsync();
 

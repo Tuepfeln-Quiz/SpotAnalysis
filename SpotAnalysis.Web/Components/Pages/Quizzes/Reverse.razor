@@ -15,13 +15,13 @@
                 <div class="d-flex align-items-center justify-content-center gap-3 mb-4">
                     <div
                         class="compound-card compound-card-static text-center chemical-@(chem1.Type.ToString().ToLowerInvariant())"
-                        style="border-color: @ColorHelper.GetBorderColor(chem1.Color.Name)">
+                        style="border-color: @chem1.Color.BorderColor">
                         <SubstanceCard Chemical="chem1" />
                     </div>
                     <span class="plus-symbol">+</span>
                     <div
                         class="compound-card compound-card-static text-center chemical-@(chem2.Type.ToString().ToLowerInvariant())"
-                        style="border-color: @ColorHelper.GetBorderColor(chem2.Color.Name)">
+                        style="border-color: @chem2.Color.BorderColor">
                         <SubstanceCard Chemical="chem2" />
                     </div>
                 </div>

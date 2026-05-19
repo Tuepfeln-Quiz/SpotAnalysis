@@ -27,7 +27,7 @@
                                 {
                                     <div
                                         class="compound-card chemical-@(_slot1.Type.ToString().ToLowerInvariant()) h-100"
-                                         style="border-color: @ColorHelper.GetBorderColor(_slot1.Color.Name)"
+                                        style="border-color: @_slot1.Color.BorderColor"
                                          draggable="true"
                                         @ondragstart="@(() =>
                                                       {
@@ -58,7 +58,7 @@
                                 {
                                     <div
                                         class="compound-card chemical-@(_slot2.Type.ToString().ToLowerInvariant()) h-100"
-                                         style="border-color: @ColorHelper.GetBorderColor(_slot2.Color.Name)"
+                                        style="border-color: @_slot2.Color.BorderColor"
                                          draggable="true"
                                         @ondragstart="@(() =>
                                                       {
@@ -162,7 +162,7 @@
                             @foreach (var chem in group)
                             {
                                 <div class="compound-card chemical-@(chem.Type.ToString().ToLowerInvariant())"
-                                     style="border-color: @ColorHelper.GetBorderColor(chem.Color.Name)"
+                                     style="border-color: @chem.Color.BorderColor"
                                      draggable="true"
                                      @ondragstart="@(() =>
                                                    {

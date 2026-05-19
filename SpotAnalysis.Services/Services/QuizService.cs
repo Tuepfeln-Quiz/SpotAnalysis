@@ -323,7 +323,8 @@ public class QuizService(ILogger<QuizService> logger, IDbContextFactory<Analysis
                         {
                             Id = ac.Chemical.Color.ColorId,
                             Name = ac.Chemical.Color.Name,
-                            HexValue = ac.Chemical.Color.HexValue
+                            HexValue = ac.Chemical.Color.HexValue,
+                            IsColorless = ac.Chemical.Color.IsColorless
                         },
                         Formula = ac.Chemical.Formula,
                         IsAdditive = ac.Chemical.Type == ChemicalType.Additive
@@ -668,13 +669,22 @@ public class QuizService(ILogger<QuizService> logger, IDbContextFactory<Analysis
                                     ac.Chemical.Type,
                                     Color = new
                                     {
-                                        ac.Chemical.Color.ColorId, ac.Chemical.Color.Name, ac.Chemical.Color.HexValue
+                                        ac.Chemical.Color.ColorId,
+                                        ac.Chemical.Color.Name,
+                                        ac.Chemical.Color.HexValue,
+                                        ac.Chemical.Color.IsColorless
                                     },
                                     MethodOutputs = ac.Chemical.MethodOutputs
                                         .Select(mo => new
                                         {
                                             mo.Method,
-                                            Color = new { mo.Color.ColorId, mo.Color.Name, mo.Color.HexValue }
+                                            Color = new
+                                            {
+                                                mo.Color.ColorId,
+                                                mo.Color.Name,
+                                                mo.Color.HexValue,
+                                                mo.Color.IsColorless
+                                            }
                                         }).ToList()
                                 }).ToList(),
                             AvailableAdditives = qq.Question.StQuestion.AvailableChemicals
@@ -689,13 +699,22 @@ public class QuizService(ILogger<QuizService> logger, IDbContextFactory<Analysis
                                     ac.Chemical.Type,
                                     Color = new
                                     {
-                                        ac.Chemical.Color.ColorId, ac.Chemical.Color.Name, ac.Chemical.Color.HexValue
+                                        ac.Chemical.Color.ColorId,
+                                        ac.Chemical.Color.Name,
+                                        ac.Chemical.Color.HexValue,
+                                        ac.Chemical.Color.IsColorless
                                     },
                                     MethodOutputs = ac.Chemical.MethodOutputs
                                         .Select(mo => new
                                         {
                                             mo.Method,
-                                            Color = new { mo.Color.ColorId, mo.Color.Name, mo.Color.HexValue }
+                                            Color = new
+                                            {
+                                                mo.Color.ColorId,
+                                                mo.Color.Name,
+                                                mo.Color.HexValue,
+                                                mo.Color.IsColorless
+                                            }
                                         }).ToList()
                                 }).ToList(),
                             AvailableMethods = qq.Question.StQuestion.AvailableMethods
@@ -712,12 +731,17 @@ public class QuizService(ILogger<QuizService> logger, IDbContextFactory<Analysis
                             {
                                 qq.Question.StlQuestion.ShownEduct.Color.ColorId,
                                 qq.Question.StlQuestion.ShownEduct.Color.Name,
-                                qq.Question.StlQuestion.ShownEduct.Color.HexValue
+                                qq.Question.StlQuestion.ShownEduct.Color.HexValue,
+                                qq.Question.StlQuestion.ShownEduct.Color.IsColorless
                             },
                             ShownEductMethodOutputs = qq.Question.StlQuestion.ShownEduct.MethodOutputs
                                 .Select(mo => new
                                 {
-                                    mo.Method, Color = new { mo.Color.ColorId, mo.Color.Name, mo.Color.HexValue }
+                                    mo.Method,
+                                    Color = new
+                                    {
+                                        mo.Color.ColorId, mo.Color.Name, mo.Color.HexValue, mo.Color.IsColorless
+                                    }
                                 })
                                 .ToList(),
                             Observation = qq.Question.StlQuestion.Reaction.Observation.Description,
@@ -763,12 +787,18 @@ public class QuizService(ILogger<QuizService> logger, IDbContextFactory<Analysis
                             Type = e.Type,
                             Color = new ColorDto
                             {
-                                Id = e.Color.ColorId, Name = e.Color.Name, HexValue = e.Color.HexValue
+                                Id = e.Color.ColorId,
+                                Name = e.Color.Name,
+                                HexValue = e.Color.HexValue,
+                                IsColorless = e.Color.IsColorless
                             },
                             MethodOutputs = e.MethodOutputs.ToDictionary(mo => mo.Method,
                                 mo => new ColorDto
                                 {
-                                    Id = mo.Color.ColorId, Name = mo.Color.Name, HexValue = mo.Color.HexValue
+                                    Id = mo.Color.ColorId,
+                                    Name = mo.Color.Name,
+                                    HexValue = mo.Color.HexValue,
+                                    IsColorless = mo.Color.IsColorless
                                 })
                         }).ToList(),
                         AvailableAdditives = q.SpotTest.AvailableAdditives.Select(e => new LabChemicalDto
@@ -780,12 +810,18 @@ public class QuizService(ILogger<QuizService> logger, IDbContextFactory<Analysis
                             Type = e.Type,
                             Color = new ColorDto
                             {
-                                Id = e.Color.ColorId, Name = e.Color.Name, HexValue = e.Color.HexValue
+                                Id = e.Color.ColorId,
+                                Name = e.Color.Name,
+                                HexValue = e.Color.HexValue,
+                                IsColorless = e.Color.IsColorless
                             },
                             MethodOutputs = e.MethodOutputs.ToDictionary(mo => mo.Method,
                                 mo => new ColorDto
                                 {
-                                    Id = mo.Color.ColorId, Name = mo.Color.Name, HexValue = mo.Color.HexValue
+                                    Id = mo.Color.ColorId,
+                                    Name = mo.Color.Name,
+                                    HexValue = mo.Color.HexValue,
+                                    IsColorless = mo.Color.IsColorless
                                 })
                         }).ToList(),
                         AvailableMethods = q.SpotTest.AvailableMethods.ToList()
@@ -805,7 +841,8 @@ public class QuizService(ILogger<QuizService> logger, IDbContextFactory<Analysis
                                     {
                                         Id = q.Light.ShownEductColor.ColorId,
                                         Name = q.Light.ShownEductColor.Name,
-                                        HexValue = q.Light.ShownEductColor.HexValue
+                                        HexValue = q.Light.ShownEductColor.HexValue,
+                                        IsColorless = q.Light.ShownEductColor.IsColorless
                                     },
                                 MethodInfo =
                                     q.Light.ShownEductMethodOutputs.Select(mo =>
@@ -817,7 +854,8 @@ public class QuizService(ILogger<QuizService> logger, IDbContextFactory<Analysis
                                                 {
                                                     Id = mo.Color.ColorId,
                                                     Name = mo.Color.Name,
-                                                    HexValue = mo.Color.HexValue
+                                                    HexValue = mo.Color.HexValue,
+                                                    IsColorless = mo.Color.IsColorless
                                                 }
                                         }).ToList()
                             },

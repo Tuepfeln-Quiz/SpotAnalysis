@@ -3,12 +3,16 @@ namespace SpotAnalysis.Data.Models;
 [Index(nameof(Name), IsUnique = true)]
 public class Color
 {
-    [Key] public int ColorId { get; set; }
+    [Key]
+    public int ColorId { get; set; }
 
-    [StringLength(128)] public required string Name { get; set; } = null!;
+    [StringLength(128)]
+    public required string Name { get; set; } = null!;
 
-    [StringLength(7)] public required string HexValue { get; set; } = null!;
+    [StringLength(7)]
+    public required string HexValue { get; set; } = null!;
 
+    public bool IsColorless { get; set; }
 
     public virtual ICollection<Chemical> Chemicals { get; set; } = [];
     public virtual ICollection<MethodOutput> MethodOutputs { get; set; } = [];

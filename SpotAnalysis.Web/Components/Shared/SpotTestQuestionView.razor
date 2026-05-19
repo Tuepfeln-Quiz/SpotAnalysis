@@ -20,11 +20,11 @@
                 {
                     var educt = Question.UnknownEducts[i];
                     var idx = i;
-                    var eigenfarbe = string.IsNullOrWhiteSpace(educt.Color.Name) ? null : educt.Color.Name;
-                    var phPaper = educt.MethodOutputs.GetValueOrDefault(Method.PhPaper)?.Name;
-                    var flame = educt.MethodOutputs.GetValueOrDefault(Method.FlameColoration)?.Name;
+                    var eigenfarbe = string.IsNullOrWhiteSpace(educt.Color.Name) ? null : educt.Color;
+                    var phPaper = educt.MethodOutputs.GetValueOrDefault(Method.PhPaper);
+                    var flame = educt.MethodOutputs.GetValueOrDefault(Method.FlameColoration);
 
-                    var borderColor = ColorHelper.GetBorderColor(eigenfarbe);
+                    var borderColor = eigenfarbe?.BorderColor ?? "transparent";
                     if (_hasChecked && _answerResults.TryGetValue(idx, out var correct))
                         borderColor = correct ? "#16a34a" : "#dc2626";
                     else if (_dragOverEductIndex == idx)
@@ -65,19 +65,19 @@
                         <div class="d-flex flex-wrap gap-2 mt-1">
                             @if (eigenfarbe != null)
                             {
-                                <small title="Own color" style="color: @ColorHelper.GetCssColor(eigenfarbe);"><strong>
-                                        <TestTubeIcon/> @eigenfarbe</strong></small>
+                                <small title="Own color" style="color: @eigenfarbe.HexValue;"><strong>
+                                        <TestTubeIcon/> @eigenfarbe.Name</strong></small>
                             }
                             @if (_revealedMethods.GetValueOrDefault(idx)?.Contains(Method.FlameColoration) == true && flame != null)
                             {
-                                <small title="Flame coloration" style="color: @ColorHelper.GetCssColor(flame);"><strong>
-                                        <FlameIcon/> @flame</strong></small>
+                                <small title="Flame coloration" style="color: @flame.HexValue;"><strong>
+                                        <FlameIcon/> @flame.Name</strong></small>
                             }
                             @if (_revealedMethods.GetValueOrDefault(idx)?.Contains(Method.PhPaper) == true && phPaper != null)
                             {
                                 <small title="pH paper coloration"
-                                       style="color: @ColorHelper.GetCssColor(phPaper);"><strong>
-                                        <PhPaperIcon/> @phPaper</strong></small>
+                                       style="color: @phPaper.HexValue;"><strong>
+                                        <PhPaperIcon/> @phPaper.Name</strong></small>
                             }
                         </div>
                     </div>
@@ -261,7 +261,7 @@
             @foreach (var chem in Question.AvailableAdditives)
             {
                 <div class="compound-card chemical-@(chem.Type.ToString().ToLowerInvariant())"
-                     style="border-color: @ColorHelper.GetBorderColor(chem.Color.Name); cursor: grab;"
+                     style="border-color: @chem.Color.BorderColor; cursor: grab;"
                      draggable="true"
                      @ondragstart="@(() => StartDragChemical(chem))">
                     <SubstanceCard Chemical="chem" />

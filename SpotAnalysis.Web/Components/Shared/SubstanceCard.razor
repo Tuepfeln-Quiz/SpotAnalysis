@@ -4,24 +4,27 @@
 </div>
 
 @{
-    var eigenfarbe = string.IsNullOrWhiteSpace(Chemical.Color?.Name) ? null : Chemical.Color.Name;
-    var flame = Chemical.MethodOutputs.GetValueOrDefault(Method.FlameColoration)?.Name;
-    var phPaper = Chemical.MethodOutputs.GetValueOrDefault(Method.PhPaper)?.Name;
+    var eigenfarbe = string.IsNullOrWhiteSpace(Chemical.Color?.Name) ? null : Chemical.Color;
+    var flame = Chemical.MethodOutputs.GetValueOrDefault(Method.FlameColoration);
+    var phPaper = Chemical.MethodOutputs.GetValueOrDefault(Method.PhPaper);
 }
 @if (eigenfarbe != null || flame != null || phPaper != null)
 {
     <div class="d-flex flex-wrap gap-2 mt-1">
         @if (eigenfarbe != null)
         {
-            <small title="Eigenfarbe" style="color: @ColorHelper.GetCssColor(eigenfarbe);"><strong><TestTubeIcon /> @eigenfarbe</strong></small>
+            <small title="Eigenfarbe" style="color: @eigenfarbe.HexValue;"><strong>
+                    <TestTubeIcon/> @eigenfarbe.Name</strong></small>
         }
         @if (flame != null)
         {
-            <small title="Flammenfärbung" style="color: @ColorHelper.GetCssColor(flame);"><strong><FlameIcon /> @flame</strong></small>
+            <small title="Flammenfärbung" style="color: @flame.HexValue;"><strong>
+                    <FlameIcon/> @flame.Name</strong></small>
         }
         @if (phPaper != null)
         {
-            <small title="pH-Papier Färbung" style="color: @ColorHelper.GetCssColor(phPaper);"><strong><PhPaperIcon /> @phPaper</strong></small>
+            <small title="pH-Papier Färbung" style="color: @phPaper.HexValue;"><strong>
+                    <PhPaperIcon/> @phPaper.Name</strong></small>
         }
     </div>
 }

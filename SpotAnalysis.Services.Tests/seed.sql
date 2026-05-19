@@ -7,12 +7,6 @@ VALUES
     ('Schueler2', 'f01c1e4f-c5e0-4f77-a3b3-f59f8b837553', '$argon2id$v=19$m=4096,t=4,p=4$Tx4c8ODFd0+js/Wfi4N1Uw==$H8mXKG+MXA0AiR2yMVIGf114j+eetQZqjF5KC+H1hgY=', ARRAY[2])
 ON CONFLICT ("UserId") DO NOTHING;
 
-INSERT INTO "Methods" ("MethodId", "Name")
-VALUES
-    (1, 'ph-Papier'),
-    (2, 'Flammenfärbung')
-ON CONFLICT ("MethodId") DO NOTHING;
-
 INSERT INTO "Colors" ("ColorId", "Name", "HexValue")
 VALUES (1, 'farblos', '#DDDDDD'),
        (2, 'silbrig', '#C0C0C0'),
@@ -138,10 +132,10 @@ VALUES (1, 0, 'Silber(I)nitrat', 'AgNO3', 1),
        (4, 1, 'Salzsäure', 'HCl', 4)
 ON CONFLICT ("ChemicalId") DO NOTHING;
 
-INSERT INTO "MethodOutputs" ("ChemicalId", "MethodId", "ColorId")
+INSERT INTO "MethodOutputs" ("ChemicalId", "Method", "ColorId")
 VALUES (3, 1, 5),
        (3, 2, 6)
-ON CONFLICT ("ChemicalId", "MethodId") DO NOTHING;
+ON CONFLICT ("ChemicalId", "Method") DO NOTHING;
 
 INSERT INTO "Observations" ("ObservationId", "Description")
 VALUES
@@ -160,7 +154,6 @@ ON CONFLICT ("ReactionId") DO NOTHING;
 -- DO-Block + PERFORM, damit ExecuteSqlRawAsync nicht über den SELECT-Return-Wert stolpert.
 DO $$
 BEGIN
-    PERFORM setval('"Methods_MethodId_seq"', (SELECT COALESCE(MAX("MethodId"), 0) FROM "Methods"));
     PERFORM setval('"Chemicals_ChemicalId_seq"', (SELECT COALESCE(MAX("ChemicalId"), 0) FROM "Chemicals"));
     PERFORM setval('"Colors_ColorId_seq"', (SELECT COALESCE(MAX("ColorId"), 0) FROM "Colors"));
     PERFORM setval('"Observations_ObservationId_seq"', (SELECT COALESCE(MAX("ObservationId"), 0) FROM "Observations"));

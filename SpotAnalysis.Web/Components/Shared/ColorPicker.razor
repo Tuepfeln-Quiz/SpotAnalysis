@@ -1,5 +1,3 @@
-@using SpotAnalysis.Web.Helpers
-
 <div class="color-picker position-relative" @onclick:stopPropagation="true">
     <div class="d-flex gap-2 align-items-center">
         <button type="button"
@@ -51,7 +49,7 @@
 
 @code {
     [Parameter] public string? Value { get; set; }
-    [Parameter] public EventCallback<string?> ValueChanged { get; set; }
+    [Parameter] public EventCallback<string> ValueChanged { get; set; }
     [Parameter] public string? Placeholder { get; set; }
 
     private bool _open;

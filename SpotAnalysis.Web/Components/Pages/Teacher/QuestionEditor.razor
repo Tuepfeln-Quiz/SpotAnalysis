@@ -105,8 +105,8 @@
                         @foreach (var method in _selectedMethods)
                         {
                             <span class="tag tag-method">
-                                @method.Name
-                                <span class="tag-remove" @onclick="() => RemoveMethod(method.Id)">✕</span>
+                                @method.ToString()
+                                <span class="tag-remove" @onclick="() => RemoveMethod(method)">✕</span>
                             </span>
                         }
                     </div>
@@ -114,9 +114,9 @@
                             value=""
                             @onchange="OnMethodSelected">
                         <option value="">+ Methode hinzufügen...</option>
-                        @foreach (var method in _allMethods.Where(m => !_selectedMethods.Any(s => s.Id == m.Id)))
+                        @foreach (var method in _allMethods.Where(m => _selectedMethods.All(s => s != m)))
                         {
-                            <option value="@method.Id">@method.Name</option>
+                            <option value="@((int)method)">@method.ToString()</option>
                         }
                     </select>
                 </div>
@@ -224,13 +224,13 @@
 
     // SpotTest state
     private record ChemicalItem(int Id, string Name, string Formula, string Color);
-    private record MethodItem(int Id, string Name);
+
     private List<ChemicalItem> _eductsAvailable = new();
     private List<ChemicalItem> _additivesAvailable = new();
-    private List<MethodItem> _allMethods = new();
+    private List<Method> _allMethods = new();
     private List<ChemicalItem> _selectedEducts = new();
     private List<ChemicalItem> _selectedAdditives = new();
-    private List<MethodItem> _selectedMethods = new();
+    private List<Method> _selectedMethods = new();
 
     // Light state
     private List<LabReactionDto> _allReactions = new();
@@ -256,18 +256,17 @@
         var chemicals = await ChemistryData.GetAllChemicalsAsync();
         _eductsAvailable = chemicals
             .Where(c => c.Type == ChemicalType.Educt)
-            .Select(c => new ChemicalItem(c.ChemicalID, c.Name, c.Formula, "#9ca3af"))
+            .Select(c => new ChemicalItem(c.ChemicalId, c.Name, c.Formula, "#9ca3af"))
             .ToList();
         _additivesAvailable = chemicals
             .Where(c => c.Type == ChemicalType.Additive)
-            .Select(c => new ChemicalItem(c.ChemicalID, c.Name, c.Formula, "#60a5fa"))
+            .Select(c => new ChemicalItem(c.ChemicalId, c.Name, c.Formula, "#60a5fa"))
             .ToList();
 
         var reactions = await ChemistryData.GetAllReactionsAsync();
         _allReactions = reactions;
 
-        var methods = await ChemistryData.GetAllMethodsAsync();
-        _allMethods = methods.Select(m => new MethodItem(m.Id, m.Name)).ToList();
+        _allMethods = [Method.PhPaper, Method.FlameColoration];
 
         if (_isEdit)
         {
@@ -292,9 +291,7 @@
                 .Where(c => c.IsAdditive)
                 .Select(c => new ChemicalItem(c.Id, c.Name, c.Formula, c.Color.Name))
                 .ToList();
-            _selectedMethods = detail.Methods
-                .Select(m => new MethodItem(m.Id, m.Name))
-                .ToList();
+            _selectedMethods = detail.Methods.ToList();
         }
         else
         {
@@ -329,8 +326,8 @@
     {
         if (int.TryParse(e.Value?.ToString(), out var id))
         {
-            var method = _allMethods.FirstOrDefault(m => m.Id == id);
-            if (method is not null) _selectedMethods.Add(method);
+            var method = _allMethods.FirstOrDefault(m => (int)m == id);
+            _selectedMethods.Add(method);
         }
     }
 
@@ -342,7 +339,7 @@
 
     private void RemoveEduct(int id) => _selectedEducts.RemoveAll(c => c.Id == id);
     private void RemoveAdditive(int id) => _selectedAdditives.RemoveAll(c => c.Id == id);
-    private void RemoveMethod(int id) => _selectedMethods.RemoveAll(m => m.Id == id);
+    private void RemoveMethod(Method id) => _selectedMethods.RemoveAll(m => m == id);
     private void RemoveDistractor(int id) => _selectedDistractors.Remove(id);
 
     private void Cancel() => Navigation.NavigateTo("/teacher/questions");
@@ -372,12 +369,12 @@
                     .Concat(_selectedAdditives.Select(c => c.Id))
                     .ToList();
 
-                var dto = new ConfigSTQuestionDto
+                var dto = new ConfigStQuestionDto
                 {
                     Id = _isEdit ? QuestionId : null,
                     Description = _description,
                     AvailableChemicals = allChemicalIds,
-                    AvailableMethods = _selectedMethods.Select(m => m.Id).ToList(),
+                    AvailableMethods = _selectedMethods.ToList(),
                     Title = _title
                 };
 

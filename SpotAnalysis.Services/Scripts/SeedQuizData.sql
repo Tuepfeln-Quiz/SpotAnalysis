@@ -226,7 +226,7 @@ BEGIN
         (8, 2, 0), (8, 3, 1), (8, 5, 2), (8, 6, 3), (8, 8, 4), (8, 9, 5);
 
     -- StAvailableMethods: pH-Papier=1, Flammenfaerbung=2
-    INSERT INTO "StAvailableMethods" ("QuestionId", "MethodId")
+    INSERT INTO "StAvailableMethods" ("QuestionId", "Method")
     VALUES
         (6, 1), (6, 2),
         (7, 1), (7, 2),
@@ -265,7 +265,7 @@ BEGIN
     VALUES
         (10, 5, 0), (10, 3, 1), (10, 8, 2), (10, 9, 3);
 
-    INSERT INTO "StAvailableMethods" ("QuestionId", "MethodId")
+    INSERT INTO "StAvailableMethods" ("QuestionId", "Method")
     VALUES
         (10, 1), (10, 2);
 

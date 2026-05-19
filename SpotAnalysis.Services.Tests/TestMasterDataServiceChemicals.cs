@@ -25,7 +25,7 @@ public class TestMasterDataServiceChemicals : BaseDatabaseTest
         Assert.That(feCl3, Is.Not.Null);
         Assert.That(feCl3!.Type, Is.EqualTo(ChemicalType.Educt));
         Assert.That(feCl3.ColorName, Is.EqualTo("orange"));
-        Assert.That(feCl3.MethodOutputs.Any(mo => mo.MethodName == "ph-Papier" && mo.ColorName == "rot"), Is.True);
+        Assert.That(feCl3.MethodOutputs.Any(mo => mo.Method == Method.PhPaper && mo.ColorName == "rot"), Is.True);
     }
 
     [Test]
@@ -63,7 +63,7 @@ public class TestMasterDataServiceChemicals : BaseDatabaseTest
             Formula = "TS",
             ColorName = "grün",
             Type = ChemicalType.Educt,
-            MethodOutputs = new() { new MethodOutputEntry { MethodName = "ph-Papier", ColorName = "gelb" } }
+            MethodOutputs = new() { new MethodOutputEntry { Method = Method.PhPaper, ColorName = "gelb" } }
         };
 
         var id = await service.CreateChemicalAsync(dto);
@@ -71,7 +71,7 @@ public class TestMasterDataServiceChemicals : BaseDatabaseTest
         Assert.That(id, Is.GreaterThan(0));
         var result = await service.GetChemicalByIdAsync(id);
         Assert.That(result!.Name, Is.EqualTo("Testsubstanz"));
-        Assert.That(result.MethodOutputs.Any(mo => mo.MethodName == "ph-Papier" && mo.ColorName == "gelb"), Is.True);
+        Assert.That(result.MethodOutputs.Any(mo => mo.Method == Method.PhPaper && mo.ColorName == "gelb"), Is.True);
     }
 
     [Test]
@@ -99,7 +99,7 @@ public class TestMasterDataServiceChemicals : BaseDatabaseTest
         var dto = await service.GetChemicalByIdAsync(existing.ChemicalId);
         dto!.ColorName = "rotbraun";
         dto.ColorId = 0;
-        var phPaper = dto.MethodOutputs.First(mo => mo.MethodName == "ph-Papier");
+        var phPaper = dto.MethodOutputs.First(mo => mo.Method == Method.PhPaper);
         phPaper.ColorName = "hellrot";
         phPaper.ColorId = 0;
 
@@ -107,7 +107,7 @@ public class TestMasterDataServiceChemicals : BaseDatabaseTest
 
         var reloaded = await service.GetChemicalByIdAsync(existing.ChemicalId);
         Assert.That(reloaded!.ColorName, Is.EqualTo("rotbraun"));
-        Assert.That(reloaded.MethodOutputs.First(mo => mo.MethodName == "ph-Papier").ColorName,
+        Assert.That(reloaded.MethodOutputs.First(mo => mo.Method == Method.PhPaper).ColorName,
             Is.EqualTo("hellrot"));
     }
 
@@ -135,14 +135,14 @@ public class TestMasterDataServiceChemicals : BaseDatabaseTest
         var existing = await context.Chemicals.FirstAsync(c => c.Name == "Eisen(III)chlorid");
 
         var dto = await service.GetChemicalByIdAsync(existing.ChemicalId);
-        var phPaper = dto!.MethodOutputs.First(mo => mo.MethodName == "ph-Papier");
+        var phPaper = dto!.MethodOutputs.First(mo => mo.Method == Method.PhPaper);
         phPaper.ColorName = "";
         phPaper.ColorId = 0;
 
         await service.UpdateChemicalAsync(dto);
 
         var reloaded = await service.GetChemicalByIdAsync(existing.ChemicalId);
-        Assert.That(reloaded!.MethodOutputs.Any(mo => mo.MethodName == "ph-Papier"), Is.False);
+        Assert.That(reloaded!.MethodOutputs.Any(mo => mo.Method == Method.PhPaper), Is.False);
     }
 
     // ── Delete ──────────────────────────────────────────────────────

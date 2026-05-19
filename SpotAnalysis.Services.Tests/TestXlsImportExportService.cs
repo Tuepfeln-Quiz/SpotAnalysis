@@ -54,35 +54,25 @@ public class TestXlsImportExportService : BaseDatabaseTest
     }
 
     [Test, Order(2)]
-    public async Task Import_CreatesMethods()
-    {
-        var context = ContextFactory.CreateDbContext();
-
-        var methods = await context.Methods.ToListAsync();
-        Assert.That(methods.Select(m => m.Name),
-            Is.SupersetOf(Educt.MethodNames));
-    }
-
-    [Test, Order(2)]
     public async Task Import_CreatesMethodOutputs()
     {
-        var context = ContextFactory.CreateDbContext();
+        var context = await ContextFactory.CreateDbContextAsync();
 
         var feCl3 = await context.Chemicals
             .Include(c => c.Color)
-            .Include(c => c.MethodOutputs).ThenInclude(mo => mo.Method)
+            .Include(c => c.MethodOutputs)
             .Include(c => c.MethodOutputs).ThenInclude(mo => mo.Color)
             .FirstAsync(c => c.Name == "Eisen(III)chlorid");
 
         Assert.That(feCl3.Color.Name, Is.EqualTo("orange"));
 
-        Assert.That(feCl3.MethodOutputs.Any(mo => mo.Method.Name == "Eigenfarbe"), Is.False,
+        Assert.That(feCl3.MethodOutputs.Any(mo => mo.Method.ToString() == "Eigenfarbe"), Is.False,
             "Eigenfarbe darf nicht mehr als MethodOutput importiert werden");
 
-        var phPapier = feCl3.MethodOutputs.First(mo => mo.Method.Name == "ph-Papier");
+        var phPapier = feCl3.MethodOutputs.First(mo => mo.Method == Method.PhPaper);
         Assert.That(phPapier.Color.Name, Is.EqualTo("rot"));
 
-        var flamme = feCl3.MethodOutputs.First(mo => mo.Method.Name == "Flammenfärbung");
+        var flamme = feCl3.MethodOutputs.First(mo => mo.Method == Method.FlameColoration);
         Assert.That(flamme.Color.Name, Is.EqualTo("keine"));
     }
 

@@ -13,14 +13,17 @@ public class QuestionDetailDto
     /// ST specific
     /// </summary>
     public List<ChemicalQuestionDto> Chemicals { get; init; } = [];
+
     /// <summary>
     /// ST specific
     /// </summary>
-    public List<MethodQuestionDto> Methods { get; init; } = [];
+    public List<Method> Methods { get; init; } = [];
+
     /// <summary>
     /// STL specific
     /// </summary>
     public int ReactionId { get; init; }
+
     /// <summary>
     /// STL specific
     /// </summary>

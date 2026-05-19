@@ -1,7 +1,9 @@
+using SpotAnalysis.Data.Enums;
+
 namespace SpotAnalysis.Services.DTOs;
 
 public class MethodInfoDto
 {
-    public required string Name { get; init; }
+    public required Method Method { get; init; }
     public required ColorDto Color { get; init; }
 }

@@ -135,7 +135,7 @@ else
         ColorId = src.ColorId, ColorName = src.ColorName,
         Type = src.Type, ImagePath = src.ImagePath,
         MethodOutputs = src.MethodOutputs
-            .Select(m => new MethodOutputEntry { MethodId = m.MethodId, MethodName = m.MethodName, ColorId = m.ColorId, ColorName = m.ColorName })
+            .Select(m => new MethodOutputEntry { Method = m.Method, ColorId = m.ColorId, ColorName = m.ColorName })
             .ToList(),
         References = src.References
     };

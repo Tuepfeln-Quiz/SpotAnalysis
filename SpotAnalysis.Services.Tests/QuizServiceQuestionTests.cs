@@ -43,12 +43,6 @@ public class QuizServiceQuestionTests : BaseDatabaseTest
         _chemical1Id = chem1.ChemicalId;
         _chemical2Id = chem2.ChemicalId;
 
-        // Seed method
-        var method = new Method { Name = "TestMethod" };
-        await dbContext.Methods.AddAsync(method);
-        await dbContext.SaveChangesAsync();
-        _methodId = method.MethodId;
-
         // Seed observations and reactions (Reaction requires Chemical1, Chemical2, Observation)
         var obs1 = new Observation { Description = "Obs1" };
         var obs2 = new Observation { Description = "Obs2" };
@@ -82,7 +76,7 @@ public class QuizServiceQuestionTests : BaseDatabaseTest
 
     private int _chemical1Id;
     private int _chemical2Id;
-    private int _methodId;
+
     private int _reaction1Id;
     private int _reaction2Id;
     private int _reaction3Id;
@@ -99,11 +93,11 @@ public class QuizServiceQuestionTests : BaseDatabaseTest
     [Test]
     public async Task CreateSTQuestion_CreatesQuestionWithChemicalsAndMethods()
     {
-        var dto = new ConfigSTQuestionDto
+        var dto = new ConfigStQuestionDto
         {
             Description = "Test ST Question",
             AvailableChemicals = new List<int> { _chemical1Id, _chemical2Id },
-            AvailableMethods = new List<int> { _methodId },
+            AvailableMethods = new List<Method> { Method.FlameColoration },
             Title = "HohohoTitle"
         };
 
@@ -143,11 +137,11 @@ public class QuizServiceQuestionTests : BaseDatabaseTest
     {
         // Create a question
         await _quizService.CreateSTQuestion(SeededTeacherId,
-            new ConfigSTQuestionDto
+            new ConfigStQuestionDto
             {
                 Description = "Question to protect",
                 AvailableChemicals = new List<int> { _chemical1Id },
-                AvailableMethods = new List<int> { _methodId },
+                AvailableMethods = new List<Method> { Method.FlameColoration },
                 Title = "HohohoTitle"
             });
 
@@ -170,11 +164,11 @@ public class QuizServiceQuestionTests : BaseDatabaseTest
     public async Task DeleteQuestion_WhenNotUsed_DeletesSuccessfully()
     {
         await _quizService.CreateSTQuestion(SeededTeacherId,
-            new ConfigSTQuestionDto
+            new ConfigStQuestionDto
             {
                 Description = "Question to delete",
                 AvailableChemicals = new List<int> { _chemical1Id },
-                AvailableMethods = new List<int> { _methodId },
+                AvailableMethods = new List<Method> { Method.FlameColoration },
                 Title = "HohohoTitle"
             });
 

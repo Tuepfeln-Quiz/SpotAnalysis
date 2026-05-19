@@ -5,8 +5,8 @@
 
 @{
     var eigenfarbe = string.IsNullOrWhiteSpace(Chemical.Color?.Name) ? null : Chemical.Color.Name;
-    var flame = Chemical.MethodOutputs.GetValueOrDefault("Flammenfärbung")?.Name;
-    var phPaper = Chemical.MethodOutputs.GetValueOrDefault("pH-Papier")?.Name;
+    var flame = Chemical.MethodOutputs.GetValueOrDefault(Method.FlameColoration)?.Name;
+    var phPaper = Chemical.MethodOutputs.GetValueOrDefault(Method.PhPaper)?.Name;
 }
 @if (eigenfarbe != null || flame != null || phPaper != null)
 {

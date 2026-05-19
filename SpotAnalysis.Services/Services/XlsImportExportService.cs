@@ -13,6 +13,11 @@ namespace SpotAnalysis.Services.Services;
 
 public class XlsImportExportService : IXlsImportExportService
 {
+    private static readonly Dictionary<string, Method> MethodsByName = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ["ph-Papier"] = Method.PhPaper, ["Flammenfärbung"] = Method.FlameColoration,
+    };
+
     private readonly AnalysisContext _context;
 
     public XlsImportExportService(AnalysisContext context)
@@ -65,8 +70,7 @@ public class XlsImportExportService : IXlsImportExportService
         var combinations = reader.ReadSheet<Combination>();
 
         var colors = await _context.Colors.ToDictionaryAsync(c => c.Name, StringComparer.OrdinalIgnoreCase);
-        var methods = await UpsertMethodsAsync();
-        var chemicals = await UpsertEductsAsync(educts, methods, colors, result);
+        var chemicals = await UpsertEductsAsync(educts, MethodsByName, colors, result);
         var additiveChemicals = await UpsertAdditivesAsync(additives, colors, result);
 
         foreach (var kvp in additiveChemicals)
@@ -88,27 +92,6 @@ public class XlsImportExportService : IXlsImportExportService
         await _context.SaveChangesAsync();
         colors[colorName] = color;
         return color;
-    }
-
-    private async Task<Dictionary<string, Method>> UpsertMethodsAsync()
-    {
-        var methodNames = Educt.MethodNames;
-        var existing = await _context.Methods
-            .Where(m => methodNames.Contains(m.Name))
-            .ToDictionaryAsync(m => m.Name);
-
-        foreach (var name in methodNames)
-        {
-            if (!existing.ContainsKey(name))
-            {
-                var method = new Method { Name = name };
-                _context.Methods.Add(method);
-                existing[name] = method;
-            }
-        }
-
-        await _context.SaveChangesAsync();
-        return existing;
     }
 
     private async Task<Dictionary<string, Chemical>> UpsertEductsAsync(
@@ -250,7 +233,7 @@ public class XlsImportExportService : IXlsImportExportService
 
         var color = await ResolveColorAsync(colorName, colors);
         var existing = chemical.MethodOutputs
-            .FirstOrDefault(mo => mo.MethodId == method.MethodId);
+            .FirstOrDefault(mo => mo.Method == method);
 
         if (existing != null)
         {
@@ -262,11 +245,7 @@ public class XlsImportExportService : IXlsImportExportService
 
         chemical.MethodOutputs.Add(new MethodOutput
         {
-            ChemicalId = chemical.ChemicalId,
-            MethodId = method.MethodId,
-            ColorId = color.ColorId,
-            Chemical = chemical,
-            Method = method
+            ChemicalId = chemical.ChemicalId, Method = method, ColorId = color.ColorId, Chemical = chemical,
         });
         return true;
     }
@@ -383,7 +362,7 @@ public class XlsImportExportService : IXlsImportExportService
 
     private async Task<(List<Educt>, List<Additive>, List<Combination>)> BuildExportDtosAsync()
     {
-        var methods = await _context.Methods.ToDictionaryAsync(m => m.Name);
+        var methods = MethodsByName;
 
         var allChemicals = await _context.Chemicals
             .Include(c => c.Color)
@@ -445,7 +424,7 @@ public class XlsImportExportService : IXlsImportExportService
                 continue;
 
             var color = chemical.MethodOutputs
-                .FirstOrDefault(mo => mo.MethodId == method.MethodId)?.Color.Name;
+                .FirstOrDefault(mo => mo.Method == method)?.Color.Name;
             prop.SetValue(educt, color);
         }
     }

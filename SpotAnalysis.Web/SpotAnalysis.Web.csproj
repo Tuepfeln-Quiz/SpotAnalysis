@@ -12,11 +12,11 @@
 		<!-- Wird von den EF Core CLI-Tools benötigt, wenn dieses Projekt als startup-project verwendet wird.
          Siehe SpotAnalysis.Data/EF-MIGRATIONS.md für die Migration-Befehle. -->
         <PackageReference Include="Microsoft.Web.LibraryManager.Build" Version="3.0.71"/>
-		<PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.6">
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.9">
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
-		<PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.1" />
+		<PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.2" />
 		<PackageReference Include="Serilog.AspNetCore" Version="10.0.0" />
 		<PackageReference Include="Serilog.Settings.Configuration" Version="10.0.0" />
 		<PackageReference Include="Serilog.Sinks.Console" Version="6.1.1" />
